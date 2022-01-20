@@ -1,5 +1,6 @@
 stages:
     - build
+    - test
 
 create_badge_svg:
   stage: build
@@ -17,3 +18,15 @@ create_badge_svg:
         - commits.svg
     when: always
     expire_in: 4 weeks
+
+run tests:
+  stage: test
+  image: python:3.9
+  script:
+    - pip install pytest pytest-cov
+    - coverage run -m pytest #--source=test
+    - coverage report
+    - coverage xml
+  artifacts:
+    reports:
+      cobertura: coverage.xml
