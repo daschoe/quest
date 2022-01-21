@@ -1,6 +1,6 @@
 stages:
     - build
-    - test
+    #- test
 
 build_badges:
   stage: build
@@ -8,6 +8,7 @@ build_badges:
   before_script:
     - apt-get update -qy
     - pip install anybadge
+    - pip install github-cli
     - chmod +x get-updated-badge-info.sh
   script:
     - echo "Some script to build your code"
