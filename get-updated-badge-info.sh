@@ -1,6 +1,7 @@
 #!/bin/bash
 
 echo "Collecting stats for badges..."
+echo  gh issue list
 
 commits=$(git rev-list --all --count)
 
