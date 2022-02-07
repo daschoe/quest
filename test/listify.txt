@@ -1,0 +1,7 @@
+[Page 1]
+[[Question 1]]
+answers = answer
+button_texts = button
+header = head
+label = label
+questions = quest

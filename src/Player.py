@@ -1,0 +1,298 @@
+"""
+Audio/Video Player Control
+"""
+import datetime
+from time import time
+
+from PyQt5.QtCore import QTimer, QObject
+from PyQt5.QtWidgets import QWidget, QPushButton, QHBoxLayout, QStyle
+
+from src.PupilCoreButton import Button
+
+
+class Player(QWidget):
+    """Multi-Media player unit.
+
+    Attributes
+    ----------
+    start_cue : int
+        cue/marker number on which to start playing (e.g. in REAPER)
+    track : int or list<int>
+        active tracks (e.g. in REAPER)
+    video : str, optional
+        filename+path to the video which should be played.
+    qid : str
+        id of the question
+    parent : QObject, optional
+        widget/layout this widget is embedded in
+    end_cue : int, optional
+        cue/marker on which to stop playing (e.g. in REAPER); might be removed in future versions
+    displayed_buttons : list<str>, default=["Play", "Pause", "Stop"]
+        list of buttons which should be displayed
+    icons : bool, optional, default=False
+        if True, icons according to the functionality are displayed on the buttons
+    pupil : str, optional
+        annotation text to send to Pupil Core when the play button is clicked
+    objectname : str, optional
+        name of the object, if it is supposed to be styled individually
+    timer : int, optional
+        time in msec after which succeeding questions on the page are displayed
+    play_button_text : str, optional
+        alternate text for the play button
+    """
+
+    def __init__(self, start_cue, track, qid, video=None, parent=None, end_cue=None,
+                 displayed_buttons=["Play", "Pause", "Stop"], icons=False, pupil=None, objectname=None, timer=None,
+                 play_button_text=None, play_once=False):
+        """Create the layout of the player.
+
+        Parameters
+        ----------
+        start_cue : int
+            cue/marker number on which to start playing (e.g. in REAPER)
+        track : int or list of int
+            active tracks (e.g. in REAPER)
+        video : str, optional
+            filename+path to the video which should be played.
+        qid : str
+            id of the question
+        parent : QObject, optional
+            widget/layout this widget is embedded in
+        end_cue : int, optional
+            cue/marker on which to stop playing (e.g. in REAPER); might be removed in future versions
+        displayed_buttons : list of str, default=["Play", "Pause", "Stop"]
+            list of buttons which should be displayed
+        icons : bool, optional, default=False
+            if True, icons according to the functionality are displayed on the buttons
+        pupil : str, optional
+            annotation text to send to Pupil Core when the play button is clicked
+        objectname : str, optional
+            name of the object, if it is supposed to be styled individually
+        timer : int, optional
+            time in msec after which succeeding questions on the page are displayed
+        play_button_text : str, optional
+            alternate text for the play button
+        play_once : bool, default=False
+            if True makes it possible to play the stimuli only one tme
+        """
+        QWidget.__init__(self, parent=parent)
+        self.audio_client = self.parent().parent().audio_client
+        self.audio_tracks = self.parent().parent().audio_tracks
+        self.video_client = self.parent().parent().video_client
+        if pupil is not None and not self.parent().parent().preview:
+            self.pupil_func = Button(None, "Annotate", parent, qid)
+            self.pupil_message = pupil
+        else:
+            self.pupil_func = None
+
+        self.button_fade = self.parent().parent().button_fade
+
+        self.play_once = play_once
+
+        if objectname is not None:
+            self.setObjectName(objectname)
+            self.name = objectname
+        else:
+            self.name = None
+        self.id = qid
+        self.start_cue = start_cue
+        self.end_cue = end_cue
+        if timer is not None:
+            self.countdown = int(timer)
+            self.timer = QTimer()
+            self.timer.timeout.connect(self.timer_done)
+        else:
+            self.timer = None
+        if type(displayed_buttons) is str:
+            self.buttons = [displayed_buttons]  # to support just one button
+        else:
+            self.buttons = displayed_buttons
+        if type(track) is str:
+            track = [int(track)]
+        else:
+            for t in range(0, len(track)):
+                track[t] = int(track[t])
+        self.track = track
+        self.video = video
+        self.start = 0
+        self.end = 0
+        self.duration = []
+        self.playing = False
+        self.paused = False
+        layout = QHBoxLayout()
+        if "Play" in self.buttons:
+            self.play_button = QPushButton("Play" if play_button_text is None else play_button_text, None)
+            if icons:
+                self.play_button.setIcon(self.style().standardIcon(QStyle.SP_MediaPlay))
+            self.play_button.setEnabled(True)
+            self.play_button.clicked.connect(self.play)
+            self.play_button.clicked.connect(self.__click_animation)
+            self.play_button.setObjectName(self.objectName())
+            layout.addWidget(self.play_button)
+        if "Pause" in self.buttons:
+            self.pause_button = QPushButton("Pause", None)
+            if icons:
+                self.pause_button.setIcon(self.style().standardIcon(QStyle.SP_MediaPause))
+            self.pause_button.setEnabled(False)
+            self.pause_button.setCheckable(True)
+            self.pause_button.clicked.connect(self.pause)
+            self.pause_button.setObjectName(self.objectName())
+            layout.addWidget(self.pause_button)
+        if "Stop" in self.buttons:
+            self.stop_button = QPushButton("Stop", None)
+            if icons:
+                self.stop_button.setIcon(self.style().standardIcon(QStyle.SP_MediaStop))
+            self.stop_button.setEnabled(False)
+            self.stop_button.clicked.connect(self.stop)
+            self.stop_button.setObjectName(self.objectName())
+            layout.addWidget(self.stop_button)
+        self.setLayout(layout)
+
+    def __click_animation(self):
+        __btn = self.sender()
+        if not self.play_once:
+            __btn.setDown(True)
+            QTimer.singleShot(self.button_fade, lambda: __btn.setDown(False))
+
+    def play(self):
+        """Start the playback of audio (and video) of the stimulus."""
+        for player in (self.parent().players if str(type(self.parent())) == "<class 'src.Page.Page'>" else self.parent().parent().players):
+            if player.playing and not player == self:
+                player.stop()
+                if (self.video is not None) and (self.video_client is not None):
+                    self.video_client.send_message("/vlc_stop", self.video)
+        if "Stop" in self.buttons:
+            self.stop_button.setEnabled(True)
+        if "Pause" in self.buttons:
+            self.pause_button.setEnabled(True)
+            self.pause_button.setChecked(False)
+
+        if self.paused:
+            self.audio_client.send_message("/pause", 1)
+            if (self.video is not None) and (self.video_client is not None):
+                self.video_client.send_message("/vlc_stop", self.video)  # unpauses
+            self.pause_button.setChecked(False)
+            if str(type(self.parent())) == "<class 'src.Page.Page'>":
+                self.parent().page_log += "\n\t{} - Unpaused Player {} ".format(datetime.datetime.now().replace(microsecond=0).__str__(), self.id)
+            else:
+                self.parent().parent().page_log += "\n\t{} - Unpaused Player {} ".format(datetime.datetime.now().replace(microsecond=0).__str__(), self.id)
+        else:
+            for i in range(1, self.audio_tracks + 1):
+                if i in self.track:
+                    self.audio_client.send_message("/track/{}/mute".format(i), 0)
+                else:
+                    self.audio_client.send_message("/track/{}/mute".format(i), 1)
+            if int(self.start_cue) < 10:
+                self.audio_client.send_message("/action", 40160 + int(self.start_cue))  # goto cue
+            elif int(self.start_cue) == 10:
+                self.audio_client.send_message("/action", 40160)  # goto cue
+            else:
+                self.audio_client.send_message("/action", 41240 + int(self.start_cue))  # goto cue
+            self.audio_client.send_message("/stop", 1)
+            self.audio_client.send_message("/play", 1)
+            if (self.video is not None) and (self.video_client is not None):
+                self.video_client.send_message("/vlc_start", self.video)
+            if str(type(self.parent())) == "<class 'src.Page.Page'>":
+                self.parent().page_log += "\n\t{} - (Re-)Started Player {} ".format(datetime.datetime.now().replace(microsecond=0).__str__(), self.id)
+            else:
+                self.parent().parent().page_log += "\n\t{} - (Re-)Started Player {} ".format(
+                    datetime.datetime.now().replace(microsecond=0).__str__(), self.id)
+        if (self.start != 0) and self.playing:
+            self.end = time()
+            self.duration.append(self.end - self.start)
+
+        self.start = time()
+        self.end = 0
+        self.playing = True
+        self.paused = False
+
+        if self.pupil_func is not None:
+            self.pupil_func.send_trigger(self.pupil_func.new_trigger(self.pupil_message))
+        if self.timer is not None:
+            self.timer.start(self.countdown)
+
+        if self.play_once and "Play" in self.buttons:
+            self.play_button.setEnabled(False)
+
+    def timer_done(self):
+        """Show the following elements on this page after the timer is finished."""
+        self.timer.stop()
+        self.countdown = 0
+        player_found = False
+        for item in range(self.parent().layout().rowCount()):
+            if player_found and self.parent().layout().itemAt(item, 1).widget() is None:
+                if type(self.parent().layout().itemAt(item, 1)) is QHBoxLayout:
+                    for box in range(self.parent().layout().itemAt(item, 1).count()):
+                        self.parent().layout().itemAt(item, 1).itemAt(box).widget().show()
+                if self.parent().layout().itemAt(item, 0) is not None:
+                    self.parent().layout().itemAt(item, 0).widget().show()
+            if player_found and self.parent().layout().itemAt(item, 1).widget() is not None:
+                if self.parent().layout().itemAt(item, 0) is not None:
+                    self.parent().layout().itemAt(item, 0).widget().show()
+                self.parent().layout().itemAt(item, 1).widget().show()
+                if type(self.parent().layout().itemAt(item, 1).widget()) == Player and self.parent().layout().itemAt(item, 1).widget() != self:
+                    player_found = False
+            if self.parent().layout().itemAt(item, 1).widget() == self:
+                player_found = True
+        self.stop()
+
+    def pause(self):
+        """Pause the current playback and resume at that position."""
+        if self.playing:
+            self.playing = False
+            self.audio_client.send_message("/pause", 1)
+            if (self.video is not None) and (self.video_client is not None):
+                self.video_client.send_message("/vlc_stop", self.video)
+            self.pause_button.setChecked(True)
+            if str(type(self.parent())) == "<class 'src.Page.Page'>":
+                self.parent().page_log += "\n\t{} - Paused Player {} ".format(datetime.datetime.now().replace(microsecond=0).__str__(), self.id)
+            else:
+                self.parent().parent().page_log += "\n\t{} - Paused Player {} ".format(datetime.datetime.now().replace(microsecond=0).__str__(), self.id)
+            self.end = time()
+            self.duration.append(self.end - self.start)
+            self.paused = True
+            if self.timer is not None and self.countdown > self.timer.remainingTime():
+                self.countdown = self.timer.remainingTime()
+                self.timer.stop()
+        else:
+            self.playing = True
+            self.audio_client.send_message("/pause", 1)
+            if (self.video is not None) and (self.video_client is not None):
+                self.video_client.send_message("/vlc_stop", self.video)
+            self.pause_button.setChecked(False)
+            if str(type(self.parent())) == "<class 'src.Page.Page'>":
+                self.parent().page_log += "\n\t{} - Unpaused Player {} ".format(datetime.datetime.now().replace(microsecond=0).__str__(), self.id)
+            else:
+                self.parent().parent().page_log += "\n\t{} - Unpaused Player {} ".format(datetime.datetime.now().replace(microsecond=0).__str__(), self.id)
+            self.start = time()
+            self.end = 0
+            self.paused = False
+            if self.timer is not None:
+                self.timer.start(self.countdown)
+
+    def stop(self):
+        """Stop the playback."""
+        self.audio_client.send_message("/stop", 1)
+        if (self.video is not None) and (self.video_client is not None) and not self.paused:
+            self.video_client.send_message("/vlc_stop", "stop")
+        self.end = time()
+        self.duration.append(self.end - self.start)
+        self.start = 0
+        self.playing = False
+        self.paused = False
+        if "Stop" in self.buttons:
+            self.stop_button.setEnabled(False)
+        if "Play" in self.buttons:
+            if self.play_once:
+                self.play_button.setEnabled(False)
+            else:
+                self.play_button.setEnabled(True)
+        if "Pause" in self.buttons:
+            self.pause_button.setEnabled(False)
+            self.pause_button.setChecked(False)
+        if str(type(self.parent())) == "<class 'src.Page.Page'>":
+            self.parent().page_log += "\n\t{} - Stopped Player {} ".format(datetime.datetime.now().replace(microsecond=0).__str__(), self.id)
+        else:
+            self.parent().parent().page_log += "\n\t{} - Stopped Player {} ".format(datetime.datetime.now().replace(microsecond=0).__str__(), self.id)
+        if self.timer is not None and self.timer.remainingTime() > 0 and self.countdown > 0:
+            self.timer.stop()

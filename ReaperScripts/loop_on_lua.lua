@@ -1,0 +1,1 @@
+reaper.GetSetRepeat(1)
