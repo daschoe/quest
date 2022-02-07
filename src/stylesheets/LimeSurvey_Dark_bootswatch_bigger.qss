@@ -1,0 +1,194 @@
+QWidget{
+    background-color: #121212;
+    border: 1px solid transparent;
+    border-radius: 4px;
+}
+
+QVLine, QHLine{
+    border: 2px solid;
+	border-color: rgba(255, 255, 255, 9);
+    border-radius: 4px;
+}
+
+QLabel, QPushButton, QCheckBox, QRadioButton, QLineEdit, QPlainTextEdit, QMessageBox, Slider, LabeledSlider, PasswordEntry {
+    font-family: "Noto Sans";
+    font-family: "Lato","Helvetica Neue","Helvetica","Arial";
+    font-size: 18pt;
+    color: rgba(255, 255, 255, 223);
+	background-color : transparent;
+}
+
+QLabel{
+    margin: 0 0 10.5px;
+}
+
+QLabel#smallerText{
+font-size:14pt;
+}
+
+QLabel#headline {
+    font-size: 18pt;
+    font-weight: bold;
+}
+
+QLabel#required, PasswordEntry#required {
+    color: #CF6679;
+}
+
+QPushButton#required {
+    color: #CF6679;
+    max-width: 200px;
+}
+
+QLabel#SliderHeader {
+    margin: 0 0 0px;
+}
+
+QLabel#MatrixHeader {
+    margin: 0 0 0px;
+}
+
+QPushButton:disabled{
+    color: rgba(255,255,255,97);
+    background-color: #2c3e50;
+}
+
+QPushButton:hover, Slider::handle:hover{
+    border-color: #879bb2;
+}
+
+QPushButton:pressed, Slider::handle:pressed{
+    background-color: #879bb2;
+}
+
+QPushButton:checked{
+    background-color: #879bb2;
+    border-color: #6f869f;
+}
+
+QPushButton{
+    padding: 18px 27px;
+    border-radius: 6px;
+    color: #000000;
+    background-color: #A7B8CA;
+    border-color: #A7B8CA;
+    margin-bottom: 0;
+    font-weight: normal;
+    text-align: center;
+    background-image: none;
+    border: 2px solid transparent;
+    margin: 0;
+	font-size: 16pt;
+}
+
+QPushButton#smaller{
+    max-width: 200px;
+}
+
+QRadioButton{
+	padding-left: 35px;
+	padding-right: 70px;
+    margin-bottom: 5px;
+}
+
+QRadioButton#RadioMatrixLeft{
+    padding-left: 100px;
+    margin-bottom: 5px;
+}
+
+QRadioButton#RadioMatrixRight{
+	padding-left: 35px;
+    margin-bottom: 5px;
+}
+
+QCheckBox{
+    margin-bottom: 5px;
+    padding-left: 5px;
+}
+
+QCheckBox::indicator:unchecked{
+    /*background-color: #a7b8ca;*/
+    border: 2px solid #879bb2;
+    border-radius: 4px;
+}
+
+QCheckBox::indicator:checked{
+    background-color: #a7b8ca;
+    border: 2px solid #879bb2;
+    border-radius: 4px;
+}
+
+QRadioButton::indicator:unchecked{
+    /*background-color: #000000;*/
+    border: 2px solid #879bb2;
+    border-radius: 25px;
+}
+
+QRadioButton::indicator:checked{
+    background-color: #a7b8ca;
+    border: 2px solid #879bb2;
+    border-radius: 25px;
+}
+
+QRadioButton::indicator, QCheckBox::indicator {
+    width: 50px;
+    height: 50px;
+}
+
+QPlainTextEdit, QLineEdit {
+    padding: 10px 15px;
+    background-color: #4a647c;
+    border: 2px solid #879bb2;
+    border-radius: 4px;
+    margin: 0;
+}
+
+QPlainTextEdit:focus, QLineEdit:focus {
+    border: 2px solid #a7b8ca;
+}
+
+/* added slider */
+
+Slider:horizontal, LabeledSlider:horizontal  {
+    min-height: 50px;
+    margin-bottom: 5px;
+    margin-top: 5px;
+    color: #95a5a6;
+}
+
+Slider:vertical{
+    min-width: 50px;
+    margin-left: 5px;
+    margin-right: 5px;
+    margin-bottom: 5px;
+    color: #95a5a6;
+}
+Slider::groove, LabeledSlider::groove, QSlider::groove {
+    border: 2px solid #a7b8ca;
+    border-radius: 4px;
+    background: #4a647c;
+}
+Slider::handle, LabeledSlider::handle, QSlider::handle{
+    border: 2px solid transparent;
+    border-radius: 4px;
+    background: #a7b8ca;
+    margin: 0px;
+    height: 40px;
+    width: 40px;
+}
+Slider::groove:disabled {
+    background: #1a2a39;
+	border-color: #2c3e50;
+}
+Slider::handle:disabled {
+    background: #2c3e50;
+    /*border-color: #2c3e50;*/
+}
+Slider::groove:vertical, LabeledSlider::groove:vertical, QSlider::groove:vertical  {
+    margin: 0px 40px;
+    width: 40px;
+}
+Slider::groove:horizontal, LabeledSlider::groove:horizontal, QSlider::groove:horizontal {
+    margin: 40px 0px;
+    height: 40px;
+}
