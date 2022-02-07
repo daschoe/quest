@@ -353,8 +353,8 @@ def test_start(gui_load, qtbot):
     assert len(results) == 4
     assert lines[0] == '1'  # participant number
     assert lines[1] == '4'  # initial value within bounds (min<max<start)->max
-    assert re.match('\d+-\d+-\d+ \d+:\d+:\d+.\d+', lines[2])  # timestamp
-    assert re.match('\d+-\d+-\d+ \d+:\d+:\d+.\d+', lines[3])  # timestamp
+    assert re.match(r'\d+-\d+-\d+ \d+:\d+:\d+.\d+', lines[2])  # timestamp
+    assert re.match(r'\d+-\d+-\d+ \d+:\d+:\d+.\d+', lines[3])  # timestamp
     os.remove("./test/results/results_sl.csv")
 
     # smaller than min
@@ -391,8 +391,8 @@ def test_start(gui_load, qtbot):
     assert len(results) == 4
     assert lines[0] == '1'  # participant number
     assert lines[1] == '0'  # initial value within bounds (start<min<max)->min
-    assert re.match('\d+-\d+-\d+ \d+:\d+:\d+.\d+', lines[2])  # timestamp
-    assert re.match('\d+-\d+-\d+ \d+:\d+:\d+.\d+', lines[3])  # timestamp
+    assert re.match(r'\d+-\d+-\d+ \d+:\d+:\d+.\d+', lines[2])  # timestamp
+    assert re.match(r'\d+-\d+-\d+ \d+:\d+:\d+.\d+', lines[3])  # timestamp
     os.remove("./test/results/results_sl.csv")
 
     # somewhere in between
@@ -429,8 +429,8 @@ def test_start(gui_load, qtbot):
     assert len(results) == 4
     assert lines[0] == '1'  # participant number
     assert lines[1] == '2'  # initial value within bounds
-    assert re.match('\d+-\d+-\d+ \d+:\d+:\d+.\d+', lines[2])  # timestamp
-    assert re.match('\d+-\d+-\d+ \d+:\d+:\d+.\d+', lines[3])  # timestamp
+    assert re.match(r'\d+-\d+-\d+ \d+:\d+:\d+.\d+', lines[2])  # timestamp
+    assert re.match(r'\d+-\d+-\d+ \d+:\d+:\d+.\d+', lines[3])  # timestamp
     os.remove("./test/results/results_sl.csv")
 
     # reset to default
@@ -528,8 +528,8 @@ def test_min(gui_load, qtbot):
     assert len(results) == 4
     assert lines[0] == '1'  # participant number
     assert lines[1] == '4'  # initial value < max < min -> max
-    assert re.match('\d+-\d+-\d+ \d+:\d+:\d+.\d+', lines[2])  # timestamp
-    assert re.match('\d+-\d+-\d+ \d+:\d+:\d+.\d+', lines[3])  # timestamp
+    assert re.match(r'\d+-\d+-\d+ \d+:\d+:\d+.\d+', lines[2])  # timestamp
+    assert re.match(r'\d+-\d+-\d+ \d+:\d+:\d+.\d+', lines[3])  # timestamp
     os.remove("./test/results/results_sl.csv")
 
     # with labels
@@ -564,8 +564,8 @@ def test_min(gui_load, qtbot):
     assert len(results) == 4
     assert lines[0] == '1'  # participant number
     assert lines[1] == '4'  # initial value < max < min -> max
-    assert re.match('\d+-\d+-\d+ \d+:\d+:\d+.\d+', lines[2])  # timestamp
-    assert re.match('\d+-\d+-\d+ \d+:\d+:\d+.\d+', lines[3])  # timestamp
+    assert re.match(r'\d+-\d+-\d+ \d+:\d+:\d+.\d+', lines[2])  # timestamp
+    assert re.match(r'\d+-\d+-\d+ \d+:\d+:\d+.\d+', lines[3])  # timestamp
     os.remove("./test/results/results_sl.csv")
     gui_load.gui.edit_layout.itemAt(cb_pos, 1).widget().click()
     assert gui_load.gui.edit_layout.itemAt(cb_pos, 1).widget().isChecked() == False
@@ -605,8 +605,8 @@ def test_min(gui_load, qtbot):
     assert len(results) == 4
     assert lines[0] == '1'  # participant number
     assert lines[1] == '0'  # initial value
-    assert re.match('\d+-\d+-\d+ \d+:\d+:\d+.\d+', lines[2])  # timestamp
-    assert re.match('\d+-\d+-\d+ \d+:\d+:\d+.\d+', lines[3])  # timestamp
+    assert re.match(r'\d+-\d+-\d+ \d+:\d+:\d+.\d+', lines[2])  # timestamp
+    assert re.match(r'\d+-\d+-\d+ \d+:\d+:\d+.\d+', lines[3])  # timestamp
     os.remove("./test/results/results_sl.csv")
     gui_load.close()
 
@@ -688,8 +688,8 @@ def test_max(gui_load, qtbot):
     assert len(results) == 4
     assert lines[0] == '1'  # participant number
     assert lines[1] == '0'  # initial value
-    assert re.match('\d+-\d+-\d+ \d+:\d+:\d+.\d+', lines[2])  # timestamp
-    assert re.match('\d+-\d+-\d+ \d+:\d+:\d+.\d+', lines[3])  # timestamp
+    assert re.match(r'\d+-\d+-\d+ \d+:\d+:\d+.\d+', lines[2])  # timestamp
+    assert re.match(r'\d+-\d+-\d+ \d+:\d+:\d+.\d+', lines[3])  # timestamp
     os.remove("./test/results/results_sl.csv")
 
     # with labels
@@ -724,8 +724,8 @@ def test_max(gui_load, qtbot):
     assert len(results) == 4
     assert lines[0] == '1'  # participant number
     assert lines[1] == '0'  # initial value
-    assert re.match('\d+-\d+-\d+ \d+:\d+:\d+.\d+', lines[2])  # timestamp
-    assert re.match('\d+-\d+-\d+ \d+:\d+:\d+.\d+', lines[3])  # timestamp
+    assert re.match(r'\d+-\d+-\d+ \d+:\d+:\d+.\d+', lines[2])  # timestamp
+    assert re.match(r'\d+-\d+-\d+ \d+:\d+:\d+.\d+', lines[3])  # timestamp
     os.remove("./test/results/results_sl.csv")
     gui_load.gui.edit_layout.itemAt(cb_pos, 1).widget().click()
     assert gui_load.gui.edit_layout.itemAt(cb_pos, 1).widget().isChecked() == False
@@ -764,8 +764,8 @@ def test_max(gui_load, qtbot):
     assert len(results) == 4
     assert lines[0] == '1'  # participant number
     assert lines[1] == '0'  # initial value
-    assert re.match('\d+-\d+-\d+ \d+:\d+:\d+.\d+', lines[2])  # timestamp
-    assert re.match('\d+-\d+-\d+ \d+:\d+:\d+.\d+', lines[3])  # timestamp
+    assert re.match(r'\d+-\d+-\d+ \d+:\d+:\d+.\d+', lines[2])  # timestamp
+    assert re.match(r'\d+-\d+-\d+ \d+:\d+:\d+.\d+', lines[3])  # timestamp
     os.remove("./results/results_sl.csv")
     gui_load.close()
 
@@ -924,8 +924,8 @@ def test_execute_questionnaire_no_interaction(run, qtbot):
     assert len(results) == 4
     assert lines[0] == '1'  # participant number
     assert lines[1] == '0'  # initial value
-    assert re.match('\d+-\d+-\d+ \d+:\d+:\d+.\d+', lines[2])  # timestamp
-    assert re.match('\d+-\d+-\d+ \d+:\d+:\d+.\d+', lines[3])  # timestamp
+    assert re.match(r'\d+-\d+-\d+ \d+:\d+:\d+.\d+', lines[2])  # timestamp
+    assert re.match(r'\d+-\d+-\d+ \d+:\d+:\d+.\d+', lines[3])  # timestamp
     os.remove("./results/results_sl.csv")
 
 
@@ -952,6 +952,6 @@ def test_execute_questionnaire(run, qtbot):
     assert len(results) == 4
     assert lines[0] == '1'  # participant number
     assert lines[1] == '2'  # middle of 0 and 4 is 2
-    assert re.match('\d+-\d+-\d+ \d+:\d+:\d+.\d+', lines[2])  # timestamp
-    assert re.match('\d+-\d+-\d+ \d+:\d+:\d+.\d+', lines[3])  # timestamp
+    assert re.match(r'\d+-\d+-\d+ \d+:\d+:\d+.\d+', lines[2])  # timestamp
+    assert re.match(r'\d+-\d+-\d+ \d+:\d+:\d+.\d+', lines[3])  # timestamp
     os.remove("./results/results_sl.csv")

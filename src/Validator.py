@@ -308,7 +308,7 @@ def validate_questionnaire(structure, suppress=False) -> (bool, bool, str):
     warning_found = False
     error_details = []
     warning_details = []
-    ip_mask = "(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)(\.(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)){3}"
+    ip_mask = "(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)(\\.(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)){3}"
 
     if "audio_ip" in structure.keys():
         if structure["audio_ip"] != "":

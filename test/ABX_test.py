@@ -678,8 +678,8 @@ def test_execute_questionnaire_no_interaction(run, qtbot):
     assert lines[2] == '-1'  # no answer given in button group
     assert lines[3] == '[]'  # first element not played
     assert lines[4] == '[]'  # second element not played
-    assert re.match('\d+-\d+-\d+ \d+:\d+:\d+.\d+', lines[5])  # timestamp
-    assert re.match('\d+-\d+-\d+ \d+:\d+:\d+.\d+', lines[6])  # timestamp
+    assert re.match(r'\d+-\d+-\d+ \d+:\d+:\d+.\d+', lines[5])  # timestamp
+    assert re.match(r'\d+-\d+-\d+ \d+:\d+:\d+.\d+', lines[6])  # timestamp
     os.remove("./test/results/results_abx.csv")
 
 
@@ -711,8 +711,8 @@ def test_execute_questionnaire_ab(run, qtbot):
     assert float(ast.literal_eval(lines[3])[0]) > 1.0
     assert len(ast.literal_eval(lines[4])) == 1  # second element played once
     assert float(ast.literal_eval(lines[4])[0]) > 0.5
-    assert re.match('\d+-\d+-\d+ \d+:\d+:\d+.\d+', lines[5])  # timestamp
-    assert re.match('\d+-\d+-\d+ \d+:\d+:\d+.\d+', lines[6])  # timestamp
+    assert re.match(r'\d+-\d+-\d+ \d+:\d+:\d+.\d+', lines[5])  # timestamp
+    assert re.match(r'\d+-\d+-\d+ \d+:\d+:\d+.\d+', lines[6])  # timestamp
     os.remove("./test/results/results_abx.csv")
 
 
@@ -735,8 +735,8 @@ def test_execute_questionnaire_no_interaction_x(run2, qtbot):
     assert lines[3] == '[]'  # first element not played
     assert lines[4] == '[]'  # second element not played
     assert lines[5] == '[]'  # x not played
-    assert re.match('\d+-\d+-\d+ \d+:\d+:\d+.\d+', lines[6])  # timestamp
-    assert re.match('\d+-\d+-\d+ \d+:\d+:\d+.\d+', lines[7])  # timestamp
+    assert re.match(r'\d+-\d+-\d+ \d+:\d+:\d+.\d+', lines[6])  # timestamp
+    assert re.match(r'\d+-\d+-\d+ \d+:\d+:\d+.\d+', lines[7])  # timestamp
     os.remove("./test/results/results_abx.csv")
 
 
@@ -774,6 +774,6 @@ def test_execute_questionnaire_abx(run2, qtbot):
     assert len(ast.literal_eval(lines[3])) == 1  # first element played once
     assert len(ast.literal_eval(lines[4])) == 2  # second element played twice
     assert len(ast.literal_eval(lines[5])) == 3  # third (x) element played three times
-    assert re.match('\d+-\d+-\d+ \d+:\d+:\d+.\d+', lines[6])  # timestamp
-    assert re.match('\d+-\d+-\d+ \d+:\d+:\d+.\d+', lines[7])  # timestamp
+    assert re.match(r'\d+-\d+-\d+ \d+:\d+:\d+.\d+', lines[6])  # timestamp
+    assert re.match(r'\d+-\d+-\d+ \d+:\d+:\d+.\d+', lines[7])  # timestamp
     os.remove("./test/results/results_abx.csv")

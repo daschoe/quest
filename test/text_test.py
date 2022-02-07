@@ -343,8 +343,8 @@ def test_execute_questionnaire_no_interaction(run, qtbot):
     assert len(results) == 4
     assert lines[0] == '1'  # participant number
     assert lines[1] == ''
-    assert re.match('\d+-\d+-\d+ \d+:\d+:\d+.\d+', lines[2])  # timestamp
-    assert re.match('\d+-\d+-\d+ \d+:\d+:\d+.\d+', lines[3])  # timestamp
+    assert re.match(r'\d+-\d+-\d+ \d+:\d+:\d+.\d+', lines[2])  # timestamp
+    assert re.match(r'\d+-\d+-\d+ \d+:\d+:\d+.\d+', lines[3])  # timestamp
     os.remove("./test/results/results_tf.csv")
 
 
@@ -376,8 +376,8 @@ def test_execute_questionnaire(run, qtbot):
     assert len(results) == 4
     assert lines[0] == '1'  # participant number
     assert lines[1] == 'texttext'
-    assert re.match('\d+-\d+-\d+ \d+:\d+:\d+.\d+', lines[2])  # timestamp
-    assert re.match('\d+-\d+-\d+ \d+:\d+:\d+.\d+', lines[3])  # timestamp
+    assert re.match(r'\d+-\d+-\d+ \d+:\d+:\d+.\d+', lines[2])  # timestamp
+    assert re.match(r'\d+-\d+-\d+ \d+:\d+:\d+.\d+', lines[3])  # timestamp
     os.remove("./test/results/results_tf.csv")
 
 
@@ -441,8 +441,8 @@ def test_execute_textedit(gui_load, qtbot):
     assert len(results) == 4
     assert lines[0] == '1'  # participant number
     assert lines[1] == 'texttext'
-    assert re.match('\d+-\d+-\d+ \d+:\d+:\d+.\d+', lines[2])  # timestamp
-    assert re.match('\d+-\d+-\d+ \d+:\d+:\d+.\d+', lines[3])  # timestamp
+    assert re.match(r'\d+-\d+-\d+ \d+:\d+:\d+.\d+', lines[2])  # timestamp
+    assert re.match(r'\d+-\d+-\d+ \d+:\d+:\d+.\d+', lines[3])  # timestamp
     os.remove("./test/results/results_tf.csv")
 
     assert hbox.findChild(QButtonGroup).checkedId() == 1

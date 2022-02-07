@@ -674,10 +674,10 @@ def test_timer_and_two_pages(gui_load2, qtbot):
             results = lines
     assert len(results) == 5
     assert lines[0] == '1'  # participant number
-    assert re.match('\[\d.\d+]', lines[1])  # list of duration
+    assert re.match(r'\[\d.\d+]', lines[1])  # list of duration
     assert lines[2] == ''  # text field
-    assert re.match('\d+-\d+-\d+ \d+:\d+:\d+.\d+', lines[3])  # timestamp
-    assert re.match('\d+-\d+-\d+ \d+:\d+:\d+.\d+', lines[4])  # timestamp
+    assert re.match(r'\d+-\d+-\d+ \d+:\d+:\d+.\d+', lines[3])  # timestamp
+    assert re.match(r'\d+-\d+-\d+ \d+:\d+:\d+.\d+', lines[4])  # timestamp
     os.remove("./test/results/results_pl.csv")
     gui_load2.close()
 
@@ -752,8 +752,8 @@ def test_execute_questionnaire_no_interaction(run, qtbot):
     assert len(results) == 4
     assert lines[0] == '1'  # participant number
     assert lines[1] == '[]'  # not played yet
-    assert re.match('\d+-\d+-\d+ \d+:\d+:\d+.\d+', lines[2])  # timestamp
-    assert re.match('\d+-\d+-\d+ \d+:\d+:\d+.\d+', lines[3])  # timestamp
+    assert re.match(r'\d+-\d+-\d+ \d+:\d+:\d+.\d+', lines[2])  # timestamp
+    assert re.match(r'\d+-\d+-\d+ \d+:\d+:\d+.\d+', lines[3])  # timestamp
     os.remove("./results/results_pl.csv")
 
 
@@ -778,9 +778,9 @@ def test_execute_questionnaire(run, qtbot):
             results = lines
     assert len(results) == 4
     assert lines[0] == '1'  # participant number
-    assert re.match('\[\d.\d+]', lines[1])  # list of duration
-    assert re.match('\d+-\d+-\d+ \d+:\d+:\d+.\d+', lines[2])  # timestamp
-    assert re.match('\d+-\d+-\d+ \d+:\d+:\d+.\d+', lines[3])  # timestamp
+    assert re.match(r'\[\d.\d+]', lines[1])  # list of duration
+    assert re.match(r'\d+-\d+-\d+ \d+:\d+:\d+.\d+', lines[2])  # timestamp
+    assert re.match(r'\d+-\d+-\d+ \d+:\d+:\d+.\d+', lines[3])  # timestamp
     os.remove("./results/results_pl.csv")
 
 
@@ -841,9 +841,9 @@ def test_buttons(gui_load, qtbot):
             results = lines
     assert len(results) == 4
     assert lines[0] == '1'  # participant number
-    assert re.match('\[\d.\d+]', lines[1])  # list of duration
-    assert re.match('\d+-\d+-\d+ \d+:\d+:\d+.\d+', lines[2])  # timestamp
-    assert re.match('\d+-\d+-\d+ \d+:\d+:\d+.\d+', lines[3])  # timestamp
+    assert re.match(r'\[\d.\d+]', lines[1])  # list of duration
+    assert re.match(r'\d+-\d+-\d+ \d+:\d+:\d+.\d+', lines[2])  # timestamp
+    assert re.match(r'\d+-\d+-\d+ \d+:\d+:\d+.\d+', lines[3])  # timestamp
     os.remove("./results/results_pl.csv")
 
     # just stop button
@@ -877,9 +877,9 @@ def test_buttons(gui_load, qtbot):
             results = lines
     assert len(results) == 4
     assert lines[0] == '1'  # participant number
-    assert re.match('\[\d.\d+]', lines[1])  # list of duration
-    assert re.match('\d+-\d+-\d+ \d+:\d+:\d+.\d+', lines[2])  # timestamp
-    assert re.match('\d+-\d+-\d+ \d+:\d+:\d+.\d+', lines[3])  # timestamp
+    assert re.match(r'\[\d.\d+]', lines[1])  # list of duration
+    assert re.match(r'\d+-\d+-\d+ \d+:\d+:\d+.\d+', lines[2])  # timestamp
+    assert re.match(r'\d+-\d+-\d+ \d+:\d+:\d+.\d+', lines[3])  # timestamp
     os.remove("./results/results_pl.csv")
 
     # stop and pause
@@ -931,9 +931,9 @@ def test_buttons(gui_load, qtbot):
             results = lines
     assert len(results) == 4
     assert lines[0] == '1'  # participant number
-    assert re.match('\[\d.\d+, \d.\d+]', lines[1])  # list of duration
-    assert re.match('\d+-\d+-\d+ \d+:\d+:\d+.\d+', lines[2])  # timestamp
-    assert re.match('\d+-\d+-\d+ \d+:\d+:\d+.\d+', lines[3])  # timestamp
+    assert re.match(r'\[\d.\d+, \d.\d+]', lines[1])  # list of duration
+    assert re.match(r'\d+-\d+-\d+ \d+:\d+:\d+.\d+', lines[2])  # timestamp
+    assert re.match(r'\d+-\d+-\d+ \d+:\d+:\d+.\d+', lines[3])  # timestamp
     os.remove("./results/results_pl.csv")
 
     # just play button
@@ -969,9 +969,9 @@ def test_buttons(gui_load, qtbot):
             results = lines
     assert len(results) == 4
     assert lines[0] == '1'  # participant number
-    assert re.match('\[\d.\d+, \d.\d+]', lines[1])  # list of duration
-    assert re.match('\d+-\d+-\d+ \d+:\d+:\d+.\d+', lines[2])  # timestamp
-    assert re.match('\d+-\d+-\d+ \d+:\d+:\d+.\d+', lines[3])  # timestamp
+    assert re.match(r'\[\d.\d+, \d.\d+]', lines[1])  # list of duration
+    assert re.match(r'\d+-\d+-\d+ \d+:\d+:\d+.\d+', lines[2])  # timestamp
+    assert re.match(r'\d+-\d+-\d+ \d+:\d+:\d+.\d+', lines[3])  # timestamp
     os.remove("./results/results_pl.csv")
 
     # reset file

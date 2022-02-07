@@ -353,8 +353,8 @@ def test_start_id(gui_load, qtbot):
     assert lines[1] == '99'  # first button in first row clicked, id starts with 99
     assert lines[2] == '100'  # second button in second row clicked, id starts with 99
     assert lines[3] == '[1, 2]'  # order
-    assert re.match('\d+-\d+-\d+ \d+:\d+:\d+.\d+', lines[4])  # timestamp
-    assert re.match('\d+-\d+-\d+ \d+:\d+:\d+.\d+', lines[5])  # timestamp
+    assert re.match(r'\d+-\d+-\d+ \d+:\d+:\d+.\d+', lines[4])  # timestamp
+    assert re.match(r'\d+-\d+-\d+ \d+:\d+:\d+.\d+', lines[5])  # timestamp
     os.remove("./test/results/results_rm.csv")
 
     #  -------- -1 ---------
@@ -439,8 +439,8 @@ def test_start_id(gui_load, qtbot):
     assert lines[1] == '0'  # first button in first row clicked, id starts with 0
     assert lines[2] == '1'  # second button in second row clicked, id starts with 0
     assert lines[3] == '[1, 2]'  # order
-    assert re.match('\d+-\d+-\d+ \d+:\d+:\d+.\d+', lines[4])  # timestamp
-    assert re.match('\d+-\d+-\d+ \d+:\d+:\d+.\d+', lines[5])  # timestamp
+    assert re.match(r'\d+-\d+-\d+ \d+:\d+:\d+.\d+', lines[4])  # timestamp
+    assert re.match(r'\d+-\d+-\d+ \d+:\d+:\d+.\d+', lines[5])  # timestamp
     os.remove("./test/results/results_rm.csv")
     gui_load.close()
 
@@ -601,8 +601,8 @@ def test_execute_questionnaire_no_interaction(run, qtbot):
     assert lines[1] == '-1'  # no radiobutton checked
     assert lines[2] == '-1'  # no radiobutton checked
     assert lines[3] == '[1, 2]'  # order
-    assert re.match('\d+-\d+-\d+ \d+:\d+:\d+.\d+', lines[4])  # timestamp
-    assert re.match('\d+-\d+-\d+ \d+:\d+:\d+.\d+', lines[5])  # timestamp
+    assert re.match(r'\d+-\d+-\d+ \d+:\d+:\d+.\d+', lines[4])  # timestamp
+    assert re.match(r'\d+-\d+-\d+ \d+:\d+:\d+.\d+', lines[5])  # timestamp
     os.remove("./test/results/results_rm.csv")
 
 
@@ -630,8 +630,8 @@ def test_execute_questionnaire(run, qtbot):
     assert lines[1] == '0'  # first button in first row clicked, id starts with 0
     assert lines[2] == '1'  # second button in second row clicked, id starts with 0
     assert lines[3] == '[1, 2]'  # order
-    assert re.match('\d+-\d+-\d+ \d+:\d+:\d+.\d+', lines[4])  # timestamp
-    assert re.match('\d+-\d+-\d+ \d+:\d+:\d+.\d+', lines[5])  # timestamp
+    assert re.match(r'\d+-\d+-\d+ \d+:\d+:\d+.\d+', lines[4])  # timestamp
+    assert re.match(r'\d+-\d+-\d+ \d+:\d+:\d+.\d+', lines[5])  # timestamp
     os.remove("./test/results/results_rm.csv")
 
 
@@ -669,8 +669,8 @@ def test_two_pages(run_2, qtbot):
     assert lines[4] == '-1'  # no radiobutton checked
     assert lines[5] == '-1'  # no radiobutton checked
     assert lines[6] == '[1, 2]'  # order
-    assert re.match('\d+-\d+-\d+ \d+:\d+:\d+.\d+', lines[7])  # timestamp
-    assert re.match('\d+-\d+-\d+ \d+:\d+:\d+.\d+', lines[8])  # timestamp
+    assert re.match(r'\d+-\d+-\d+ \d+:\d+:\d+.\d+', lines[7])  # timestamp
+    assert re.match(r'\d+-\d+-\d+ \d+:\d+:\d+.\d+', lines[8])  # timestamp
     os.remove("./test/results/results_rm.csv")
 
 
@@ -748,8 +748,8 @@ def test_randomize(gui_load_2, qtbot):
     assert lines[1] == lines[4]
     assert lines[2] == lines[5]
     assert lines[3] == lines[6]  # order
-    assert re.match('\d+-\d+-\d+ \d+:\d+:\d+.\d+', lines[7])  # timestamp
-    assert re.match('\d+-\d+-\d+ \d+:\d+:\d+.\d+', lines[8])  # timestamp
+    assert re.match(r'\d+-\d+-\d+ \d+:\d+:\d+.\d+', lines[7])  # timestamp
+    assert re.match(r'\d+-\d+-\d+ \d+:\d+:\d+.\d+', lines[8])  # timestamp
     os.remove("./test/results/results_rm.csv")
 
     #  --set to False --
@@ -822,7 +822,7 @@ def test_randomize(gui_load_2, qtbot):
     assert lines[1] == lines[4]
     assert lines[2] == lines[5]
     assert lines[3] == lines[6]  # order
-    assert re.match('\d+-\d+-\d+ \d+:\d+:\d+.\d+', lines[7])  # timestamp
-    assert re.match('\d+-\d+-\d+ \d+:\d+:\d+.\d+', lines[8])  # timestamp
+    assert re.match(r'\d+-\d+-\d+ \d+:\d+:\d+.\d+', lines[7])  # timestamp
+    assert re.match(r'\d+-\d+-\d+ \d+:\d+:\d+.\d+', lines[8])  # timestamp
     os.remove("./results/results_rm.csv")
     gui_load_2.close()

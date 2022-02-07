@@ -498,8 +498,8 @@ def test_execute_questionnaire_no_interaction(run, qtbot):
     assert lines[1] == '[[], [], []]'  # no stimulus played yet
     assert lines[2] == '100'  # default slider value
     assert lines[3] == '100'  # default slider value
-    assert re.match('\d+-\d+-\d+ \d+:\d+:\d+.\d+', lines[4])  # timestamp
-    assert re.match('\d+-\d+-\d+ \d+:\d+:\d+.\d+', lines[5])  # timestamp
+    assert re.match(r'\d+-\d+-\d+ \d+:\d+:\d+.\d+', lines[4])  # timestamp
+    assert re.match(r'\d+-\d+-\d+ \d+:\d+:\d+.\d+', lines[5])  # timestamp
     os.remove("./test/results/results_mr.csv")
 
 
@@ -533,8 +533,8 @@ def test_execute_questionnaire(run, qtbot):
             results = lines
     assert len(results) == 6
     assert lines[0] == '1'  # participant number
-    assert re.match('\[\[\d.\d+], \[\d.\d+], \[\d.\d+]]', lines[1])  # list of durations
+    assert re.match(r'\[\[\d.\d+], \[\d.\d+], \[\d.\d+]]', lines[1])  # list of durations
     assert int(lines[2]) < int(lines[3])
-    assert re.match('\d+-\d+-\d+ \d+:\d+:\d+.\d+', lines[4])  # timestamp
-    assert re.match('\d+-\d+-\d+ \d+:\d+:\d+.\d+', lines[5])  # timestamp
+    assert re.match(r'\d+-\d+-\d+ \d+:\d+:\d+.\d+', lines[4])  # timestamp
+    assert re.match(r'\d+-\d+-\d+ \d+:\d+:\d+.\d+', lines[5])  # timestamp
     os.remove("./test/results/results_mr.csv")
