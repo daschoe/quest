@@ -1,7 +1,7 @@
 stages:
     - badges
     #- build
-    - test
+    #- test
 
 #build_badges:
 #  stage: build
@@ -68,14 +68,14 @@ badges:
 #    when: always
 #    expire_in: 4 weeks
 
-run tests:
-  stage: test
-  image: python:3.9
-  script:
-    - pip install pytest pytest-cov pytest-qt
-    - coverage run -m pytest "not pupil"
-    - coverage report
-    - coverage xml
-  artifacts:
-    reports:
-      cobertura: coverage.xml
+#run tests:
+#  stage: test
+#  image: python:3.9
+#  script:
+#    - pip install pytest pytest-cov pytest-qt
+#    - coverage run -m pytest "not pupil"
+#    - coverage report
+#    - coverage xml
+#  artifacts:
+#    reports:
+#      cobertura: coverage.xml
