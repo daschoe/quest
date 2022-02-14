@@ -19,10 +19,10 @@
 -->
 <!---[![Contributors][contributors-shield]][contributors-url]--->
 [![License][license-shield]][license-url]
-[![Forks][forks-shield]][forks-url]
-[![Stargazers][stars-shield]][stars-url]
-[![Issues][issues-shield]][issues-url]
-![Test Coverage][coverage-shield]
+<!---[![Forks][forks-shield]][forks-url]--->
+<!---[![Stargazers][stars-shield]][stars-url]--->
+<!---[![Issues][issues-shield]][issues-url]--->
+<!---![Test Coverage][coverage-shield]--->
 <!---[![LinkedIn][linkedin-shield]][linkedin-url]--->
 
 
@@ -159,6 +159,10 @@ _For more examples and explanation, please refer to the [Documentation](https://
 - [ ] Usage of Mad Mapper as video tool (OSC support given)
 - [ ] Fix pdf export graphic glitches
 - [ ] svgs for CheckBox and RadioButton
+- [ ] automatic centering of SliderHeader/MatrixHeader
+- [ ] images/videos as element for the questionnaire
+- [ ] support for multiple languages
+- [ ] "if this answer than go to that page"-logic
 
 See the [open issues](https://gitlab.uni-hannover.de/da.schoessow/quest/issues) for a full list of proposed features (and known issues).
 
