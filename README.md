@@ -148,8 +148,8 @@ _For more examples and explanation, please refer to the [Documentation](https://
 ## Roadmap and TODOs
 
 - [x] Initial public release
-  - [ ] Test setup
-  - [ ] Initialize Wiki
+  - [ ] Test setup (-> see issue #1 )
+  - [x] Initialize Wiki
 - [ ] Additional question types
   - [ ] AFC
   - [ ] Localisation
