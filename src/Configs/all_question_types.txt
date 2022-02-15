@@ -1,5 +1,4 @@
-# stylesheet = './stylesheets/LimeSurvey.css'
-audio_ip = 192.168.178.20
+audio_ip = 127.0.0.1
 audio_port = 8000
 audio_tracks = 3
 send_text = Send
@@ -11,10 +10,9 @@ answer_neg = No
 save_message = Quit and save?
 filepath_results = ./results/results.csv
 delimiter = ;
-stylesheet = C:/Users/Administrator/Desktop/Daphne/GIT/quest/src/stylesheets/minimal.qss
+stylesheet = ./stylesheets/minimal.qss
 button_fade = 100
 randomization = None
-back_text = Zurück
 [Page 1]
     title = Title
     description = This is a test page displaying all kinds of questions.

@@ -47,9 +47,9 @@
     <br />
     <!---<a href="https://gitlab.uni-hannover.de/da.schoessow/quest">View Demo</a>
     ·--->
-    <a href="https://gitlab.uni-hannover.de/da.schoessow/quest/issues">Report Bug</a>
+    <a href="https://gitlab.uni-hannover.de/da.schoessow/quest/-/issues">Report Bug</a>
     ·
-    <a href="https://gitlab.uni-hannover.de/da.schoessow/quest/issues">Request Feature</a>
+    <a href="https://gitlab.uni-hannover.de/da.schoessow/quest/-/issues">Request Feature</a>
   </p>
 </div>
 
@@ -164,7 +164,7 @@ _For more examples and explanation, please refer to the [Documentation](https://
 - [ ] support for multiple languages
 - [ ] "if this answer than go to that page"-logic
 
-See the [open issues](https://gitlab.uni-hannover.de/da.schoessow/quest/issues) for a full list of proposed features (and known issues).
+See the [open issues](https://gitlab.uni-hannover.de/da.schoessow/quest/-/issues) for a full list of proposed features (and known issues).
 
 <p align="right">(<a href="#top">back to top</a>)</p>
 
