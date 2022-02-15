@@ -37,11 +37,12 @@ QPushButton#required {
 
 QLabel#SliderHeader {
     margin: 0 0 0px;
-    padding-right: 90px;
+    /*padding-right: 90px;*/
 }
 
 QLabel#MatrixHeader {
     margin: 0 0 0px;
+    margin-left: 85px;
 }
 
 QPushButton:disabled{

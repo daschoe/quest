@@ -571,8 +571,8 @@ def test_execute_questionnaire_no_interaction(run, qtbot):
                 assert lines[2] == 'End'
     assert len(results) == 3  # there is no result from the button
     assert lines[0] == '1'  # participant number
-    assert re.match('\d+-\d+-\d+ \d+:\d+:\d+.\d+', lines[1])  # timestamp
-    assert re.match('\d+-\d+-\d+ \d+:\d+:\d+.\d+', lines[2])  # timestamp
+    assert re.match(r'\d+-\d+-\d+ \d+:\d+:\d+.\d+', lines[1])  # timestamp
+    assert re.match(r'\d+-\d+-\d+ \d+:\d+:\d+.\d+', lines[2])  # timestamp
     os.remove("./test/results/results_pb.csv")
 
 
@@ -604,6 +604,6 @@ def test_execute_questionnaire(run, qtbot, capfd):
                 assert lines[2] == 'End'
     assert len(results) == 3
     assert lines[0] == '1'  # participant number
-    assert re.match('\d+-\d+-\d+ \d+:\d+:\d+.\d+', lines[1])  # timestamp
-    assert re.match('\d+-\d+-\d+ \d+:\d+:\d+.\d+', lines[2])  # timestamp
+    assert re.match(r'\d+-\d+-\d+ \d+:\d+:\d+.\d+', lines[1])  # timestamp
+    assert re.match(r'\d+-\d+-\d+ \d+:\d+:\d+.\d+', lines[2])  # timestamp
     os.remove("./test/results/results_pb.csv")

@@ -258,13 +258,13 @@ def test_policy(gui_load, qtbot):
     assert find_row_by_label(gui_load.gui.edit_layout, "dec") is None
     assert find_row_by_label(gui_load.gui.edit_layout, "exp") == (answers_pos + 1, 1)
     exp_b = find_row_by_label(gui_load.gui.edit_layout, "exp")
-    QTest.keyClicks(gui_load.gui.edit_layout.itemAt(exp_b[0], 1).itemAt(exp_b[1]).widget(), '[A-Z]\d')
+    QTest.keyClicks(gui_load.gui.edit_layout.itemAt(exp_b[0], 1).itemAt(exp_b[1]).widget(), '[A-Z]\\d')
     gui_load.gui.edit_layout.itemAt(exp_b[0], 1).itemAt(exp_b[1]).widget().editingFinished.emit()
-    assert gui_load.gui.edit_layout.itemAt(exp_b[0], 1).itemAt(exp_b[1]).widget().text() == '[A-Z]\d'
+    assert gui_load.gui.edit_layout.itemAt(exp_b[0], 1).itemAt(exp_b[1]).widget().text() == '[A-Z]\\d'
     gui_load.structure["Page 1"]["Question 1"]["password_file"] = "../test/mock_pws_regex.txt"
     pwfile.setText("../test/mock_pws_regex.txt")
     gui_load.gui.refresh_button.click()
-    assert gui_load.structure["Page 1"]["Question 1"]["policy"] == ['regex', '[A-Z]\d']
+    assert gui_load.structure["Page 1"]["Question 1"]["policy"] == ['regex', '[A-Z]\\d']
     QTest.keyClicks(gui_load, 's', modifier=Qt.ControlModifier)
     test_gui = StackedWindowGui("./pwtest.txt")
     for child in test_gui.Stack.currentWidget().children():
@@ -311,8 +311,8 @@ def test_execute_questionnaire_no_interaction(run, qtbot):
     assert len(results) == 4
     assert lines[0] == '1'  # participant number
     assert lines[1] == ''
-    assert re.match('\d+-\d+-\d+ \d+:\d+:\d+.\d+', lines[2])  # timestamp
-    assert re.match('\d+-\d+-\d+ \d+:\d+:\d+.\d+', lines[3])  # timestamp
+    assert re.match(r'\d+-\d+-\d+ \d+:\d+:\d+.\d+', lines[2])  # timestamp
+    assert re.match(r'\d+-\d+-\d+ \d+:\d+:\d+.\d+', lines[3])  # timestamp
     os.remove("./test/results/results_pw.csv")
 
 
@@ -354,8 +354,8 @@ def test_execute_questionnaire_type_pw(run, qtbot):
     assert len(results) == 4
     assert lines[0] == '1'  # participant number
     assert lines[1] == 'password'
-    assert re.match('\d+-\d+-\d+ \d+:\d+:\d+.\d+', lines[2])  # timestamp
-    assert re.match('\d+-\d+-\d+ \d+:\d+:\d+.\d+', lines[3])  # timestamp
+    assert re.match(r'\d+-\d+-\d+ \d+:\d+:\d+.\d+', lines[2])  # timestamp
+    assert re.match(r'\d+-\d+-\d+ \d+:\d+:\d+.\d+', lines[3])  # timestamp
     os.remove("./test/results/results_pw.csv")
 
 
@@ -400,6 +400,6 @@ def test_execute_questionnaire_type_wrong_pw(run, qtbot):
     assert len(results) == 4
     assert lines[0] == '1'  # participant number
     assert lines[1] == 'password'
-    assert re.match('\d+-\d+-\d+ \d+:\d+:\d+.\d+', lines[2])  # timestamp
-    assert re.match('\d+-\d+-\d+ \d+:\d+:\d+.\d+', lines[3])  # timestamp
+    assert re.match(r'\d+-\d+-\d+ \d+:\d+:\d+.\d+', lines[2])  # timestamp
+    assert re.match(r'\d+-\d+-\d+ \d+:\d+:\d+.\d+', lines[3])  # timestamp
     os.remove("./test/results/results_pw.csv")

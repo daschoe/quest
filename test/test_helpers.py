@@ -7,7 +7,7 @@ from PyQt5.QtCore import Qt
 from PyQt5.QtTest import QTest
 from PyQt5.QtWidgets import QApplication, QMessageBox, QLineEdit, QWidgetItem, QHBoxLayout
 
-PUPIL_PATH = "C:\Program Files (x86)\Pupil-Labs\Pupil v3.4.0\Pupil Capture v3.4.0\pupil_capture.exe"
+PUPIL_PATH = "C:\\Program Files (x86)\\Pupil-Labs\\Pupil v3.4.0\\Pupil Capture v3.4.0\\pupil_capture.exe"
 
 
 def handle_dialog_p():

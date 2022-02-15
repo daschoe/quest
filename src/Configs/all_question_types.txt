@@ -1,5 +1,4 @@
-# stylesheet = './stylesheets/LimeSurvey.css'
-audio_ip = 192.168.178.20
+audio_ip = 127.0.0.1
 audio_port = 8000
 audio_tracks = 3
 send_text = Send
@@ -62,7 +61,7 @@ and can have line breaks.'''
     [[Matrix]]
         type = Matrix
         id = matrix
-        answers = agree, "", "", disagree
+        answers = agree, "", "", "disagree                                      "
         start_answer_id = 0
         randomize = False
         questions = This is a nice format., I liked it very much., I feel stressed.

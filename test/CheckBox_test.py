@@ -214,8 +214,8 @@ def test_execute_questionnaire_no_interaction(run, qtbot):
     assert lines[1] == 'False'  # first cb not checked
     assert lines[2] == 'False'  # second cb not checked
     assert lines[3] == 'False'  # third cb not checked
-    assert re.match('\d+-\d+-\d+ \d+:\d+:\d+.\d+', lines[4])  # timestamp
-    assert re.match('\d+-\d+-\d+ \d+:\d+:\d+.\d+', lines[5])  # timestamp
+    assert re.match(r'\d+-\d+-\d+ \d+:\d+:\d+.\d+', lines[4])  # timestamp
+    assert re.match(r'\d+-\d+-\d+ \d+:\d+:\d+.\d+', lines[5])  # timestamp
     os.remove("./test/results/results_cb.csv")
 
 
@@ -243,6 +243,6 @@ def test_execute_questionnaire(run, qtbot):
     assert lines[1] == 'True'  # first box checked
     assert lines[2] == 'False'  # second box not checked
     assert lines[3] == 'True'  # third box checked
-    assert re.match('\d+-\d+-\d+ \d+:\d+:\d+.\d+', lines[4])  # timestamp
-    assert re.match('\d+-\d+-\d+ \d+:\d+:\d+.\d+', lines[5])  # timestamp
+    assert re.match(r'\d+-\d+-\d+ \d+:\d+:\d+.\d+', lines[4])  # timestamp
+    assert re.match(r'\d+-\d+-\d+ \d+:\d+:\d+.\d+', lines[5])  # timestamp
     os.remove("./test/results/results_cb.csv")

@@ -964,7 +964,7 @@ def test_question_settings(gui_init):
     assert warn == False
     assert text.find(
         "An invalid regex was given for the policy in question 'Question' on page 'Page'.\n")
-    structure["Page"]["Question"]["policy"] = ["regex", "[A-Z]\d"]
+    structure["Page"]["Question"]["policy"] = ["regex", "[A-Z]\\d"]
     err, warn, det = validate_questionnaire(structure, True)
     assert err == False
     assert warn == False

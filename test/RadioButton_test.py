@@ -246,8 +246,8 @@ def test_start_id(gui_load, qtbot):
     assert len(results) == 4
     assert lines[0] == '1'  # participant number
     assert lines[1] == '100'  # second/last box checked and starts with 99
-    assert re.match('\d+-\d+-\d+ \d+:\d+:\d+.\d+', lines[2])  # timestamp
-    assert re.match('\d+-\d+-\d+ \d+:\d+:\d+.\d+', lines[3])  # timestamp
+    assert re.match(r'\d+-\d+-\d+ \d+:\d+:\d+.\d+', lines[2])  # timestamp
+    assert re.match(r'\d+-\d+-\d+ \d+:\d+:\d+.\d+', lines[3])  # timestamp
     os.remove("./test/results/results_rb.csv")
 
     #  -------- -1 ---------
@@ -329,8 +329,8 @@ def test_start_id(gui_load, qtbot):
     assert len(results) == 4
     assert lines[0] == '1'  # participant number
     assert lines[1] == '1'  # second/last box checked and starts with 0
-    assert re.match('\d+-\d+-\d+ \d+:\d+:\d+.\d+', lines[2])  # timestamp
-    assert re.match('\d+-\d+-\d+ \d+:\d+:\d+.\d+', lines[3])  # timestamp
+    assert re.match(r'\d+-\d+-\d+ \d+:\d+:\d+.\d+', lines[2])  # timestamp
+    assert re.match(r'\d+-\d+-\d+ \d+:\d+:\d+.\d+', lines[3])  # timestamp
     os.remove("./test/results/results_rb.csv")
     gui_load.close()
 
@@ -356,8 +356,8 @@ def test_execute_questionnaire_no_interaction(run, qtbot):
     assert len(results) == 4
     assert lines[0] == '1'  # participant number
     assert lines[1] == '-1'  # no radiobutton checked
-    assert re.match('\d+-\d+-\d+ \d+:\d+:\d+.\d+', lines[2])  # timestamp
-    assert re.match('\d+-\d+-\d+ \d+:\d+:\d+.\d+', lines[3])  # timestamp
+    assert re.match(r'\d+-\d+-\d+ \d+:\d+:\d+.\d+', lines[2])  # timestamp
+    assert re.match(r'\d+-\d+-\d+ \d+:\d+:\d+.\d+', lines[3])  # timestamp
     os.remove("./test/results/results_rb.csv")
 
 
@@ -380,6 +380,6 @@ def test_execute_questionnaire(run, qtbot):
     assert len(results) == 4
     assert lines[0] == '1'  # participant number
     assert lines[1] == '1'  # second/last box checked and starts with 0
-    assert re.match('\d+-\d+-\d+ \d+:\d+:\d+.\d+', lines[2])  # timestamp
-    assert re.match('\d+-\d+-\d+ \d+:\d+:\d+.\d+', lines[3])  # timestamp
+    assert re.match(r'\d+-\d+-\d+ \d+:\d+:\d+.\d+', lines[2])  # timestamp
+    assert re.match(r'\d+-\d+-\d+ \d+:\d+:\d+.\d+', lines[3])  # timestamp
     os.remove("./test/results/results_rb.csv")
