@@ -84,10 +84,7 @@
 
 <!--[![Product Name Screen Shot][product-screenshot]](https://example.com)-->
 
-Questionnaires in paper form are more and more replaced with digital equivalents, but those are often hardly adaptable 
-to one’s individual wishes. To simplify the use of digital questionnaires, this Python-based open-source framework was 
-developed, that allows to create diverse questionnaires without any programming knowledge. The software has a graphical 
-user interface as well as the possibility to edit the entire questionnaire structure in one configuration text file. 
+Questionnaires in paper form are more and more replaced with digital equivalents, but those are often hardly adaptable to one’s individual wishes. To simplify the use of digital questionnaires, this Python-based open-source framework was developed, that allows to create diverse questionnaires without any programming knowledge. The software has a graphical user interface as well as the possibility to edit the entire questionnaire structure in one configuration text file. 
 Many common question and answer types are already implemented, but the selection will be extended. 
 Furthermore, interfaces for communication with other software and systems are possible, for example OSC. 
 The software is designed so that different components can also run on different computers.
@@ -98,7 +95,6 @@ The software is designed so that different components can also run on different 
 <!-- GETTING STARTED -->
 ## Getting Started
 
-This is an example of how you may give instructions on setting up your project locally.
 To get a local copy up and running follow these simple example steps.
 
 ### Prerequisites
@@ -135,8 +131,8 @@ The necessary python libraries are given in ```requirements.txt```.
 
 <!-- USAGE EXAMPLES -->
 ## Usage
-To get started, once you run the launcher, choose "Edit Questionnaire" to create our GUI.
-With "Run Questionnaire" you can execute yor questionnaires.
+To get started, once you run the launcher, choose "Edit Questionnaire" to create your GUI.
+With "Run Questionnaire" you can execute your questionnaires.
 
 _For more examples and explanation, please refer to the [Documentation](https://gitlab.uni-hannover.de/da.schoessow/quest/-/wikis/overview)_
 
