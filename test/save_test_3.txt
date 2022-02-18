@@ -1,0 +1,27 @@
+go_back = True
+back_text = Zurück
+forward_text = Weiter
+send_text = Absenden
+answer_pos = Ja
+answer_neg = Nein
+save_message = Sind Sie bereit den Fragebogen zu beenden und somit Ihre Angaben zu speichern?
+pagecount_text = Seite {} von {}
+filepath_results = ./test/results/results.csv
+delimiter = ;
+stylesheet = ./src/stylesheets/minimal.qss
+button_fade = 100
+randomization = None
+save_after = 1
+[1]
+title = ""
+[[2]]
+type = HLine
+[2]
+title = ""
+[[j]]
+type = Plain Text
+text = Thanks
+[3]
+title = ""
+[[3]]
+type = HLine

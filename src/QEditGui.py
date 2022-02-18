@@ -596,6 +596,16 @@ class EditGui(QWidget):
                         elif field == "save_message":
                             val_field = TextEdit(self.parent().structure[field] if field in self.parent().structure.keys() else "")
                             val_field.editingFinished.connect(self.edit_done)
+                        elif field == "save_after":
+                            print("display")
+                            val_field = QComboBox()
+                            val_field.setObjectName("save_after")
+                            current_pages = self.parent().structure.sections
+                            val_field.activated.connect(self.update_val)
+                            if current_pages:
+                                val_field.addItems(current_pages)
+                                selected = current_pages.index(self.parent().structure[field]) if (field in self.parent().structure.keys() and self.parent().structure[field] in current_pages) else -1
+                                val_field.setCurrentIndex(selected if selected > -1 else len(current_pages)-1)
                         elif field == "stylesheet":
                             val_field = QHBoxLayout()
                             if field in self.parent().structure.keys():
@@ -887,6 +897,9 @@ class EditGui(QWidget):
                         self.rand_filechooser.setEnabled(True)
                     else:
                         self.rand_filechooser.setEnabled(False)
+                elif lbl == "save_after":
+                    new_val = self.sender().currentText()
+                    print("active")
                 else:
                     lbl = lbl.lower()
                     new_val = self.sender().currentText()
@@ -968,10 +981,14 @@ class EditGui(QWidget):
         """
         while layout.count():
             child = layout.takeAt(0)
+            if child is not None and child.widget() and child.widget().objectName() == "save_after":
+                print("should be removed")
             if child.widget() and (not child.widget() == self.questiontype) and \
                     (not child.widget() == self.qss_filechooser) and (not child.widget() == self.qss_filename)\
                     and (not child.widget() == self.pw_file) and \
                     (not child.widget() == self.rand_file) and (not child.widget() == self.rand_filechooser):
+                if child.widget().objectName() == "save_after":
+                    print("...reemove...")
                 child.widget().deleteLater()
             elif child.widget() == self.questiontype:
                 self.questiontype.hide()
@@ -1142,6 +1159,9 @@ class EditGui(QWidget):
                 for field in page_fields:
                     new_page[field] = ""
                 self.parent().structure[text] = new_page
+                if "save_after" not in self.parent().structure.keys() or self.parent().structure["save_after"] is None:
+                    self.parent().structure["save_after"] = text
+                    print("update")
             else:
                 page = QTreeWidgetItem(self.treeview.itemAt(0, 0), self.treeview.currentItem())
                 page.setText(0, text)
@@ -1224,9 +1244,9 @@ class EditGui(QWidget):
         self.parent().redoaction.setEnabled(False)
         self.parent().structure.pop(item.text(0))
         sip.delete(item)  # delete AFTER last ref!
-        self.clear_layout(self.edit_layout)
         self.treeview.clearSelection()
         self.current_item = None
+        self.clear_layout(self.edit_layout)
         if self.automatic_refresh.isChecked():
             self.load_preview()
 

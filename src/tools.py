@@ -69,7 +69,8 @@ tooltips = {
     "pupil_on_next": "Message/Annotation to send to pupil on page change.",
     "annotation": "Text for Pupil Core annotation. (default: test)",
     "randomization": "Method to randomize pages within groups",
-    "randomization_file": "Path to a line-break separated comma separated list of orders."
+    "randomization_file": "Path to a line-break separated comma separated list of orders.",
+    "save_after": "Page to write to the results file at clicking next."
 }
 
 # question types and their fields
@@ -130,6 +131,7 @@ general_fields = [
     "go_back",
     "back_text",
     "forward_text",
+    "save_after",
     "send_text",
     "answer_pos",
     "answer_neg",
@@ -190,6 +192,7 @@ default_values = {
     "button_fade": 100,
     "randomize": False,
     "randomization": "None",
-    "randomization_file": ""
+    "randomization_file": "",
+    "save_after": None
     #"pupil_on_next": ''
 }
