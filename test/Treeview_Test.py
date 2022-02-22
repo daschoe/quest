@@ -39,7 +39,7 @@ def test_add_page(gui_init, qtbot):
     assert tv.topLevelItem(0).child(0).childCount() == 0
     assert tv.topLevelItem(0).child(0).text(0) == "Page 1"
     assert len(gui_init.undo_stack) == 1
-    structure = {}
+    structure = ConfigObj()  # {}
     for key, value in default_values.items():
         if key in general_fields and value != "":
             structure[key] = value
@@ -48,8 +48,11 @@ def test_add_page(gui_init, qtbot):
         if key in page_fields:
             structure["Page 1"][key] = value
     listify(gui_init.structure)
+    listify(structure)
     QTimer.singleShot(150, handle_dialog_error)
     validate_questionnaire(gui_init.structure, suppress=True)
+    QTimer.singleShot(100, handle_dialog_error)
+    validate_questionnaire(structure, suppress=True)
     assert gui_init.structure == structure
 
 

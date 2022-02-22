@@ -24,6 +24,7 @@ def test_global_settings(gui_init):
 
     structure = ConfigObj()
     structure["go_back"] = True
+    structure["save_after"] = None
     # -------help-------
     structure["help_ip"] = "address"
     structure["help_port"] = "2000"
@@ -307,6 +308,21 @@ def test_global_settings(gui_init):
     structure["go_back"] = "false"
     # TODO Tests for pagecount_text?
     # ------save message------
+    structure["save_after"] = "5"
+    QTimer.singleShot(150, handle_dialog_error)
+    err, warn, det = validate_questionnaire(structure, True)
+    assert err == True
+    assert warn == False
+    assert text.find("The value given for 'save_after' is not the name of a page of this questionnaire.\n") > -1
+    structure.pop("save_after")
+    err, warn, det = validate_questionnaire(structure, True)
+    assert err == False
+    assert warn == True
+    assert det[0] == "No value for 'save_after' given, saving after the last page by default.\n"
+    structure["save_after"] = None
+    err, warn, det = validate_questionnaire(structure, True)
+    assert err == False
+    assert warn == False
     # no tests needed for save_message
     structure["answer_pos"] = "maybe"
     structure["answer_neg"] = "maybe"
@@ -428,6 +444,7 @@ def test_global_settings(gui_init):
 def test_page_settings(gui_init):
     structure = ConfigObj()
     structure["go_back"] = True
+    structure["save_after"] = None
     structure["Page"] = {}
     err, warn, det = validate_questionnaire(structure, True)
     assert err == False
@@ -471,7 +488,7 @@ def test_page_settings(gui_init):
 
 def test_multiple_pages():
     with pytest.raises(ConfigObjError):
-        ConfigObj("./doubled_sections.txt")
+        ConfigObj("./test/doubled_sections.txt")
 
 
 def test_question_settings(gui_init):
@@ -485,6 +502,7 @@ def test_question_settings(gui_init):
 
     structure = ConfigObj()
     structure["go_back"] = True
+    structure["save_after"] = None
     structure["Page"] = {}
     structure["Page"]["Question"] = {}
     err, warn, det = validate_questionnaire(structure, True)

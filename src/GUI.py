@@ -125,6 +125,9 @@ class StackedWindowGui(QWidget):
                         back_text = structure[key]
                     elif key == "forward_text":
                         self.forward_text = structure[key]
+                    elif key == "save_after":
+                        self.save_after = structure[key]
+                        self.sections = structure.sections
                     elif key == "send_text":
                         self.send_text = structure[key]
                     elif key == "answer_pos":
@@ -313,7 +316,7 @@ class StackedWindowGui(QWidget):
                         self.backbutton.clicked.connect(self.prev_page)
                     self.forwardbutton = QPushButton(self.forward_text, None)
                     self.forwardbutton.clicked.connect(self.next_page)
-                    if self.Stack.count() == 1:
+                    if self.Stack.count() == 1 or self.Stack.currentIndex() == self.sections.index(self.save_after):
                         self.forwardbutton.setText(self.send_text)
                     if self.pagecount_text.count('{') == 2:
                         self.page_label = QLabel(self.pagecount_text.format(self.Stack.currentIndex() + 1, self.Stack.count()), None)
@@ -543,9 +546,9 @@ class StackedWindowGui(QWidget):
             i = self.Stack.currentIndex() + 1
             if i + 1 <= self.Stack.count():
                 self.log += "\n{} - Changed to Page {}".format(datetime.datetime.now().replace(microsecond=0).__str__(), i + 1)
-            if self.go_back and (i == 1) and (self.Stack.count() > 1):  # enable going back at page 2
+            if self.go_back and (i == 1) and (self.Stack.count() > 1) and not self.saved:  # enable going back at page 2
                 self.backbutton.setEnabled(True)
-            elif i >= self.Stack.count():
+            if i == self.sections.index(self.save_after)+1:
                 answer = self.continue_message()
                 if answer == QMessageBox.AcceptRole:
                     if self.video_ip is not None:
@@ -554,7 +557,10 @@ class StackedWindowGui(QWidget):
                         self.collect_and_save_data()
                     self.saved = True
                     self.Stack.setCurrentIndex(i)
-                    self.forwardbutton.setEnabled(False)
+                    if self.Stack.currentIndex() == self.Stack.count()-1:
+                        self.forwardbutton.setEnabled(False)
+                    else:
+                        self.forwardbutton.setText(self.forward_text)
                     if self.go_back:
                         self.backbutton.setEnabled(False)
             if self.pupil_remote is not None and self.Stack.currentWidget().pupil_on_next is not None:
@@ -562,10 +568,12 @@ class StackedWindowGui(QWidget):
             # change the page
             if i <= self.Stack.count() - 1:  # normal pages in the middle
                 self.Stack.setCurrentIndex(i)
-            if i + 1 == self.Stack.count():  # last page
+            if i == self.sections.index(self.save_after):
                 self.forwardbutton.setText(self.send_text)
             if len(self.Stack.currentWidget().players) > 0 or len(self.Stack.currentWidget().findChildren(Button)) > 0:
                 self.is_connected()
+            if i + 1 == self.Stack.count() and i != self.sections.index(self.save_after):
+                self.forwardbutton.setEnabled(False)
         else:
             self.forwardbutton.setToolTip(self.tooltip_not_all_answered)
 

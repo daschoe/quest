@@ -824,5 +824,5 @@ def test_randomize(gui_load_2, qtbot):
     assert lines[3] == lines[6]  # order
     assert re.match(r'\d+-\d+-\d+ \d+:\d+:\d+.\d+', lines[7])  # timestamp
     assert re.match(r'\d+-\d+-\d+ \d+:\d+:\d+.\d+', lines[8])  # timestamp
-    os.remove("./results/results_rm.csv")
+    os.remove("./test/results/results_rm.csv")
     gui_load_2.close()

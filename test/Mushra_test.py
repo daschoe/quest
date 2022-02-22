@@ -431,7 +431,7 @@ def test_xfade(gui_load, qtbot):
                 assert child.loop_button.isChecked() == True
                 QTest.qWait(500)
                 bb = child.sliders[sl].rect()
-                QTest.mouseClick(child.sliders[sl], Qt.LeftButton, pos=QPoint(bb.center().x(), (
+                QTest.mouseClick(child.sliders[sl], Qt.LeftButton, pos=QPoint(bb.center().x(), int(
                             bb.bottom() - 0.1 * (sl + 1) * bb.bottom())))
             child.stop_button.click()
             assert child.loop_button.isEnabled() == True
@@ -520,7 +520,7 @@ def test_execute_questionnaire(run, qtbot):
                 child.buttons[sl].click()  # starts each stimulus
                 QTest.qWait(500)
                 bb = child.sliders[sl].rect()
-                QTest.mouseClick(child.sliders[sl], Qt.LeftButton, pos=QPoint(bb.center().x(), (bb.bottom()-0.1*(sl+1)*bb.bottom())))
+                QTest.mouseClick(child.sliders[sl], Qt.LeftButton, pos=QPoint(bb.center().x(), int(bb.bottom()-0.1*(sl+1)*bb.bottom())))
 
     QTimer.singleShot(200, handle_dialog)
     QTest.mouseClick(run.forwardbutton, Qt.LeftButton, delay=1)

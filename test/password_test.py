@@ -185,7 +185,7 @@ def test_policy(gui_load, qtbot):
     assert find_row_by_label(gui_load.gui.edit_layout, "dec") is None
     assert find_row_by_label(gui_load.gui.edit_layout, "exp") is None
     QTest.keyClicks(gui_load, 's', modifier=Qt.ControlModifier)
-    test_gui = StackedWindowGui("./pwtest.txt")
+    test_gui = StackedWindowGui("./test/pwtest.txt")
     for child in test_gui.Stack.currentWidget().children():
         if type(child) == PasswordEntry:
             assert child.validator() is None
@@ -207,12 +207,12 @@ def test_policy(gui_load, qtbot):
     QTest.keyClicks(gui_load.gui.edit_layout.itemAt(max_b[0], 1).itemAt(max_b[1]).widget(), '9999')
     gui_load.gui.edit_layout.itemAt(max_b[0], 1).itemAt(max_b[1]).widget().editingFinished.emit()
     assert gui_load.gui.edit_layout.itemAt(max_b[0], 1).itemAt(max_b[1]).widget().text() == '9999'
-    gui_load.structure["Page 1"]["Question 1"]["password_file"] = "../test/mock_pws_int.txt"
-    pwfile.setText("../test/mock_pws_int.txt")
+    gui_load.structure["Page 1"]["Question 1"]["password_file"] = "./test/mock_pws_int.txt"
+    pwfile.setText("./test/mock_pws_int.txt")
     gui_load.gui.refresh_button.click()
     assert gui_load.structure["Page 1"]["Question 1"]["policy"] == ['int', '1000', '9999']
     QTest.keyClicks(gui_load, 's', modifier=Qt.ControlModifier)
-    test_gui = StackedWindowGui("./pwtest.txt")
+    test_gui = StackedWindowGui("./test/pwtest.txt")
     for child in test_gui.Stack.currentWidget().children():
         if type(child) == PasswordEntry:
             assert type(child.validator()) == QIntValidator
@@ -238,12 +238,12 @@ def test_policy(gui_load, qtbot):
     QTest.keyClicks(gui_load.gui.edit_layout.itemAt(dec_b[0], 1).itemAt(dec_b[1]).widget(), '2')
     gui_load.gui.edit_layout.itemAt(dec_b[0], 1).itemAt(dec_b[1]).widget().editingFinished.emit()
     assert gui_load.gui.edit_layout.itemAt(dec_b[0], 1).itemAt(dec_b[1]).widget().text() == '2'
-    gui_load.structure["Page 1"]["Question 1"]["password_file"] = "../test/mock_pws_double.txt"
-    pwfile.setText("../test/mock_pws_double.txt")
+    gui_load.structure["Page 1"]["Question 1"]["password_file"] = "./test/mock_pws_double.txt"
+    pwfile.setText("./test/mock_pws_double.txt")
     gui_load.gui.refresh_button.click()
     assert gui_load.structure["Page 1"]["Question 1"]["policy"] == ['double', '1', '100', '2']
     QTest.keyClicks(gui_load, 's', modifier=Qt.ControlModifier)
-    test_gui = StackedWindowGui("./pwtest.txt")
+    test_gui = StackedWindowGui("./test/pwtest.txt")
     for child in test_gui.Stack.currentWidget().children():
         if type(child) == PasswordEntry:
             assert type(child.validator()) == QDoubleValidator
@@ -261,12 +261,12 @@ def test_policy(gui_load, qtbot):
     QTest.keyClicks(gui_load.gui.edit_layout.itemAt(exp_b[0], 1).itemAt(exp_b[1]).widget(), '[A-Z]\\d')
     gui_load.gui.edit_layout.itemAt(exp_b[0], 1).itemAt(exp_b[1]).widget().editingFinished.emit()
     assert gui_load.gui.edit_layout.itemAt(exp_b[0], 1).itemAt(exp_b[1]).widget().text() == '[A-Z]\\d'
-    gui_load.structure["Page 1"]["Question 1"]["password_file"] = "../test/mock_pws_regex.txt"
-    pwfile.setText("../test/mock_pws_regex.txt")
+    gui_load.structure["Page 1"]["Question 1"]["password_file"] = "./test/mock_pws_regex.txt"
+    pwfile.setText("./test/mock_pws_regex.txt")
     gui_load.gui.refresh_button.click()
     assert gui_load.structure["Page 1"]["Question 1"]["policy"] == ['regex', '[A-Z]\\d']
     QTest.keyClicks(gui_load, 's', modifier=Qt.ControlModifier)
-    test_gui = StackedWindowGui("./pwtest.txt")
+    test_gui = StackedWindowGui("./test/pwtest.txt")
     for child in test_gui.Stack.currentWidget().children():
         if type(child) == PasswordEntry:
             assert type(child.validator()) == QRegExpValidator
@@ -282,8 +282,8 @@ def test_policy(gui_load, qtbot):
     assert find_row_by_label(gui_load.gui.edit_layout, "max") is None
     assert find_row_by_label(gui_load.gui.edit_layout, "dec") is None
     assert find_row_by_label(gui_load.gui.edit_layout, "exp") is None
-    gui_load.structure["Page 1"]["Question 1"]["password_file"] = "../test/mock_pws.txt"
-    pwfile.setText("../test/mock_pws.txt")
+    gui_load.structure["Page 1"]["Question 1"]["password_file"] = "./test/mock_pws.txt"
+    pwfile.setText("./test/mock_pws.txt")
     QTest.keyClicks(gui_load, 's', modifier=Qt.ControlModifier)
     gui_load.close()
 

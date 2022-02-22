@@ -2,20 +2,22 @@ go_back = True
 back_text = Zurück
 forward_text = Weiter
 send_text = Absenden
-save_after = Page 1
 answer_pos = Ja
 answer_neg = Nein
 save_message = Sind Sie bereit den Fragebogen zu beenden und somit Ihre Angaben zu speichern?
 pagecount_text = Seite {} von {}
-filepath_results = ./test/results/results_tf.csv
+filepath_results = ./test/results/results.csv
 delimiter = ;
-stylesheet = ./src/stylesheets/minimal.qss
+stylesheet =  ./src/stylesheets/minimal.qss
 button_fade = 100
-[Page 1]
+randomization = None
+save_after = 2
+[1]
 title = ""
-[[Question 1]]
-type = Text
-text = Enter some text:
-size = 1
-policy = None,
-id = tf
+[[2]]
+type = HLine
+[2]
+title = ""
+[[j]]
+type = Plain Text
+text = Thanks

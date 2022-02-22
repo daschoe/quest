@@ -146,7 +146,7 @@ def test_policy(gui_load, qtbot):
     assert find_row_by_label(gui_load.gui.edit_layout, "dec") is None
     assert find_row_by_label(gui_load.gui.edit_layout, "exp") is None
     QTest.keyClicks(gui_load, 's', modifier=Qt.ControlModifier)
-    test_gui = StackedWindowGui("./tftest.txt")
+    test_gui = StackedWindowGui("./test/tftest.txt")
     for child in test_gui.Stack.currentWidget().children():
         if type(child) == QLineEdit:
             assert child.validator() is None
@@ -174,7 +174,7 @@ def test_policy(gui_load, qtbot):
     gui_load.gui.refresh_button.click()
     assert gui_load.structure["Page 1"]["Question 1"]["policy"] == ['int', '1', '100']
     QTest.keyClicks(gui_load, 's', modifier=Qt.ControlModifier)
-    test_gui = StackedWindowGui("./tftest.txt")
+    test_gui = StackedWindowGui("./test/tftest.txt")
     for child in test_gui.Stack.currentWidget().children():
         if type(child) == QLineEdit:
             assert type(child.validator()) == QIntValidator
@@ -204,7 +204,7 @@ def test_policy(gui_load, qtbot):
     gui_load.gui.refresh_button.click()
     assert gui_load.structure["Page 1"]["Question 1"]["policy"] == ['double', '1', '100', '2']
     QTest.keyClicks(gui_load, 's', modifier=Qt.ControlModifier)
-    test_gui = StackedWindowGui("./tftest.txt")
+    test_gui = StackedWindowGui("./test/tftest.txt")
     for child in test_gui.Stack.currentWidget().children():
         if type(child) == QLineEdit:
             assert type(child.validator()) == QDoubleValidator
@@ -228,7 +228,7 @@ def test_policy(gui_load, qtbot):
     gui_load.gui.refresh_button.click()
     assert gui_load.structure["Page 1"]["Question 1"]["policy"] == ['regex', '[A-Z]']
     QTest.keyClicks(gui_load, 's', modifier=Qt.ControlModifier)
-    test_gui = StackedWindowGui("./tftest.txt")
+    test_gui = StackedWindowGui("./test/tftest.txt")
     for child in test_gui.Stack.currentWidget().children():
         if type(child) == QLineEdit:
             assert type(child.validator()) == QRegExpValidator
@@ -244,8 +244,11 @@ def test_policy(gui_load, qtbot):
     assert find_row_by_label(gui_load.gui.edit_layout, "max") is None
     assert find_row_by_label(gui_load.gui.edit_layout, "dec") is None
     assert find_row_by_label(gui_load.gui.edit_layout, "exp") is None
+    assert gui_load.structure["Page 1"]["Question 1"]["size"] == '1'
     QTest.keyClicks(gui_load, 's', modifier=Qt.ControlModifier)
+    gui_load.save()
     gui_load.close()
+    QTest.qWait(500)
 
 
 # noinspection PyArgumentList
@@ -308,6 +311,9 @@ def test_policy_enable(gui_load, qtbot):
     assert hbox.findChild(QButtonGroup).checkedId() == 0
     assert policy_cb.currentText() == 'None'
     assert policy_cb.isEnabled() == True
+    assert gui_load.structure["Page 1"]["Question 1"]["size"] == 1
+    QTest.keyClicks(gui_load, 's', modifier=Qt.ControlModifier)
+    gui_load.save()
     gui_load.close()
 
 
@@ -415,7 +421,7 @@ def test_execute_textedit(gui_load, qtbot):
         os.remove("./test/results/results_tf.csv")
     gui_load.gui.refresh_button.click()
     QTest.keyClicks(gui_load, 's', modifier=Qt.ControlModifier)
-    test_gui = StackedWindowGui("./tftest.txt")
+    test_gui = StackedWindowGui("./test/tftest.txt")
 
     assert test_gui.Stack.count() == 1
     for child in test_gui.Stack.currentWidget().children():
@@ -459,5 +465,5 @@ def test_execute_textedit(gui_load, qtbot):
     assert policy_cb.isEnabled() == True
     assert gui_load.structure['Page 1']['Question 1']['size'] == 1
     QTest.keyClicks(gui_load, 's', modifier=Qt.ControlModifier)
-    QTest.qWait(500)
+    gui_load.save()
     gui_load.close()

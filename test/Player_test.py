@@ -415,6 +415,7 @@ def test_play_once(gui_load, qtbot):
             assert child.pause_button.isEnabled() == False
             assert child.stop_button.isEnabled() == False
             child.play_button.click()
+            QTest.qWait(100)
             assert child.play_button.isEnabled() == True
             assert child.pause_button.isEnabled() == True
             assert child.stop_button.isEnabled() == True
@@ -727,7 +728,7 @@ def test_play_button_text(gui_load, qtbot):
     assert warning_found == False
     QTest.keyClicks(gui_load, 's', modifier=Qt.ControlModifier)
 
-    os.remove("./results/results_pl.csv")
+    os.remove("./test/results/results_pl.csv")
     gui_load.close()
 
 
@@ -739,7 +740,7 @@ def test_execute_questionnaire_no_interaction(run, qtbot):
     QTest.mouseClick(run.forwardbutton, Qt.LeftButton)
 
     results = []
-    with open('./results/results_pl.csv', mode='r') as file:
+    with open('./test/results/results_pl.csv', mode='r') as file:
         csv_file = csv.reader(file, delimiter=';')
 
         for lines in csv_file:
@@ -754,13 +755,13 @@ def test_execute_questionnaire_no_interaction(run, qtbot):
     assert lines[1] == '[]'  # not played yet
     assert re.match(r'\d+-\d+-\d+ \d+:\d+:\d+.\d+', lines[2])  # timestamp
     assert re.match(r'\d+-\d+-\d+ \d+:\d+:\d+.\d+', lines[3])  # timestamp
-    os.remove("./results/results_pl.csv")
+    os.remove("./test/results/results_pl.csv")
 
 
 # noinspection PyArgumentList
 def test_execute_questionnaire(run, qtbot):
-    if os.path.exists("./results/results_pl.csv"):
-        os.remove("./results/results_pl.csv")
+    if os.path.exists("./test/results/results_pl.csv"):
+        os.remove("./test/results/results_pl.csv")
     assert run.Stack.count() == 1
     for child in run.Stack.currentWidget().children():
         if type(child) == Player:
@@ -771,7 +772,7 @@ def test_execute_questionnaire(run, qtbot):
     QTest.mouseClick(run.forwardbutton, Qt.LeftButton, delay=1)
 
     results = []
-    with open('./results/results_pl.csv', mode='r') as file:
+    with open('./test/results/results_pl.csv', mode='r') as file:
         csv_file = csv.reader(file, delimiter=';')
 
         for lines in csv_file:
@@ -781,7 +782,7 @@ def test_execute_questionnaire(run, qtbot):
     assert re.match(r'\[\d.\d+]', lines[1])  # list of duration
     assert re.match(r'\d+-\d+-\d+ \d+:\d+:\d+.\d+', lines[2])  # timestamp
     assert re.match(r'\d+-\d+-\d+ \d+:\d+:\d+.\d+', lines[3])  # timestamp
-    os.remove("./results/results_pl.csv")
+    os.remove("./test/results/results_pl.csv")
 
 
 # noinspection PyArgumentList
@@ -805,8 +806,7 @@ def test_buttons(gui_load, qtbot):
     assert gui_load.structure["Page 1"]["Question 1"]["buttons"] == player_buttons
 
     # try to add a non-defined button
-    gui_load.structure["Page 1"]["Question 1"]["buttons"] = \
-        gui_load.structure["Page 1"]["Question 1"]["buttons"].append("Record")
+    gui_load.structure["Page 1"]["Question 1"]["buttons"].append("Record")
     QTimer.singleShot(150, handle_dialog_error)
     error_found, warning_found, warning_details = validate_questionnaire(gui_load.structure)
     assert error_found == True
@@ -834,7 +834,7 @@ def test_buttons(gui_load, qtbot):
     QTest.mouseClick(test_gui.forwardbutton, Qt.LeftButton, delay=1)
     test_gui.close()
     results = []
-    with open('./results/results_pl.csv', mode='r') as file:
+    with open('./test/results/results_pl.csv', mode='r') as file:
         csv_file = csv.reader(file, delimiter=';')
 
         for lines in csv_file:
@@ -844,7 +844,7 @@ def test_buttons(gui_load, qtbot):
     assert re.match(r'\[\d.\d+]', lines[1])  # list of duration
     assert re.match(r'\d+-\d+-\d+ \d+:\d+:\d+.\d+', lines[2])  # timestamp
     assert re.match(r'\d+-\d+-\d+ \d+:\d+:\d+.\d+', lines[3])  # timestamp
-    os.remove("./results/results_pl.csv")
+    os.remove("./test/results/results_pl.csv")
 
     # just stop button
     gui_load.gui.edit_layout.itemAt(btn_pos, 1).itemAt(2).widget().click()
@@ -871,7 +871,7 @@ def test_buttons(gui_load, qtbot):
     QTest.mouseClick(test_gui.forwardbutton, Qt.LeftButton, delay=1)
     test_gui.close()
     results = []
-    with open('./results/results_pl.csv', mode='r') as file:
+    with open('./test/results/results_pl.csv', mode='r') as file:
         csv_file = csv.reader(file, delimiter=';')
         for lines in csv_file:
             results = lines
@@ -880,7 +880,7 @@ def test_buttons(gui_load, qtbot):
     assert re.match(r'\[\d.\d+]', lines[1])  # list of duration
     assert re.match(r'\d+-\d+-\d+ \d+:\d+:\d+.\d+', lines[2])  # timestamp
     assert re.match(r'\d+-\d+-\d+ \d+:\d+:\d+.\d+', lines[3])  # timestamp
-    os.remove("./results/results_pl.csv")
+    os.remove("./test/results/results_pl.csv")
 
     # stop and pause
     gui_load.gui.edit_layout.itemAt(btn_pos, 1).itemAt(1).widget().click()
@@ -925,7 +925,7 @@ def test_buttons(gui_load, qtbot):
     QTest.mouseClick(test_gui.forwardbutton, Qt.LeftButton, delay=1)
     test_gui.close()
     results = []
-    with open('./results/results_pl.csv', mode='r') as file:
+    with open('./test/results/results_pl.csv', mode='r') as file:
         csv_file = csv.reader(file, delimiter=';')
         for lines in csv_file:
             results = lines
@@ -934,7 +934,7 @@ def test_buttons(gui_load, qtbot):
     assert re.match(r'\[\d.\d+, \d.\d+]', lines[1])  # list of duration
     assert re.match(r'\d+-\d+-\d+ \d+:\d+:\d+.\d+', lines[2])  # timestamp
     assert re.match(r'\d+-\d+-\d+ \d+:\d+:\d+.\d+', lines[3])  # timestamp
-    os.remove("./results/results_pl.csv")
+    os.remove("./test/results/results_pl.csv")
 
     # just play button
     gui_load.gui.edit_layout.itemAt(btn_pos, 1).itemAt(2).widget().click()
@@ -963,7 +963,7 @@ def test_buttons(gui_load, qtbot):
     QTest.mouseClick(test_gui.forwardbutton, Qt.LeftButton, delay=1)
     test_gui.close()
     results = []
-    with open('./results/results_pl.csv', mode='r') as file:
+    with open('./test/results/results_pl.csv', mode='r') as file:
         csv_file = csv.reader(file, delimiter=';')
         for lines in csv_file:
             results = lines
@@ -972,7 +972,7 @@ def test_buttons(gui_load, qtbot):
     assert re.match(r'\[\d.\d+, \d.\d+]', lines[1])  # list of duration
     assert re.match(r'\d+-\d+-\d+ \d+:\d+:\d+.\d+', lines[2])  # timestamp
     assert re.match(r'\d+-\d+-\d+ \d+:\d+:\d+.\d+', lines[3])  # timestamp
-    os.remove("./results/results_pl.csv")
+    os.remove("./test/results/results_pl.csv")
 
     # reset file
     for btn in range(gui_load.gui.edit_layout.itemAt(btn_pos, 1).count()):
