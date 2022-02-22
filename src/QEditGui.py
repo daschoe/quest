@@ -839,6 +839,7 @@ class EditGui(QWidget):
                         if btn.isChecked():
                             new_val.append(player_buttons[self.sender().buttons().index(btn)])
             else:
+                print("SEND",self.sender(), type(self.sender()))
                 lbl = self.sender().parent().layout().labelForField(self.sender()).text()
             if type(self.sender()) is QCheckBox:
                 if (lbl == "go_back") or (lbl == "labelled"):
@@ -986,7 +987,8 @@ class EditGui(QWidget):
                 trr = layout.takeRow(0)
                 child = trr.fieldItem
                 lbl = trr.labelItem
-                lbl.widget().deleteLater()
+                if lbl is not None:
+                    lbl.widget().deleteLater()
             else:
                 child = layout.takeAt(0)
             if child.widget() and (not child.widget() == self.questiontype) and \
