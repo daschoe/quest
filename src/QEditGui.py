@@ -348,6 +348,10 @@ class EditGui(QWidget):
         self.pw_layout = QHBoxLayout()
         self.pw_file = QLabel("")
         self.pw_file.setObjectName("password_file")
+        self.save_after = QComboBox()
+        self.save_after.setObjectName("save_after")
+        self.save_after.activated.connect(self.update_val)
+        self.save_after.hide()
         self.rand_filechooser = QPushButton("Choose file...")
         self.rand_filechooser.hide()
         self.rand_filechooser.setToolTip(tooltips["randomization_file"])
@@ -597,15 +601,14 @@ class EditGui(QWidget):
                             val_field = TextEdit(self.parent().structure[field] if field in self.parent().structure.keys() else "")
                             val_field.editingFinished.connect(self.edit_done)
                         elif field == "save_after":
-                            val_field = QComboBox()
-                            val_field.setObjectName("save_after")
+                            val_field = self.save_after
                             current_pages = self.parent().structure.sections
-                            val_field.activated.connect(self.update_val)
                             if current_pages:
-                                val_field.addItems(current_pages)
+                                self.save_after.addItems(current_pages)
                                 selected = current_pages.index(self.parent().structure[field]) if (field in self.parent().structure.keys() and self.parent().structure[field] in current_pages) else -1
-                                val_field.setCurrentIndex(selected if selected > -1 else len(current_pages)-1)
-                                self.parent().structure[field] = val_field.currentText()
+                                self.save_after.setCurrentIndex(selected if selected > -1 else len(current_pages)-1)
+                                self.parent().structure[field] = self.save_after.currentText()
+                            self.save_after.show()
                         elif field == "stylesheet":
                             val_field = QHBoxLayout()
                             if field in self.parent().structure.keys():
@@ -971,7 +974,7 @@ class EditGui(QWidget):
             self.load_preview()
 
     def clear_layout(self, layout):
-        """Remove everythong from the layout, so that contents can be changed.
+        """Remove everything from the layout, so that contents can be changed.
 
         Parameters
         ----------
@@ -979,10 +982,16 @@ class EditGui(QWidget):
             the layout to be cleared
         """
         while layout.count():
-            child = layout.takeAt(0)
+            if type(layout) == QFormLayout:
+                trr = layout.takeRow(0)
+                child = trr.fieldItem
+                lbl = trr.labelItem
+                lbl.widget().deleteLater()
+            else:
+                child = layout.takeAt(0)
             if child.widget() and (not child.widget() == self.questiontype) and \
                     (not child.widget() == self.qss_filechooser) and (not child.widget() == self.qss_filename)\
-                    and (not child.widget() == self.pw_file) and \
+                    and (not child.widget() == self.pw_file) and (not child.widget() == self.save_after) and\
                     (not child.widget() == self.rand_file) and (not child.widget() == self.rand_filechooser):
                 child.widget().deleteLater()
             elif child.widget() == self.questiontype:
@@ -997,6 +1006,9 @@ class EditGui(QWidget):
                 self.rand_file.hide()
             elif child.widget() == self.rand_filechooser:
                 self.rand_filechooser.hide()
+            elif child.widget() == self.save_after:
+                self.save_after.clear()
+                self.save_after.hide()
             elif child.layout() is not None:
                 self.clear_layout(child.layout())
 
