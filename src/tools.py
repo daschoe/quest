@@ -192,7 +192,7 @@ default_values = {
     "button_fade": 100,
     "randomize": False,
     "randomization": "None",
-    "randomization_file": "",
-    "save_after": None
+    "randomization_file": ""#,
+    #"save_after": None
     #"pupil_on_next": ''
 }

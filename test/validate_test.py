@@ -444,6 +444,7 @@ def test_global_settings(gui_init):
 def test_page_settings(gui_init):
     structure = ConfigObj()
     structure["go_back"] = True
+    structure["save_after"] = None
     structure["Page"] = {}
     err, warn, det = validate_questionnaire(structure, True)
     assert err == False
@@ -487,7 +488,7 @@ def test_page_settings(gui_init):
 
 def test_multiple_pages():
     with pytest.raises(ConfigObjError):
-        ConfigObj("./doubled_sections.txt")
+        ConfigObj("./test/doubled_sections.txt")
 
 
 def test_question_settings(gui_init):
@@ -501,6 +502,7 @@ def test_question_settings(gui_init):
 
     structure = ConfigObj()
     structure["go_back"] = True
+    structure["save_after"] = None
     structure["Page"] = {}
     structure["Page"]["Question"] = {}
     err, warn, det = validate_questionnaire(structure, True)

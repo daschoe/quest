@@ -150,7 +150,7 @@ class Player(QWidget):
 
     def __click_animation(self):
         __btn = self.sender()
-        if not self.play_once:
+        if not self.play_once and self.button_fade > 0:
             __btn.setDown(True)
             QTimer.singleShot(self.button_fade, lambda: __btn.setDown(False))
 

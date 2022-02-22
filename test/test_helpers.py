@@ -39,7 +39,6 @@ def handle_dialog_no_save():
 def handle_dialog_error():
     """Click 'OK' on error dialog."""
     dialog = QApplication.activeModalWidget()
-    #print(dialog.detailedText())
     QTest.mouseClick(dialog.button(QMessageBox.Ok), Qt.LeftButton)
 
 
@@ -53,15 +52,12 @@ def open_config_file(conf_name):
     """Type filename."""
     QTest.qWait(50)
     dialog = QApplication.activeModalWidget()
-    print("dir", dialog.directory().dirName())
     if dialog.directory().dirName() != "test":
         dialog.setDirectory(dialog.directory().path() + "\\test")
-        print("dir now", dialog.directory().dirName())
     fp = conf_name.split("/")
     QTest.qWait(50)
     keyboard.write(fp[-1])
     keyboard.press("enter")
-    print(dialog.selectedFiles())
 
 
 def find_row_by_label(layout, label):

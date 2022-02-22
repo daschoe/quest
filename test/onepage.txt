@@ -2,6 +2,7 @@ go_back = True
 back_text = Zurück
 forward_text = Weiter
 send_text = Absenden
+save_after = Section
 answer_pos = Ja
 answer_neg = Nein
 save_message = Sind Sie bereit den Fragebogen zu beenden und somit Ihre Angaben zu speichern?
