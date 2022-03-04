@@ -989,7 +989,7 @@ class EditGui(QWidget):
                 self.clear_layout(child.layout())
 
     def open_tree_menu(self, position):
-        """Create appropirate context menu in treeview after right-clicking it.
+        """Create appropriate context menu in treeview after right-clicking it.
 
         Parameters
         ----------

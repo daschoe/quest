@@ -73,7 +73,7 @@ tooltips = {
 }
 
 # question types and their fields
-types = ["HLine", "Player", "MUSHRA", "Radio", "Check", "Text", "Slider", "Plain Text", "Button", "Password", "ABX", "Matrix"]
+types = ["HLine", "Player", "MUSHRA", "Radio", "Check", "Text", "Slider", "Plain Text", "Button", "Password", "ABX", "Matrix", "OSCButton"]
 
 fields_per_type = {
     "HLine": [{"type": "QComboBox", "objectName": "QLineEdit"}],
@@ -102,7 +102,10 @@ fields_per_type = {
              "answers": "QLineEdit", "button_texts": "QLineEdit", "x": "QCheckBox"}],
     "Matrix": [{"type": "QComboBox", "objectName": "QLineEdit", "id": "QLineEdit", "questions": "QPlainTextEdit",
                "required": "QCheckBox", "answers": "QPlainTextEdit", "start_answer_id": "QLineEdit",
-                "randomize": "QCheckBox"}]}
+                "randomize": "QCheckBox"}],
+    "OSCButton": [{"type": "QComboBox", "objectName": "QLineEdit", "id": "QLineEdit", "required": "QCheckBox",
+                "inscription": "QLineEdit", "receiver": "QLineEdit", "function": "QLineEdit"}]
+    }
 
 policy_possibilities = ["None", "int", "double", "regex"]
 

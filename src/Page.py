@@ -92,6 +92,13 @@ class Page(QWidget):
                 # self.evaluationvars[structure[quest]["id"]] = button.used
                 self.required[structure[quest]["id"]] = [True if ("required" in structure[quest].keys()) and (
                     structure[quest].as_bool("required")) else False, button.button, button.name, button.used]
+            elif structure[quest]["type"] == "OSCButton":
+                oscbutton = Button(structure[quest]["inscription"], structure[quest]["function"], self,
+                                structure[quest]["id"], receiver=structure[quest]["receiver"],
+                                objectname=structure[quest]["objectName"] if "objectName" in structure[quest].keys() else None)
+                layout.addRow(oscbutton)
+                self.required[structure[quest]["id"]] = [True if ("required" in structure[quest].keys()) and (
+                    structure[quest].as_bool("required")) else False, oscbutton.button, oscbutton.name, button.used]
             elif structure[quest]["type"] == "Player":
                 player = Player(structure[quest].as_int("start_cue"), structure[quest]["track"], qid=structure[quest]["id"],
                                 video=structure[quest]["video"] if "video" in structure[quest].keys() else None,
