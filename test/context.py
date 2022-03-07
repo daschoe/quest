@@ -29,4 +29,5 @@ from src.Player import Player
 import src.LabeledSlider as LabeledSlider
 import src.Slider as Slider
 import src.RadioMatrix as RadioMatrix
+from src.Image import Image
 from test_helpers import *

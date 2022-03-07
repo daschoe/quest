@@ -1305,12 +1305,12 @@ def validate_questionnaire(structure, suppress=False) -> (bool, bool, str):
                 if structure[page][quest]["image_position"] not in image_positions:
                     error_found = True
                     error_details.append("Invalid image position found for question '{}' on page '{}'.\n".format(quest, page))
-                elif structure[page][quest]["image_position"] == "free" and ("x_pos" not in structure[page][quest].keys() or "y_pos" not in structure[page][quest].keys()):
+                elif structure[page][quest]["image_position"] == "free" and ("x_pos" not in structure[page][quest].keys() and "y_pos" not in structure[page][quest].keys()):
                     warning_found = True
-                    warning_details.append("Image '{}' on page '{}' is chosen to be positioned freely, but no or incomplete coordinates were given".format(quest, page))
+                    warning_details.append("Image '{}' on page '{}' is chosen to be positioned freely, but no coordinates were given.\n".format(quest, page))
                     structure[page][quest]["x_pos"] = 0 if "x_pos" not in structure[page][quest].keys() else structure[page][quest]["x_pos"]
                     structure[page][quest]["y_pos"] = 0 if "y_pos" not in structure[page][quest].keys() else structure[page][quest]["y_pos"]
-            elif "image_position" not in structure[page][quest].keys() and structure[page][quest]["type"] == "Image":
+            elif "image_position" not in structure[page][quest].keys() and "type" in structure[page][quest].keys() and structure[page][quest]["type"] == "Image":
                 error_found = True
                 error_details.append("No image_position found for question '{}' on page '{}'.\n".format(quest, page))
 
@@ -1322,7 +1322,7 @@ def validate_questionnaire(structure, suppress=False) -> (bool, bool, str):
                         error_details.append("Width needs to be bigger than 0 for question '{}' on page '{}'.\n".format(quest, page))
                 except ValueError:
                     error_found = True
-                    error_details.append("Invalid value for width for question '{}' on page '{}'.\n")
+                    error_details.append("Invalid value for width for question '{}' on page '{}'.\n".format(quest, page))
 
             if "height" in structure[page][quest].keys():
                 try:
@@ -1332,34 +1332,34 @@ def validate_questionnaire(structure, suppress=False) -> (bool, bool, str):
                         error_details.append("Height needs to be bigger than 0 for question '{}' on page '{}'.\n".format(quest, page))
                 except ValueError:
                     error_found = True
-                    error_details.append("Height value for width for question '{}' on page '{}'.\n")
+                    error_details.append("Height value for width for question '{}' on page '{}'.\n".format(quest, page))
 
             if "x_pos" in structure[page][quest].keys():
                 try:
                     int(structure[page][quest]["x_pos"])
-                    if int(structure[page][quest]["x_pos"]) <= 0:
+                    if int(structure[page][quest]["x_pos"]) < 0:
                         error_found = True
-                        error_details.append("X position needs to be bigger than 0 for question '{}' on page '{}'.\n".format(quest, page))
+                        error_details.append("X position needs to be bigger or equal to 0 for question '{}' on page '{}'.\n".format(quest, page))
                 except ValueError:
                     error_found = True
-                    error_details.append("Invalid value for x position for question '{}' on page '{}'.\n")
+                    error_details.append("Invalid value for x position for question '{}' on page '{}'.\n".format(quest, page))
             elif "image_position" in structure[page][quest].keys() and structure[page][quest]["image_position"] == "free":
                 warning_found = True
-                warning_details.append("No x position given for the question '{}' on page '{}'.\n")
+                warning_details.append("No x position given for the question '{}' on page '{}'.\n".format(quest, page))
                 structure[page][quest]["x_pos"] = 0
 
             if "y_pos" in structure[page][quest].keys():
                 try:
                     int(structure[page][quest]["y_pos"])
-                    if int(structure[page][quest]["y_pos"]) <= 0:
+                    if int(structure[page][quest]["y_pos"]) < 0:
                         error_found = True
-                        error_details.append("Y position needs to be bigger than 0 for question '{}' on page '{}'.\n".format(quest, page))
+                        error_details.append("Y position needs to be bigger or equal to than 0 for question '{}' on page '{}'.\n".format(quest, page))
                 except ValueError:
                     error_found = True
-                    error_details.append("Invalid value for y position for question '{}' on page '{}'.\n")
+                    error_details.append("Invalid value for y position for question '{}' on page '{}'.\n".format(quest, page))
             elif "image_position" in structure[page][quest].keys() and structure[page][quest]["image_position"] == "free":
                 warning_found = True
-                warning_details.append("No y position given for the question '{}' on page '{}'.\n")
+                warning_details.append("No y position given for the question '{}' on page '{}'.\n".format(quest, page))
                 structure[page][quest]["y_pos"] = 0
 
     # remove duplicate errors/warnings

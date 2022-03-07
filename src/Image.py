@@ -41,11 +41,9 @@ class Image(QLabel):
             width = pixmap.width()
         if height is None:
             height = pixmap.height()
-        print(width, height)
         pixmap = pixmap.scaled(int(width), int(height))
         self.setPixmap(pixmap)
         self.setFixedWidth(int(width))
         self.setFixedHeight(int(height))
         if x is not None and y is not None:
             self.move(int(x), int(y))
-        print(self.width(), self.height(), self.x(), self.y())

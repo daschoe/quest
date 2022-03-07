@@ -950,6 +950,10 @@ class EditGui(QWidget):
                         y_field.setObjectName("y_pos")
                         self.policy_layout.addWidget(y_field)
                         y_field.editingFinished.connect(self.edit_done)
+                        page = self.treeview.selectedItems()[0].parent().text(0)
+                        question = self.treeview.selectedItems()[0].text(0)
+                        self.parent().structure[page][question]["x_pos"] = ""
+                        self.parent().structure[page][question]["y_pos"] = ""
                 else:
                     lbl = lbl.lower()
                     new_val = self.sender().currentText()
