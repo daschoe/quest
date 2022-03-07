@@ -87,6 +87,15 @@ and can have line breaks.'''
         track = 2, 3
         id = P2
         play_once = False
+    [[Image]]
+        type = Image
+        objectName = image
+        image_file = ./Configs/Logo.png
+        image_position = free
+        x_pos = 1800
+        y_pos = 400
+        width = 250
+        height = 100
     [[Button]]
         type = Button
         id = button

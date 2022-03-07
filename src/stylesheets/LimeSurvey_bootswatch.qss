@@ -23,6 +23,11 @@ QLabel{
     /*line-height: 1.42857143;*/
 }
 
+QLabel#image {
+    padding: 0;
+    margin: 0;
+}
+
 QLabel#headline {
     font-size: 14pt;
     font-weight: bold;

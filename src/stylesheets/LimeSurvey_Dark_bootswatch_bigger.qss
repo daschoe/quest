@@ -26,6 +26,11 @@ QLabel#smallerText{
 font-size:14pt;
 }
 
+QLabel#image {
+    padding: 0;
+    margin: 0;
+}
+
 QLabel#headline {
     font-size: 18pt;
     font-weight: bold;
