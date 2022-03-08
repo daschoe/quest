@@ -35,6 +35,7 @@ class Image(QLabel):
             self.name = objectname
         else:
             self.name = None
+            self.setStyleSheet("QLabel{margin: 0; padding: 0;}")
 
         pixmap = QPixmap(file)
         if width is None:
