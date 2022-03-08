@@ -1489,4 +1489,143 @@ def test_question_settings(gui_init):
     assert det[0] == "No questions for the matrix in question 'Question' on page 'Page' found.\n"
     structure["Page"]["Question"] = {'id': 'id'}
 
+    # ------width------
+    structure["Page"]["Question"]["width"] = "ten"
+    QTimer.singleShot(150, handle_dialog_error)
+    err, warn, det = validate_questionnaire(structure, True)
+    assert err == True
+    assert warn == False
+    assert text.find("Invalid value for width for question 'Question' on page 'Page'.\n")
+    structure["Page"]["Question"]["width"] = -20
+    QTimer.singleShot(150, handle_dialog_error)
+    err, warn, det = validate_questionnaire(structure, True)
+    assert err == True
+    assert warn == False
+    assert text.find("Width needs to be bigger than 0 for question 'Question' on page 'Page'.\n")
+    structure["Page"]["Question"]["width"] = 300
+    err, warn, det = validate_questionnaire(structure, True)
+    assert err == False
+    assert warn == False
+    structure["Page"]["Question"].pop("width")
+    structure["Page"]["Question"] = {'id': 'id'}
+
+    # ------height------
+    structure["Page"]["Question"]["height"] = "ten"
+    QTimer.singleShot(150, handle_dialog_error)
+    err, warn, det = validate_questionnaire(structure, True)
+    assert err == True
+    assert warn == False
+    assert text.find("Invalid value for height for question 'Question' on page 'Page'.\n")
+    structure["Page"]["Question"]["height"] = -20
+    QTimer.singleShot(150, handle_dialog_error)
+    err, warn, det = validate_questionnaire(structure, True)
+    assert err == True
+    assert warn == False
+    assert text.find("Height needs to be bigger than 0 for question 'Question' on page 'Page'.\n")
+    structure["Page"]["Question"]["height"] = 300
+    err, warn, det = validate_questionnaire(structure, True)
+    assert err == False
+    assert warn == False
+    structure["Page"]["Question"].pop("height")
+    structure["Page"]["Question"] = {'id': 'id'}
+
+    # ------x_pos------
+    structure["Page"]["Question"]["x_pos"] = "ten"
+    QTimer.singleShot(150, handle_dialog_error)
+    err, warn, det = validate_questionnaire(structure, True)
+    assert err == True
+    assert warn == False
+    assert text.find("Invalid value for x position for question 'Question' on page 'Page'.\n")
+    structure["Page"]["Question"]["x_pos"] = -20
+    QTimer.singleShot(150, handle_dialog_error)
+    err, warn, det = validate_questionnaire(structure, True)
+    assert err == True
+    assert warn == False
+    assert text.find("X position needs to be bigger or equal to 0 for question 'Question' on page 'Page'.\n")
+    structure["Page"]["Question"]["x_pos"] = 300
+    err, warn, det = validate_questionnaire(structure, True)
+    assert err == False
+    assert warn == False
+    structure["Page"]["Question"].pop("x_pos")
+    structure["Page"]["Question"]["type"] = "Image"
+    structure["Page"]["Question"]["image_file"] = "./test/Logo.png"
+    structure["Page"]["Question"]["image_position"] = "free"
+    structure["Page"]["Question"]["y_pos"] = 300
+    err, warn, det = validate_questionnaire(structure, True)
+    assert err == False
+    assert warn == True
+    assert det[0] == "No x position given for the question 'Question' on page 'Page'.\n"
+    structure["Page"]["Question"] = {'id': 'id'}
+
+    # ------y_pos------
+    structure["Page"]["Question"]["y_pos"] = "ten"
+    QTimer.singleShot(150, handle_dialog_error)
+    err, warn, det = validate_questionnaire(structure, True)
+    assert err == True
+    assert warn == False
+    assert text.find("Invalid value for y position for question 'Question' on page 'Page'.\n")
+    structure["Page"]["Question"]["y_pos"] = -20
+    QTimer.singleShot(150, handle_dialog_error)
+    err, warn, det = validate_questionnaire(structure, True)
+    assert err == True
+    assert warn == False
+    assert text.find("Y position needs to be bigger or equal to 0 for question 'Question' on page 'Page'.\n")
+    structure["Page"]["Question"]["y_pos"] = 300
+    err, warn, det = validate_questionnaire(structure, True)
+    assert err == False
+    assert warn == False
+    structure["Page"]["Question"].pop("y_pos")
+    structure["Page"]["Question"]["type"] = "Image"
+    structure["Page"]["Question"]["image_file"] = "./test/Logo.png"
+    structure["Page"]["Question"]["image_position"] = "free"
+    structure["Page"]["Question"]["x_pos"] = 300
+    err, warn, det = validate_questionnaire(structure, True)
+    assert err == False
+    assert warn == True
+    assert det[0] == "No y position given for the question 'Question' on page 'Page'.\n"
+    structure["Page"]["Question"] = {'id': 'id'}
+
+    # ------image_file------
+    structure["Page"]["Question"]["image_file"] = ""
+    err, warn, det = validate_questionnaire(structure, True)
+    assert err == False
+    assert warn == True
+    assert det[0] == "No image_file found for question 'Question' on page 'Page'.\n"
+    structure["Page"]["Question"]["image_file"] = "./invalid/path.txt"
+    QTimer.singleShot(150, handle_dialog_error)
+    err, warn, det = validate_questionnaire(structure, True)
+    assert err == True
+    assert warn == False
+    assert text.find("No valid image_file for question 'Question' on page 'Page'.\n")
+    structure["Page"]["Question"]["type"] = "Image"
+    structure["Page"]["Question"]["image_position"] = "here"
+    structure["Page"]["Question"].pop("image_file")
+    err, warn, det = validate_questionnaire(structure, True)
+    assert err == False
+    assert warn == True
+    assert det[0] == "No image_file found for question 'Question' on page 'Page'.\n"
+    structure["Page"]["Question"] = {'id': 'id'}
+
+    # ------image_position------
+    structure["Page"]["Question"]["image_position"] = "everywhere"
+    QTimer.singleShot(150, handle_dialog_error)
+    err, warn, det = validate_questionnaire(structure, True)
+    assert err == True
+    assert warn == False
+    assert text.find("Invalid image position found for question 'Question' on page 'Page'.\n")
+    structure["Page"]["Question"]["image_position"] = "free"
+    err, warn, det = validate_questionnaire(structure, True)
+    assert err == False
+    assert warn == True
+    assert det[0] == "Image 'Question' on page 'Page' is chosen to be positioned freely, but no coordinates were given.\n"
+    structure["Page"]["Question"]["type"] = "Image"
+    structure["Page"]["Question"]["image_file"] = "./test/Logo.png"
+    structure["Page"]["Question"].pop("image_position")
+    QTimer.singleShot(150, handle_dialog_error)
+    err, warn, det = validate_questionnaire(structure, True)
+    assert err == True
+    assert warn == False
+    assert text.find("No image_position found for question 'Question' on page 'Page'.\n")
+    structure["Page"]["Question"] = {'id': 'id'}
+
     gui_init.exit()

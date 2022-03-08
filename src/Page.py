@@ -12,6 +12,7 @@ from src.AnswerCheckBox import make_answers as mac
 from src.AnswerRadioButton import make_answers as mar
 from src.AnswerSlider import make_answers as mas
 from src.AnswerTextField import make_answers as matf
+from src.Image import Image
 from src.Lines import QHLine
 from src.MUSHRA import MUSHRA
 from src.PasswordEntry import PasswordEntry
@@ -53,6 +54,9 @@ class Page(QWidget):
         self.players = []
         self.required = {}
         self.page_log = ""
+        self.image_position = None
+        self.image = None
+        self.outer_layout = None
 
         if "pupil_on_next" in structure.keys() and structure["pupil_on_next"] is not None and \
                 structure["pupil_on_next"] != "" and not self.parent().preview:
@@ -61,7 +65,7 @@ class Page(QWidget):
         else:
             self.pupil_on_next = None
 
-        layout = QFormLayout(self)
+        layout = QFormLayout()
 
         if structure["title"] != "":
             header = QLabel(structure["title"])
@@ -83,6 +87,25 @@ class Page(QWidget):
                 layout.addRow(lbl)
             elif structure[quest]["type"] == "HLine":
                 layout.addRow(QHLine(objectname=structure[quest]["objectName"] if "objectName" in structure[quest].keys() else None))
+            elif structure[quest]["type"] == "Image":
+                if structure[quest]["image_position"] == "free":
+                    Image(structure[quest]["image_file"], structure[quest]["x_pos"], structure[quest]["y_pos"],
+                          width=structure[quest]["width"] if "width" in structure[quest].keys() else None,
+                          height=structure[quest]["height"] if "height" in structure[quest].keys() else None,
+                          objectname=structure[quest]["objectName"] if "objectName" in structure[quest].keys() else None, parent=self)
+                    self.image_position = "free"
+                else:
+                    img = Image(structure[quest]["image_file"], None, None,
+                          width=structure[quest]["width"] if "width" in structure[quest].keys() else None,
+                          height=structure[quest]["height"] if "height" in structure[quest].keys() else None,
+                          objectname=structure[quest]["objectName"] if "objectName" in structure[quest].keys() else None, parent=self)
+                    if structure[quest]["image_position"] == "here":
+                        layout.addRow(img)
+                    elif structure[quest]["image_position"] == "top":
+                        layout.insertRow(0, img)
+                    else:
+                        self.image_position = structure[quest]["image_position"]
+                        self.image = img
             elif structure[quest]["type"] == "Button":
                 button = Button(structure[quest]["inscription"], structure[quest]["function"], self,
                                 structure[quest]["id"], recording_name=structure[quest]["recording_name"] if "recording_name" in structure[quest].keys() else None,
@@ -215,6 +238,32 @@ class Page(QWidget):
             else:
                 raise ValueError("Unknown type for question {}. Found {}. Supported types are: HLine, Player, MUSHRA, "
                                  "Radio, Check, Text, Slider, Button".format(structure[quest]["id"], structure[quest]["type"]))
+
+        if self.image_position == "free":
+            if len(self.findChildren(Image)) > 0:
+                for img in self.findChildren(Image):
+                    for child in self.children():
+                        if type(child) not in [Image, QFormLayout, QHBoxLayout, QSignalMapper]:
+                            child.stackUnder(img)
+            self.setLayout(layout)
+        elif self.image_position == "bottom":
+            layout.addRow(img)
+            self.setLayout(layout)
+        elif self.image_position == "left" or self.image_position == "right":
+            self.outer_layout = QHBoxLayout()
+            if self.image_position == "left":
+                self.outer_layout.addWidget(self.image)
+                q_wid = QWidget()
+                q_wid.setLayout(layout)
+                self.outer_layout.addWidget(q_wid)
+            else:
+                q_wid = QWidget()
+                q_wid.setLayout(layout)
+                self.outer_layout.addWidget(q_wid)
+                self.outer_layout.addWidget(self.image)
+            self.setLayout(self.outer_layout)
+        else:
+            self.setLayout(layout)
 
         if len(self.players) > 0 and self.parent().popup and not self.parent().preview:
             for p in self.players:

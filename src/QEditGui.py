@@ -358,6 +358,9 @@ class EditGui(QWidget):
         self.rand_filechooser.clicked.connect(self.choose_randfile)
         self.rand_file = QLabel("")
         self.rand_file.setObjectName("randomization_file")
+        self.img_file = QLabel("")
+        self.img_file.setObjectName("image_file")
+        self.img_layout = QHBoxLayout()
         preview = QGroupBox("Preview")
         self.preview_gui = None
         self.prev_layout = QVBoxLayout(preview)
@@ -454,6 +457,23 @@ class EditGui(QWidget):
                 self.parent().redo_stack.clear()
                 self.parent().redoaction.setEnabled(False)
                 self.parent().structure[page][question]["password_file"] = self.pw_file.text()
+
+    def choose_imgfile(self):
+        """Choose an existing image file."""
+        dlg = QFileDialog(self)
+        dlg.setFileMode(QFileDialog.ExistingFile)
+        dlg.setNameFilter("Image files (*.png *.jpg *.jpeg *.gif)")
+        dlg.setStyle(self.style())
+        if dlg.exec_():
+            self.img_file.setText(dlg.selectedFiles()[0])
+            page = self.treeview.selectedItems()[0].parent().text(0)
+            question = self.treeview.selectedItems()[0].text(0)
+            if self.parent().structure[page][question]["image_file"] != self.img_file.text():
+                self.parent().undo_stack.append(copy.deepcopy(dict(self.parent().structure)))
+                self.parent().undoaction.setEnabled(True)
+                self.parent().redo_stack.clear()
+                self.parent().redoaction.setEnabled(False)
+                self.parent().structure[page][question]["image_file"] = self.img_file.text()
 
     def choose_randfile(self):
         """Choose an existing txt file as randomization order file."""
@@ -690,6 +710,14 @@ class EditGui(QWidget):
                                         self.pw_file.setText("" if field not in question_data.keys() else question_data[field])
                                         self.pw_layout.addWidget(val_field)
                                         self.pw_layout.addWidget(self.pw_file)
+                                    elif field == "image_file":
+                                        val_field = QPushButton("Choose file...")
+                                        val_field.setObjectName("image_file_btn")
+                                        val_field.clicked.connect(self.choose_imgfile)
+                                        self.img_file.show()
+                                        self.img_file.setText("" if field not in question_data.keys() else question_data[field])
+                                        self.img_layout.addWidget(val_field)
+                                        self.img_layout.addWidget(self.img_file)
                                 elif fields_per_type[question_data[k]][0][field] == "QPlainTextEdit":
                                     if field not in question_data.keys():
                                         val_field = TextEdit("")
@@ -702,6 +730,25 @@ class EditGui(QWidget):
                                 elif fields_per_type[question_data[k]][0][field] == "QComboBox":
                                     val_field = QComboBox()
                                     val_field.activated.connect(self.update_val)
+                                    if field == "image_position":
+                                        val_field.addItems(image_positions)
+                                        val_field.setCurrentIndex(image_positions.index(question_data[field]))
+                                        self.clear_layout(self.policy_layout)
+                                        if question_data[field] == "free":
+                                            self.policy_layout.addWidget(QLabel("x_pos"))
+                                            ann_field = QLineEdit(str(question_data[
+                                                                          "x_pos"]) if "x_pos" in question_data.keys() else "")
+                                            ann_field.setObjectName("x_pos")
+                                            self.policy_layout.addWidget(ann_field)
+                                            ann_field.editingFinished.connect(self.edit_done)
+                                            self.policy_layout.addWidget(QLabel("y_pos"))
+                                            ann_field = QLineEdit(str(question_data[
+                                                                          "y_pos"]) if "y_pos" in question_data.keys() else "")
+                                            ann_field.setObjectName("y_pos")
+                                            self.policy_layout.addWidget(ann_field)
+                                            ann_field.editingFinished.connect(self.edit_done)
+                                        else:
+                                            self.edit_layout.removeRow(self.policy_layout)
                                     if field == "function":
                                         val_field.addItems(function_possibilites)
                                         val_field.setCurrentIndex(function_possibilites.index(question_data[field]))
@@ -795,11 +842,13 @@ class EditGui(QWidget):
                                             cnt += 1
                                 if type(val_field) != QHBoxLayout:
                                     val_field.setToolTip(tooltips[field])
-                                if field == "policy" or field == "annotation" or field == "recording_name" or field == "function":
+                                if field == "policy" or field == "annotation" or field == "recording_name" or field == "function" or field == "image_position":
                                     self.edit_layout.addRow(QLabel(field), val_field)
                                     self.edit_layout.addRow(self.policy_layout)
                                 elif field == "password_file":
                                     self.edit_layout.addRow("password_file", self.pw_layout)
+                                elif field == "image_file":
+                                    self.edit_layout.addRow("image_file", self.img_layout)
                                 else:
                                     self.edit_layout.addRow(QLabel(field), val_field)
                 if self.preview_gui is not None:
@@ -903,6 +952,24 @@ class EditGui(QWidget):
                         self.rand_filechooser.setEnabled(False)
                 elif lbl == "save_after":
                     new_val = self.sender().currentText()
+                elif lbl == "image_position":
+                    new_val = self.sender().currentText()
+                    self.clear_layout(self.policy_layout)
+                    if self.sender().currentText() == "free":
+                        self.policy_layout.addWidget(QLabel("x_pos:"))
+                        x_field = QLineEdit("")
+                        x_field.setObjectName("x_pos")
+                        self.policy_layout.addWidget(x_field)
+                        x_field.editingFinished.connect(self.edit_done)
+                        self.policy_layout.addWidget(QLabel("y_pos:"))
+                        y_field = QLineEdit("")
+                        y_field.setObjectName("y_pos")
+                        self.policy_layout.addWidget(y_field)
+                        y_field.editingFinished.connect(self.edit_done)
+                        page = self.treeview.selectedItems()[0].parent().text(0)
+                        question = self.treeview.selectedItems()[0].text(0)
+                        self.parent().structure[page][question]["x_pos"] = ""
+                        self.parent().structure[page][question]["y_pos"] = ""
                 else:
                     lbl = lbl.lower()
                     new_val = self.sender().currentText()
@@ -971,6 +1038,14 @@ class EditGui(QWidget):
                 new_val = self.sender().text()
                 self.parent().structure[self.treeview.currentItem().parent().text(0)][
                     self.treeview.currentItem().text(0)]["recording_name"] = new_val
+            elif self.sender().objectName() == "x_pos":
+                new_val = self.sender().text()
+                self.parent().structure[self.treeview.currentItem().parent().text(0)][
+                    self.treeview.currentItem().text(0)]["x_pos"] = new_val
+            elif self.sender().objectName() == "y_pos":
+                new_val = self.sender().text()
+                self.parent().structure[self.treeview.currentItem().parent().text(0)][
+                    self.treeview.currentItem().text(0)]["y_pos"] = new_val
         if self.automatic_refresh.isChecked():
             self.load_preview()
 
@@ -994,6 +1069,7 @@ class EditGui(QWidget):
             if child.widget() and (not child.widget() == self.questiontype) and \
                     (not child.widget() == self.qss_filechooser) and (not child.widget() == self.qss_filename)\
                     and (not child.widget() == self.pw_file) and (not child.widget() == self.save_after) and\
+                    (not child.widget() == self.img_file) and\
                     (not child.widget() == self.rand_file) and (not child.widget() == self.rand_filechooser):
                 child.widget().deleteLater()
             elif child.widget() == self.questiontype:
@@ -1004,6 +1080,8 @@ class EditGui(QWidget):
                 self.qss_filename.hide()
             elif child.widget() == self.pw_file:
                 self.pw_file.hide()
+            elif child.widget() == self.img_file:
+                self.img_file.hide()
             elif child.widget() == self.rand_file:
                 self.rand_file.hide()
             elif child.widget() == self.rand_filechooser:

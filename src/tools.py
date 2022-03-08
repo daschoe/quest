@@ -70,11 +70,14 @@ tooltips = {
     "annotation": "Text for Pupil Core annotation. (default: test)",
     "randomization": "Method to randomize pages within groups",
     "randomization_file": "Path to a line-break separated comma separated list of orders.",
-    "save_after": "Page to write to the results file at clicking next."
+    "save_after": "Page to write to the results file at clicking next.",
+    "image_position": "Placement of the image on the page.",
+    "x_pos": "The left-right position of the top left corner of the image in pixels.",
+    "y_pos": "The top-bottom position of the top left corner of the image in pixels.",
+    "width": "The width of the image in pixels.",
+    "height": "The height of the image in pixels.",
+    "image_file": "The file of the image."
 }
-
-# question types and their fields
-types = ["HLine", "Player", "MUSHRA", "Radio", "Check", "Text", "Slider", "Plain Text", "Button", "Password", "ABX", "Matrix"]
 
 fields_per_type = {
     "HLine": [{"type": "QComboBox", "objectName": "QLineEdit"}],
@@ -103,7 +106,11 @@ fields_per_type = {
              "answers": "QLineEdit", "button_texts": "QLineEdit", "x": "QCheckBox"}],
     "Matrix": [{"type": "QComboBox", "objectName": "QLineEdit", "id": "QLineEdit", "questions": "QPlainTextEdit",
                "required": "QCheckBox", "answers": "QPlainTextEdit", "start_answer_id": "QLineEdit",
-                "randomize": "QCheckBox"}]}
+                "randomize": "QCheckBox"}],
+    "Image": [{"type": "QComboBox", "objectName": "QLineEdit", "image_file": "QPushButton", "image_position": "QComboBox",
+               "width": "QLineEdit", "height": "QLineEdit"}]}
+
+types = list(fields_per_type.keys())
 
 policy_possibilities = ["None", "int", "double", "regex"]
 
@@ -112,6 +119,8 @@ function_possibilites = ["Annotate", "Recording", "Stop", "Calibration"]
 player_buttons = ["Play", "Pause", "Stop"]
 
 randomize_options = ["None", "balanced latin square", "from file"]
+
+image_positions = ["here", "top", "bottom", "left", "right", "free"]
 
 # page fields
 page_fields = ["title", "description", "randomgroup", "pupil_on_next"]
@@ -192,7 +201,13 @@ default_values = {
     "button_fade": 100,
     "randomize": False,
     "randomization": "None",
-    "randomization_file": ""#,
     #"save_after": None
+    "randomization_file": "",
+    "x_pos": "",
+    "y_pos": "",
+    "image_file": "",
+    "width": "",
+    "height": "",
+    "image_position": "here"
     #"pupil_on_next": ''
 }

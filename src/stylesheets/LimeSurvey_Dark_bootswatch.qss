@@ -26,6 +26,11 @@ QLabel#headline {
     font-weight: bold;
 }
 
+QLabel#image {
+    padding: 0;
+    margin: 0;
+}
+
 QLabel#required, PasswordEntry#required {
     color: #CF6679;
 }
