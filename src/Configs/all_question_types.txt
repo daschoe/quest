@@ -94,7 +94,7 @@ and can have line breaks.'''
         play_once = False
     [[Image]]
         type = Image
-        image_file = C:/Users/Administrator/Desktop/Daphne/GIT/quest/src/Configs/Logo.png
+        image_file = ./src/Configs/Logo.png
         image_position = free
         x_pos = 1500
         y_pos = 1600
