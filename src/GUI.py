@@ -622,7 +622,7 @@ class StackedWindowGui(QWidget):
             help_str = str(index + 1)
             if len(self.Stack.currentWidget().players) > 0:
                 for player in self.Stack.currentWidget().players:
-                    help_str += '\tmarker:'+str(player.start_cue)+' track:'+str(player.track)
+                    help_str += '\tmarker:'+str(player.start_cue if type(player) != MUSHRA else player.start_cues)+' track:'+str(player.track if type(player) != MUSHRA else player.tracks)
             self.help_client.send_message("/page", help_str)
 
     def closeEvent(self, event):

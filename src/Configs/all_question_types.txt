@@ -13,6 +13,11 @@ delimiter = ;
 stylesheet = ./stylesheets/minimal.qss
 button_fade = 100
 randomization = None
+save_after = Page 1
+help_ip = 127.0.0.1
+help_port = 5005
+help_text = Help
+back_text = Zurück
 [Page 1]
     title = Title
     description = This is a test page displaying all kinds of questions.
@@ -89,11 +94,10 @@ and can have line breaks.'''
         play_once = False
     [[Image]]
         type = Image
-        objectName = image
-        image_file = ./Configs/Logo.png
+        image_file = C:/Users/Administrator/Desktop/Daphne/GIT/quest/src/Configs/Logo.png
         image_position = free
-        x_pos = 1800
-        y_pos = 400
+        x_pos = 1500
+        y_pos = 1600
         width = 250
         height = 100
     [[Button]]
