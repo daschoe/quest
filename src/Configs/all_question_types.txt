@@ -94,7 +94,7 @@ and can have line breaks.'''
         play_once = False
     [[Image]]
         type = Image
-        image_file = ./src/Configs/Logo.png
+        image_file = ./Configs/Logo.png
         image_position = free
         x_pos = 1500
         y_pos = 1600
