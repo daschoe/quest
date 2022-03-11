@@ -743,7 +743,7 @@ class StackedWindowGui(QWidget):
                 for field in range(0, len(headers)):
                     row.append(fields[headers[field]])
                 writer.writerow(row)
-        except PermissionError:
+        except (PermissionError, KeyError):
             print("Can not access results file, saving backup!")
             participant_number = self.get_participant_number()
             self.filepath_results = path[0]+"/"+str(participant_number)+"_backup_"+datetime.datetime.now().strftime("%Y-%m-%d_%H-%M-%S")+".csv"
