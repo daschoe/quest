@@ -69,7 +69,10 @@ tooltips = {
     "pupil_on_next": "Message/Annotation to send to pupil on page change.",
     "annotation": "Text for Pupil Core annotation. (default: test)",
     "randomization": "Method to randomize pages within groups",
-    "randomization_file": "Path to a line-break separated comma separated list of orders."
+    "randomization_file": "Path to a line-break separated comma separated list of orders.",
+    "address": "The OSC adress to send to, should start with '/'.",
+    "value": "The value to send over OSC, use 'id:' to refer to a preceding field.",
+    "receiver": "IP and port of the OSC receiver to send to."
 }
 
 # question types and their fields
@@ -104,7 +107,7 @@ fields_per_type = {
                "required": "QCheckBox", "answers": "QPlainTextEdit", "start_answer_id": "QLineEdit",
                 "randomize": "QCheckBox"}],
     "OSCButton": [{"type": "QComboBox", "objectName": "QLineEdit", "id": "QLineEdit", "required": "QCheckBox",
-                "inscription": "QLineEdit", "receiver": "QLineEdit", "function": "QLineEdit"}]
+                "inscription": "QLineEdit", "receiver": "QComboBox", "address": "QLineEdit", "value": "QLineEdit"}]
     }
 
 policy_possibilities = ["None", "int", "double", "regex"]
@@ -193,6 +196,7 @@ default_values = {
     "button_fade": 100,
     "randomize": False,
     "randomization": "None",
-    "randomization_file": ""
+    "randomization_file": "",
+    "receiver": []
     #"pupil_on_next": ''
 }

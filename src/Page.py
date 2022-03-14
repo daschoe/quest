@@ -14,6 +14,7 @@ from src.AnswerSlider import make_answers as mas
 from src.AnswerTextField import make_answers as matf
 from src.Lines import QHLine
 from src.MUSHRA import MUSHRA
+from src.OSCButton import OSCButton
 from src.PasswordEntry import PasswordEntry
 from src.Player import Player
 from src.PupilCoreButton import Button
@@ -93,12 +94,12 @@ class Page(QWidget):
                 self.required[structure[quest]["id"]] = [True if ("required" in structure[quest].keys()) and (
                     structure[quest].as_bool("required")) else False, button.button, button.name, button.used]
             elif structure[quest]["type"] == "OSCButton":
-                oscbutton = Button(structure[quest]["inscription"], structure[quest]["function"], self,
-                                structure[quest]["id"], receiver=structure[quest]["receiver"],
-                                objectname=structure[quest]["objectName"] if "objectName" in structure[quest].keys() else None)
+                oscbutton = OSCButton(structure[quest]["inscription"], structure[quest]["address"],
+                                   structure[quest]["value"], self, structure[quest]["id"], structure[quest]["receiver"],
+                                   objectname=structure[quest]["objectName"] if "objectName" in structure[quest].keys() else None)
                 layout.addRow(oscbutton)
                 self.required[structure[quest]["id"]] = [True if ("required" in structure[quest].keys()) and (
-                    structure[quest].as_bool("required")) else False, oscbutton.button, oscbutton.name, button.used]
+                    structure[quest].as_bool("required")) else False, oscbutton.button, oscbutton.name, oscbutton.used]
             elif structure[quest]["type"] == "Player":
                 player = Player(structure[quest].as_int("start_cue"), structure[quest]["track"], qid=structure[quest]["id"],
                                 video=structure[quest]["video"] if "video" in structure[quest].keys() else None,
