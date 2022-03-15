@@ -1160,7 +1160,8 @@ def validate_questionnaire(structure, suppress=False) -> (bool, bool, str):
                     warning_found = True
                     warning_details.append(
                         "Internally used inscription 'None' used in question '{}' on page '{}'.\n".format(quest, page))
-            elif "type" in structure[page][quest].keys() and structure[page][quest]["type"] == "Button" and \
+            elif "type" in structure[page][quest].keys() and (structure[page][quest]["type"] == "Button"
+                                                              or structure[page][quest]["type"] == "OSCButton") and \
                     "inscription" not in structure[page][quest].keys():
                 structure[page][quest]["inscription"] = ""
                 warning_found = True
@@ -1288,33 +1289,40 @@ def validate_questionnaire(structure, suppress=False) -> (bool, bool, str):
             if "address" in structure[page][quest].keys():
                 if not structure[page][quest]["address"].startswith("/"):
                     warning_found = True
-                    warning_details.append("The OSC-address of question '{}' on page '{}' should start with '/'.\n")
+                    warning_details.append("The OSC-address of question '{}' on page '{}' should start with '/'.\n".format(quest, page))
+                elif structure[page][quest]["address"] == "":
+                    error_found = True
+                    error_details.append("No OSC-address for question '{}' on page '{}' was given.\n".format(quest, page))
             elif "type" in structure[page][quest].keys() and structure[page][quest]["type"] == "OSCButton" and \
                     "address" not in structure[page][quest].keys():
                 error_found = True
-                error_details.append("No OSC-address for question '{}' on page '{}' was given.\n")
+                error_details.append("No OSC-address for question '{}' on page '{}' was given.\n".format(quest, page))
+
+            if "type" in structure[page][quest].keys() and structure[page][quest]["type"] == "OSCButton" and \
+                    "value" not in structure[page][quest].keys():
+                error_found = True
+                error_details.append("No value for question '{}' on page '{}' was given.\n".format(quest, page))
 
             if "receiver" in structure[page][quest].keys():
                 if type(structure[page][quest]["receiver"]) is not list and type(structure[page][quest]["receiver"]) is not tuple:
                     error_found = True
-                    error_details.append("The receiver of question '{}' on page '{}' needs to have the format (IP, Port).\n")
-                else:
+                    error_details.append("The receiver of question '{}' on page '{}' needs to have the format (IP, Port).\n".format(quest, page))
+                elif len(structure[page][quest]["receiver"]) > 0:
                     match = re.match(ip_mask, structure[page][quest]["receiver"][0])
                     if match is None or match.span()[1] < len(structure[page][quest]["receiver"][0]):
                         error_found = True
-                        error_details.append("No valid IP address given for the receiver in question '{}' on page '{}'.\n")
+                        error_details.append("No valid IP address given for the receiver in question '{}' on page '{}'.\n".format(quest, page))
                     try:
                         int(structure[page][quest]["receiver"][1])
                         if int(structure[page][quest]["receiver"][1]) < 0 or int(structure[page][quest]["receiver"][1]) > 65535:
                             raise ValueError
                     except ValueError:
                         error_found = True
-                        error_details.append("Invalid receiver port in question '{}' on page '{}', couldn't be converted to a number 0-65535.\n")
+                        error_details.append("Invalid receiver port in question '{}' on page '{}', couldn't be converted to a number 0-65535.\n".format(quest, page))
 
     # remove duplicate errors/warnings
     warning_details = list(dict.fromkeys(warning_details))
     error_details = list(dict.fromkeys(error_details))
-
     msg = ResizeMessageBox()
     msg.setWindowTitle("Validation Result")
     msg.setSizeGripEnabled(True)

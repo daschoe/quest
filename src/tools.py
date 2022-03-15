@@ -197,6 +197,7 @@ default_values = {
     "randomize": False,
     "randomization": "None",
     "randomization_file": "",
-    "receiver": []
+    "receiver": [],
+    "address": ""
     #"pupil_on_next": ''
 }
