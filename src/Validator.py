@@ -1287,12 +1287,13 @@ def validate_questionnaire(structure, suppress=False) -> (bool, bool, str):
                     "No questions for the matrix in question '{}' on page '{}' found.\n".format(quest, page))
 
             if "address" in structure[page][quest].keys():
-                if not structure[page][quest]["address"].startswith("/"):
+                if structure[page][quest]["address"] == "":
+                    error_found = True
+                    error_details.append(
+                        "No OSC-address for question '{}' on page '{}' was given.\n".format(quest, page))
+                elif not structure[page][quest]["address"].startswith("/"):
                     warning_found = True
                     warning_details.append("The OSC-address of question '{}' on page '{}' should start with '/'.\n".format(quest, page))
-                elif structure[page][quest]["address"] == "":
-                    error_found = True
-                    error_details.append("No OSC-address for question '{}' on page '{}' was given.\n".format(quest, page))
             elif "type" in structure[page][quest].keys() and structure[page][quest]["type"] == "OSCButton" and \
                     "address" not in structure[page][quest].keys():
                 error_found = True
@@ -1319,6 +1320,10 @@ def validate_questionnaire(structure, suppress=False) -> (bool, bool, str):
                     except ValueError:
                         error_found = True
                         error_details.append("Invalid receiver port in question '{}' on page '{}', couldn't be converted to a number 0-65535.\n".format(quest, page))
+            elif "type" in structure[page][quest].keys() and structure[page][quest]["type"] == "OSCButton" and \
+                    "receiver" not in structure[page][quest].keys():
+                error_found = True
+                error_details.append("No reveiver found for question '{}' on page '{}'.\n".format(quest, page))
 
     # remove duplicate errors/warnings
     warning_details = list(dict.fromkeys(warning_details))
