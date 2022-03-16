@@ -1628,4 +1628,86 @@ def test_question_settings(gui_init):
     assert text.find("No image_position found for question 'Question' on page 'Page'.\n")
     structure["Page"]["Question"] = {'id': 'id'}
 
+    # ------receiver------
+    structure["Page"]["Question"]["receiver"] = ["ip", 3000]
+    QTimer.singleShot(150, handle_dialog_error)
+    err, warn, det = validate_questionnaire(structure, True)
+    assert err == True
+    assert warn == False
+    assert text.find("No valid IP address given for the receiver in question 'Question' on page 'Page'.") > -1
+    structure["Page"]["Question"]["receiver"] = ["", 3000]
+    QTimer.singleShot(150, handle_dialog_error)
+    err, warn, det = validate_questionnaire(structure, True)
+    assert err == True
+    assert warn == False
+    assert text.find("No valid IP address given for the receiver in question 'Question' on page 'Page'.") > -1
+    structure["Page"]["Question"]["receiver"] = ["127.0.0.1", ""]
+    QTimer.singleShot(150, handle_dialog_error)
+    err, warn, det = validate_questionnaire(structure, True)
+    assert err == True
+    assert warn == False
+    assert text.find("Invalid receiver port in question 'Question' on page 'Page', couldn't be converted to a number 0-65535.") > -1
+    structure["Page"]["Question"]["receiver"] = ["127.0.0.1", 800]
+    err, warn, det = validate_questionnaire(structure, True)
+    assert err == False
+    assert warn == False
+    structure["Page"]["Question"]["receiver"] = "audio"
+    QTimer.singleShot(150, handle_dialog_error)
+    err, warn, det = validate_questionnaire(structure, True)
+    assert err == True
+    assert warn == False
+    assert text.find("The receiver of question 'Question' on page 'Page' needs to have the format (IP, Port).") > -1
+    structure["Page"]["Question"].pop("receiver")
+    structure["Page"]["Question"]["type"] = "OSCButton"
+    structure["Page"]["Question"]["address"] = "/msg"
+    structure["Page"]["Question"]["value"] = 0
+    structure["Page"]["Question"]["inscription"] = "Text"
+    QTimer.singleShot(150, handle_dialog_error)
+    err, warn, det = validate_questionnaire(structure, True)
+    assert err == True
+    assert warn == False
+    assert text.find("No reveiver found for question 'Question' on page 'Page'.\n") > -1
+    structure["Page"]["Question"] = {'id': 'id'}
+
+    # ------address------
+    structure["Page"]["Question"]["address"] = ""
+    QTimer.singleShot(150, handle_dialog_error)
+    err, warn, det = validate_questionnaire(structure, True)
+    assert err == True
+    assert warn == False
+    assert text.find("No OSC-address for question 'Question' on page 'Page' was given.\n") > -1
+    structure["Page"]["Question"]["address"] = "message"
+    err, warn, det = validate_questionnaire(structure, True)
+    assert err == False
+    assert warn == True
+    assert det[0] == "The OSC-address of question 'Question' on page 'Page' should start with '/'.\n"
+    structure["Page"]["Question"]["address"] = "/audio"
+    err, warn, det = validate_questionnaire(structure, True)
+    assert err == False
+    assert warn == False
+    structure["Page"]["Question"].pop("address")
+    structure["Page"]["Question"]["type"] = "OSCButton"
+    structure["Page"]["Question"]["receiver"] = ["127.0.0.1", 8000]
+    structure["Page"]["Question"]["value"] = 0
+    structure["Page"]["Question"]["inscription"] = "Text"
+    QTimer.singleShot(150, handle_dialog_error)
+    err, warn, det = validate_questionnaire(structure, True)
+    assert err == True
+    assert warn == False
+    assert text.find("No OSC-address for question 'Question' on page 'Page' was given.\n") > -1
+    structure["Page"]["Question"] = {'id': 'id'}
+
+    # ------value------
+    structure["Page"]["Question"]["type"] = "OSCButton"
+    structure["Page"]["Question"]["receiver"] = ["127.0.0.1", 8000]
+    structure["Page"]["Question"]["address"] = "/message"
+    structure["Page"]["Question"]["inscription"] = "Text"
+    QTimer.singleShot(150, handle_dialog_error)
+    err, warn, det = validate_questionnaire(structure, True)
+    assert err == True
+    assert warn == False
+    assert text.find("No value for question 'Question' on page 'Page' was given.\n") > -1
+    structure["Page"]["Question"] = {'id': 'id'}
+
+
     gui_init.exit()

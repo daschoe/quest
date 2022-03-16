@@ -76,9 +76,13 @@ tooltips = {
     "y_pos": "The top-bottom position of the top left corner of the image in pixels.",
     "width": "The width of the image in pixels.",
     "height": "The height of the image in pixels.",
-    "image_file": "The file of the image."
+    "image_file": "The file of the image.",
+    "address": "The OSC adress to send to, should start with '/'.",
+    "value": "The value to send over OSC, use 'id:' to refer to a preceding field.",
+    "receiver": "IP and port of the OSC receiver to send to."
 }
 
+# question types and their fields
 fields_per_type = {
     "HLine": [{"type": "QComboBox", "objectName": "QLineEdit"}],
     "Radio": [{"type": "QComboBox", "objectName": "QLineEdit", "id": "QLineEdit", "text": "QPlainTextEdit",
@@ -108,8 +112,10 @@ fields_per_type = {
                "required": "QCheckBox", "answers": "QPlainTextEdit", "start_answer_id": "QLineEdit",
                 "randomize": "QCheckBox"}],
     "Image": [{"type": "QComboBox", "objectName": "QLineEdit", "image_file": "QPushButton", "image_position": "QComboBox",
-               "width": "QLineEdit", "height": "QLineEdit"}]}
-
+               "width": "QLineEdit", "height": "QLineEdit"}],
+    "OSCButton": [{"type": "QComboBox", "objectName": "QLineEdit", "id": "QLineEdit", "required": "QCheckBox",
+                    "inscription": "QLineEdit", "receiver": "QComboBox", "address": "QLineEdit", "value": "QLineEdit"}]
+        }
 types = list(fields_per_type.keys())
 
 policy_possibilities = ["None", "int", "double", "regex"]
@@ -208,6 +214,8 @@ default_values = {
     "image_file": "",
     "width": "",
     "height": "",
-    "image_position": "here"
+    "image_position": "here",
+    "receiver": [],
+    "address": ""
     #"pupil_on_next": ''
 }

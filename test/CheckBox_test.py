@@ -55,8 +55,6 @@ def test_create(gui_init, qtbot):
     QTest.mouseClick(gui_init.gui.questiontype, Qt.LeftButton)
     QTest.keyClick(gui_init.gui.questiontype, Qt.Key_Down)
     QTest.keyClick(gui_init.gui.questiontype, Qt.Key_Down)
-    QTest.keyClick(gui_init.gui.questiontype, Qt.Key_Down)
-    QTest.keyClick(gui_init.gui.questiontype, Qt.Key_Down)
     QTest.keyClick(gui_init.gui.questiontype, Qt.Key_Enter)
     assert gui_init.gui.questiontype.currentText() == "Check"
     # check if the layout is correct, if all needed fields are loaded and have correct default values (if applicable)
@@ -77,7 +75,7 @@ def test_create(gui_init, qtbot):
                 assert layout.itemAt(row, 1).widget().isChecked() == default_values[
                     layout.itemAt(row, 0).widget().text()]
     assert not_none_rows == len(fields_per_type["Check"][0].keys())
-    assert len(gui_init.undo_stack) == 6  # 2 for creating page & question, 4 for choosing Radio
+    assert len(gui_init.undo_stack) == 4  # 2 for creating page & question, 2 for choosing Check
 
     # Check structure
     structure = ConfigObj()  # {}

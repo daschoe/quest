@@ -80,6 +80,10 @@ def test_create(gui_init, qtbot):
     QTest.mouseClick(gui_init.gui.questiontype, Qt.LeftButton)
     QTest.keyClick(gui_init.gui.questiontype, Qt.Key_Down)
     QTest.keyClick(gui_init.gui.questiontype, Qt.Key_Down)
+    QTest.keyClick(gui_init.gui.questiontype, Qt.Key_Down)
+    QTest.keyClick(gui_init.gui.questiontype, Qt.Key_Down)
+    QTest.keyClick(gui_init.gui.questiontype, Qt.Key_Down)
+    QTest.keyClick(gui_init.gui.questiontype, Qt.Key_Down)
     QTest.keyClick(gui_init.gui.questiontype, Qt.Key_Enter)
     assert gui_init.gui.questiontype.currentText() == "MUSHRA"
     # check if the layout is correct, if all needed fields are loaded and have correct default values (if applicable)
@@ -105,7 +109,7 @@ def test_create(gui_init, qtbot):
                 assert layout.itemAt(row, 1).itemAt(cbs).widget().isChecked() == True
 
     assert not_none_rows == len(fields_per_type["MUSHRA"][0].keys())
-    assert len(gui_init.undo_stack) == 4  # 2 for creating page & question, 2 for choosing MUSHRA
+    assert len(gui_init.undo_stack) == 8  # 2 for creating page & question, 6 for choosing MUSHRA
 
     # Check structure
     structure = ConfigObj()  # {}

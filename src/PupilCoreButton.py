@@ -33,7 +33,7 @@ class Button(QWidget):
 
     def __init__(self, inscription, function, parent, qid, recording_name=None, objectname=None, annotation=None):
         """
-            Create a set of radiobuttons based on the given array of answers.
+            Create a button and connect to its functionality.
 
             Parameters
             ----------

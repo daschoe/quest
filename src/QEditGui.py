@@ -728,82 +728,117 @@ class EditGui(QWidget):
                                             type(question_data["labelled"]) is bool and not question_data["labelled"])):
                                         val_field.setDisabled(True)
                                 elif fields_per_type[question_data[k]][0][field] == "QComboBox":
-                                    val_field = QComboBox()
-                                    val_field.activated.connect(self.update_val)
-                                    if field == "image_position":
-                                        val_field.addItems(image_positions)
-                                        val_field.setCurrentIndex(image_positions.index(question_data[field]))
-                                        self.clear_layout(self.policy_layout)
-                                        if question_data[field] == "free":
-                                            self.policy_layout.addWidget(QLabel("x_pos"))
-                                            ann_field = QLineEdit(str(question_data[
-                                                                          "x_pos"]) if "x_pos" in question_data.keys() else "")
-                                            ann_field.setObjectName("x_pos")
-                                            self.policy_layout.addWidget(ann_field)
-                                            ann_field.editingFinished.connect(self.edit_done)
-                                            self.policy_layout.addWidget(QLabel("y_pos"))
-                                            ann_field = QLineEdit(str(question_data[
-                                                                          "y_pos"]) if "y_pos" in question_data.keys() else "")
-                                            ann_field.setObjectName("y_pos")
-                                            self.policy_layout.addWidget(ann_field)
-                                            ann_field.editingFinished.connect(self.edit_done)
-                                        else:
-                                            self.edit_layout.removeRow(self.policy_layout)
-                                    if field == "function":
-                                        val_field.addItems(function_possibilites)
-                                        val_field.setCurrentIndex(function_possibilites.index(question_data[field]))
-                                        self.clear_layout(self.policy_layout)
-                                        if question_data[field] == "Annotate":
-                                            self.policy_layout.addWidget(QLabel("annotation"))
-                                            ann_field = QLineEdit(str(question_data["annotation"]) if "annotation" in question_data.keys() else "")
-                                            ann_field.setObjectName("anno")
-                                            self.policy_layout.addWidget(ann_field)
-                                            ann_field.editingFinished.connect(self.edit_done)
-                                        elif question_data[field] == "Recording":
-                                            self.policy_layout.addWidget(QLabel("recording_name"))
-                                            ann_field = QLineEdit(str(question_data["recording_name"]) if "recording_name" in question_data.keys() else "")
-                                            ann_field.setObjectName("rec")
-                                            self.policy_layout.addWidget(ann_field)
-                                            ann_field.editingFinished.connect(self.edit_done)
-                                        else:
+                                    if field == "receiver":
+                                        options = QComboBox()
+                                        options.setObjectName("receiver")
+                                        options.addItems(["<new>"])
+                                        if "audio_ip" in self.parent().structure.keys() and "audio_port" in self.parent().structure.keys():
+                                            options.addItems(["audio"])
+                                        if "help_ip" in self.parent().structure.keys() and "help_port" in self.parent().structure.keys():
+                                            options.addItems(["help"])
+                                        if "video_ip" in self.parent().structure.keys() and "video_port" in self.parent().structure.keys():
+                                            options.addItems(["video"])
+                                        options.setCurrentIndex(0)
+                                        options.activated.connect(self.update_val)
+                                        rec_layout_outer = QVBoxLayout()
+                                        rec_layout_outer.addWidget(options)
+                                        ip_lbl = QLabel("IP:")
+                                        ip_field = QLineEdit(str(question_data["receiver"][0]) if "receiver" in question_data.keys() and len(question_data["receiver"]) > 0 else "")
+                                        ip_field.setObjectName("rec_ip")
+                                        ip_field.editingFinished.connect(self.edit_done)
+                                        port_lbl = QLabel("port:")
+                                        port_field = QLineEdit(str(question_data["receiver"][1]) if "receiver" in question_data.keys() and len(question_data["receiver"]) > 0 else "")
+                                        port_field.setObjectName("rec_port")
+                                        port_field.editingFinished.connect(self.edit_done)
+                                        ip_port = QWidget()
+                                        ip_port.setObjectName("ip_port")
+                                        rec_inner = QHBoxLayout(ip_port)
+                                        rec_inner.addWidget(ip_lbl)
+                                        rec_inner.addWidget(ip_field)
+                                        rec_inner.addWidget(port_lbl)
+                                        rec_inner.addWidget(port_field)
+                                        rec_layout_outer.addWidget(ip_port)
+                                        val_field = QWidget()
+                                        val_field.setLayout(rec_layout_outer)
+                                    else:
+                                        val_field = QComboBox()
+                                        val_field.activated.connect(self.update_val)
+                                        if field == "image_position":
+                                            val_field.addItems(image_positions)
+                                            val_field.setCurrentIndex(image_positions.index(question_data[field]))
                                             self.clear_layout(self.policy_layout)
-                                            self.edit_layout.removeRow(self.policy_layout)
-                                    if field == "policy":
-                                        val_field.addItems(policy_possibilities)
-                                        val_field.setObjectName("policy")
-                                        if (("policy" not in question_data.keys()) or (
-                                                question_data["policy"] == "None") or (question_data["policy"] == "[None]") or (question_data["policy"] == ["None"])) \
-                                                and (question_data["type"] == "Text"):
-                                            val_field.setCurrentIndex(0)  # "None"
-                                            if question_data.as_int("size") > 1:
-                                                val_field.setDisabled(True)  # Multi-line doesn't support policies
+                                            if question_data[field] == "free":
+                                                self.policy_layout.addWidget(QLabel("x_pos"))
+                                                ann_field = QLineEdit(str(question_data[
+                                                                              "x_pos"]) if "x_pos" in question_data.keys() else "")
+                                                ann_field.setObjectName("x_pos")
+                                                self.policy_layout.addWidget(ann_field)
+                                                ann_field.editingFinished.connect(self.edit_done)
+                                                self.policy_layout.addWidget(QLabel("y_pos"))
+                                                ann_field = QLineEdit(str(question_data[
+                                                                              "y_pos"]) if "y_pos" in question_data.keys() else "")
+                                                ann_field.setObjectName("y_pos")
+                                                self.policy_layout.addWidget(ann_field)
+                                                ann_field.editingFinished.connect(self.edit_done)
+                                            else:
+                                                self.edit_layout.removeRow(self.policy_layout)
+                                        if field == "function":
+                                            val_field.addItems(function_possibilites)
+                                            val_field.setCurrentIndex(function_possibilites.index(question_data[field]))
                                             self.clear_layout(self.policy_layout)
-                                            self.edit_layout.removeRow(self.policy_layout)
-                                        else:
-                                            val_field.setCurrentIndex(policy_possibilities.index(question_data[field][0]))
-                                            self.clear_layout(self.policy_layout)
-                                            if (question_data[field][0] == "int") or (question_data[field][0] == "double"):
-                                                self.policy_layout.addWidget(QLabel("min:"))
-                                                min_field = QLineEdit(question_data[field][1])
-                                                min_field.setObjectName("min")
-                                                self.policy_layout.addWidget(min_field)
-                                                min_field.editingFinished.connect(self.edit_done)
-                                                self.policy_layout.addWidget(QLabel("max:"))
-                                                max_field = QLineEdit(question_data[field][2])
-                                                max_field.setObjectName("max")
-                                                self.policy_layout.addWidget(max_field)
-                                                max_field.editingFinished.connect(self.edit_done)
-                                            if question_data[field][0] == "double":
-                                                dec_field = QLineEdit(question_data[field][3])
-                                                dec_field.setObjectName("dec")
-                                                self.policy_layout.addWidget(dec_field)
-                                                dec_field.editingFinished.connect(self.edit_done)
-                                            elif question_data[field][0] == "regex":
-                                                self.policy_layout.addWidget(QLabel("expression:"))
-                                                exp_field = QLineEdit(question_data[field][1])
-                                                exp_field.setObjectName("exp")
-                                                self.policy_layout.addWidget(exp_field)
-                                                exp_field.editingFinished.connect(self.edit_done)
+                                            if question_data[field] == "Annotate":
+                                                self.policy_layout.addWidget(QLabel("annotation"))
+                                                ann_field = QLineEdit(str(question_data["annotation"]) if "annotation" in question_data.keys() else "")
+                                                ann_field.setObjectName("anno")
+                                                self.policy_layout.addWidget(ann_field)
+                                                ann_field.editingFinished.connect(self.edit_done)
+                                            elif question_data[field] == "Recording":
+                                                self.policy_layout.addWidget(QLabel("recording_name"))
+                                                ann_field = QLineEdit(str(question_data["recording_name"]) if "recording_name" in question_data.keys() else "")
+                                                ann_field.setObjectName("rec")
+                                                self.policy_layout.addWidget(ann_field)
+                                                ann_field.editingFinished.connect(self.edit_done)
+                                            else:
+                                                self.clear_layout(self.policy_layout)
+                                                self.edit_layout.removeRow(self.policy_layout)
+                                        if field == "policy":
+                                            val_field.addItems(policy_possibilities)
+                                            val_field.setObjectName("policy")
+                                            if (("policy" not in question_data.keys()) or (
+                                                    question_data["policy"] == "None") or (
+                                                        question_data["policy"] == "[None]") or (
+                                                        question_data["policy"] == ["None"])) \
+                                                    and (question_data["type"] == "Text"):
+                                                val_field.setCurrentIndex(0)  # "None"
+                                                if question_data.as_int("size") > 1:
+                                                    val_field.setDisabled(True)  # Multi-line doesn't support policies
+                                                self.clear_layout(self.policy_layout)
+                                                self.edit_layout.removeRow(self.policy_layout)
+                                            else:
+                                                val_field.setCurrentIndex(policy_possibilities.index(question_data[field][0]))
+                                                self.clear_layout(self.policy_layout)
+                                                if (question_data[field][0] == "int") or (question_data[field][0] == "double"):
+                                                    self.policy_layout.addWidget(QLabel("min:"))
+                                                    min_field = QLineEdit(question_data[field][1])
+                                                    min_field.setObjectName("min")
+                                                    self.policy_layout.addWidget(min_field)
+                                                    min_field.editingFinished.connect(self.edit_done)
+                                                    self.policy_layout.addWidget(QLabel("max:"))
+                                                    max_field = QLineEdit(question_data[field][2])
+                                                    max_field.setObjectName("max")
+                                                    self.policy_layout.addWidget(max_field)
+                                                    max_field.editingFinished.connect(self.edit_done)
+                                                if question_data[field][0] == "double":
+                                                    dec_field = QLineEdit(question_data[field][3])
+                                                    dec_field.setObjectName("dec")
+                                                    self.policy_layout.addWidget(dec_field)
+                                                    dec_field.editingFinished.connect(self.edit_done)
+                                                elif question_data[field][0] == "regex":
+                                                    self.policy_layout.addWidget(QLabel("expression:"))
+                                                    exp_field = QLineEdit(question_data[field][1])
+                                                    exp_field.setObjectName("exp")
+                                                    self.policy_layout.addWidget(exp_field)
+                                                    exp_field.editingFinished.connect(self.edit_done)
                                 elif fields_per_type[question_data[k]][0][field] == "QCheckBox":
                                     if field == "buttons":
                                         val_field = QHBoxLayout()
@@ -887,8 +922,7 @@ class EditGui(QWidget):
                     for btn in self.sender().buttons():
                         if btn.isChecked():
                             new_val.append(player_buttons[self.sender().buttons().index(btn)])
-            else:
-                print("SEND",self.sender(), type(self.sender()))
+            elif type(self.sender().parent().layout()) != QVBoxLayout:
                 lbl = self.sender().parent().layout().labelForField(self.sender()).text()
             if type(self.sender()) is QCheckBox:
                 if (lbl == "go_back") or (lbl == "labelled"):
@@ -899,7 +933,34 @@ class EditGui(QWidget):
                         pos = self.sender().parent().layout().getWidgetPosition(self.sender())[0] + 1
                         self.sender().parent().layout().itemAt(pos, 1).widget().setEnabled(False)
             elif type(self.sender()) is QComboBox:
-                if lbl == "policy":
+                if self.sender().objectName() == "receiver":
+                    self.sender().parent().layout().itemAt(1).widget().layout().itemAt(1).widget().setEnabled(False)
+                    self.sender().parent().layout().itemAt(1).widget().layout().itemAt(3).widget().setEnabled(False)
+                    if self.sender().currentText() == "<new>":
+                        #self.sender().parent().layout().findChild(QLineEdit, name="rec_ip").setText("")
+                        #self.sender().parent().layout().findChild(QLineEdit, name="rec_port").setText("")
+                        self.sender().parent().layout().itemAt(1).widget().layout().itemAt(1).widget().setText("")
+                        self.sender().parent().layout().itemAt(1).widget().layout().itemAt(3).widget().setText("")
+                        self.sender().parent().layout().itemAt(1).widget().layout().itemAt(1).widget().setEnabled(True)
+                        self.sender().parent().layout().itemAt(1).widget().layout().itemAt(3).widget().setEnabled(True)
+                    elif self.sender().currentText() == "audio":
+                        #self.sender().parent().layout().findChild(QLineEdit, name="rec_ip").setText(self.parent().structure["audio_ip"])
+                        #self.sender().parent().layout().findChild(QLineEdit, name="rec_port").setText(self.parent().structure["audio_port"])
+                        self.sender().parent().layout().itemAt(1).widget().layout().itemAt(1).widget().setText(self.parent().structure["audio_ip"])
+                        self.sender().parent().layout().itemAt(1).widget().layout().itemAt(3).widget().setText(self.parent().structure["audio_port"])
+                    elif self.sender().currentText() == "help":
+                        #self.sender().parent().layout().findChild(QLineEdit, name="rec_ip").setText(self.parent().structure["help_ip"])
+                        #self.sender().parent().layout().findChild(QLineEdit, name="rec_port").setText(self.parent().structure["help_port"])
+                        self.sender().parent().layout().itemAt(1).widget().layout().itemAt(1).widget().setText(self.parent().structure["help_ip"])
+                        self.sender().parent().layout().itemAt(1).widget().layout().itemAt(3).widget().setText(self.parent().structure["help_port"])
+                    elif self.sender().currentText() == "video":
+                        #self.sender().parent().layout().findChild(QLineEdit, name="rec_ip").setText(self.parent().structure["video_ip"])
+                        #self.sender().parent().layout().findChild(QLineEdit, name="rec_port").setText(self.parent().structure["video_port"])
+                        self.sender().parent().layout().itemAt(1).widget().layout().itemAt(1).widget().setText(self.parent().structure["video_ip"])
+                        self.sender().parent().layout().itemAt(1).widget().layout().itemAt(3).widget().setText(self.parent().structure["video_port"])
+                    lbl = "receiver"
+                    new_val = [self.sender().parent().layout().itemAt(1).widget().layout().itemAt(1).widget().text(), self.sender().parent().layout().itemAt(1).widget().layout().itemAt(3).widget().text()]
+                elif lbl == "policy":
                     new_val = [self.sender().currentText()]
                     self.clear_layout(self.policy_layout)
                     if (self.sender().currentText() == "int") or (self.sender().currentText() == "double"):
@@ -1046,6 +1107,24 @@ class EditGui(QWidget):
                 new_val = self.sender().text()
                 self.parent().structure[self.treeview.currentItem().parent().text(0)][
                     self.treeview.currentItem().text(0)]["y_pos"] = new_val
+            elif self.sender().objectName() == "rec_ip":
+                new_val = self.sender().text()
+                if len(self.parent().structure[self.treeview.currentItem().parent().text(0)][
+                    self.treeview.currentItem().text(0)]["receiver"]) > 0:
+                    self.parent().structure[self.treeview.currentItem().parent().text(0)][
+                        self.treeview.currentItem().text(0)]["receiver"][0] = new_val
+                else:
+                    self.parent().structure[self.treeview.currentItem().parent().text(0)][
+                        self.treeview.currentItem().text(0)]["receiver"] = [new_val, ""]
+            elif self.sender().objectName() == "rec_port":
+                new_val = self.sender().text()
+                if len(self.parent().structure[self.treeview.currentItem().parent().text(0)][
+                           self.treeview.currentItem().text(0)]["receiver"]) > 0:
+                    self.parent().structure[self.treeview.currentItem().parent().text(0)][
+                        self.treeview.currentItem().text(0)]["receiver"][1] = new_val
+                else:
+                    self.parent().structure[self.treeview.currentItem().parent().text(0)][
+                        self.treeview.currentItem().text(0)]["receiver"] = ["",new_val]
         if self.automatic_refresh.isChecked():
             self.load_preview()
 
@@ -1093,7 +1172,7 @@ class EditGui(QWidget):
                 self.clear_layout(child.layout())
 
     def open_tree_menu(self, position):
-        """Create appropirate context menu in treeview after right-clicking it.
+        """Create appropriate context menu in treeview after right-clicking it.
 
         Parameters
         ----------

@@ -1,8 +1,6 @@
-"""Testing the behaviour of PupilCoreButton.py + QEditGui.py"""
-
+"""Testing the behaviour of OSCButton.py + QEditGui.py"""
+# TODO how to test osc messages
 from context import *
-
-recording_path = "C:\\Users\\Administrator\\recordings\\"  # TODO change to your path
 
 
 @pytest.fixture
@@ -15,17 +13,7 @@ def gui_init():
 @pytest.fixture
 def gui_load(gui_init):
     """Start GUI"""
-    open_pupil()
-    QTimer.singleShot(150, lambda: open_config_file("./test/pbtest.txt"))
-    gui_init.load_file()
-    return gui_init
-
-
-@pytest.fixture
-def gui_load2(gui_init):
-    """Start GUI"""
-    open_pupil()
-    QTimer.singleShot(150, lambda: open_config_file("./test/pbtest2.txt"))
+    QTimer.singleShot(150, lambda: open_config_file("./test/osctest.txt"))
     gui_init.load_file()
     return gui_init
 
@@ -33,8 +21,7 @@ def gui_load2(gui_init):
 @pytest.fixture
 def run():
     """Execute the questionnaire."""
-    open_pupil()
-    return StackedWindowGui("./test/pbtest.txt")
+    return StackedWindowGui("./test/osctest.txt")
 
 
 # noinspection PyArgumentList
@@ -73,18 +60,24 @@ def test_create(gui_init, qtbot):
     QTest.keyClick(gui_init.gui.questiontype, Qt.Key_Down)
     QTest.keyClick(gui_init.gui.questiontype, Qt.Key_Down)
     QTest.keyClick(gui_init.gui.questiontype, Qt.Key_Down)
+    QTest.keyClick(gui_init.gui.questiontype, Qt.Key_Down)
+    QTest.keyClick(gui_init.gui.questiontype, Qt.Key_Down)
+    QTest.keyClick(gui_init.gui.questiontype, Qt.Key_Down)
+    QTest.keyClick(gui_init.gui.questiontype, Qt.Key_Down)
+    QTest.keyClick(gui_init.gui.questiontype, Qt.Key_Down)
+    QTest.keyClick(gui_init.gui.questiontype, Qt.Key_Down)
     QTest.keyClick(gui_init.gui.questiontype, Qt.Key_Enter)
-    assert gui_init.gui.questiontype.currentText() == "Button"
+    assert gui_init.gui.questiontype.currentText() == "OSCButton"
     # check if the layout is correct, if all needed fields are loaded and have correct default values (if applicable)
     layout = gui_init.gui.edit_layout
     not_none_rows = 0
     for row in range(layout.rowCount()):
         if type(layout.itemAt(row, 1)) == QWidgetItem:
             not_none_rows += 1
-            assert layout.itemAt(row, 0).widget().text() in fields_per_type["Button"][0].keys()
+            assert layout.itemAt(row, 0).widget().text() in fields_per_type["OSCButton"][0].keys()
             assert str(type(layout.itemAt(row, 1).widget())).strip("'<>").rsplit(".", 1)[1] == \
-                   'TextEdit' if fields_per_type["Button"][0][layout.itemAt(row, 0).widget().text()] == 'QPlainTextEdit'\
-                   else fields_per_type["Button"][0][layout.itemAt(row, 0).widget().text()]
+                   'TextEdit' if fields_per_type["OSCButton"][0][layout.itemAt(row, 0).widget().text()] == 'QPlainTextEdit'\
+                   else fields_per_type["OSCButton"][0][layout.itemAt(row, 0).widget().text()]
             if type(layout.itemAt(row, 1).widget()) == QLineEdit and layout.itemAt(row, 0).widget().text() in \
                     default_values:
                 assert layout.itemAt(row, 1).widget().text() == default_values[layout.itemAt(row, 0).widget().text()]
@@ -92,8 +85,8 @@ def test_create(gui_init, qtbot):
                     default_values:
                 assert layout.itemAt(row, 1).widget().isChecked() == default_values[
                     layout.itemAt(row, 0).widget().text()]
-    assert not_none_rows == len(fields_per_type["Button"][0].keys())
-    assert len(gui_init.undo_stack) == 9  # 2 for creating page & question, 7 for choosing Button
+    assert not_none_rows == len(fields_per_type["OSCButton"][0].keys())
+    assert len(gui_init.undo_stack) == 15  # 2 for creating page & question, 13 for choosing OSCButton
 
     # Check structure
     structure = ConfigObj()  # {}
@@ -104,9 +97,9 @@ def test_create(gui_init, qtbot):
     for key, value in default_values.items():
         if key in page_fields:
             structure["Page 1"][key] = value
-    structure["Page 1"]["Question 1"] = {"type": "Button"}
+    structure["Page 1"]["Question 1"] = {"type": "OSCButton"}
     for key, value in default_values.items():
-        if key in fields_per_type["Button"][0].keys():
+        if key in fields_per_type["OSCButton"][0].keys():
             structure["Page 1"]["Question 1"][key] = value
     listify(gui_init.structure)
     listify(structure)
@@ -133,8 +126,7 @@ def test_create(gui_init, qtbot):
 
 
 # noinspection PyArgumentList
-@pytest.mark.pupil
-def test_inscription(gui_load, qtbot, capfd):
+def test_inscription(gui_load, qtbot):
     QTimer.singleShot(150, handle_dialog_error)
     error_found, warning_found, warning_details = validate_questionnaire(gui_load.structure)
     assert error_found == False
@@ -165,10 +157,10 @@ def test_inscription(gui_load, qtbot, capfd):
     assert warning_found == False
     gui_load.gui.refresh_button.click()
     QTest.keyClicks(gui_load, 's', modifier=Qt.ControlModifier)
-    test_gui = StackedWindowGui("./test/pbtest.txt")
+    test_gui = StackedWindowGui("./test/osctest.txt")
     assert test_gui.Stack.count() == 1
     for child in test_gui.Stack.currentWidget().children():
-        if type(child) == Button:
+        if type(child) == OSCButton:
             assert child.button.text() == "Click me"
 
     QTimer.singleShot(100, handle_dialog)
@@ -191,16 +183,13 @@ def test_inscription(gui_load, qtbot, capfd):
     assert warning_found == True
     QTest.keyClicks(gui_load, 's', modifier=Qt.ControlModifier)
     QTimer.singleShot(500, handle_dialog_warning)
-    test_gui = StackedWindowGui("./test/pbtest.txt")
+    test_gui = StackedWindowGui("./test/osctest.txt")
     assert test_gui.Stack.count() == 1
     for child in test_gui.Stack.currentWidget().children():
-        if type(child) == Button:
+        if type(child) == OSCButton:
             assert child.button.text() == ""
             child.button.click()
             QTest.qWait(1000)
-            out, err = capfd.readouterr()
-            assert out.index("Trigger {'topic': 'annotation', 'label': 'test', 'timestamp':") != -1
-            assert out.endswith(", 'duration': 1} Message forwarded.\n") == True
     QTimer.singleShot(1000, handle_dialog)
     QTest.mouseClick(test_gui.forwardbutton, Qt.LeftButton, delay=1)
     test_gui.close()
@@ -221,43 +210,39 @@ def test_inscription(gui_load, qtbot, capfd):
     assert warning_found == True
     QTest.keyClicks(gui_load, 's', modifier=Qt.ControlModifier)
     QTimer.singleShot(150, handle_dialog_warning)
-    test_gui = StackedWindowGui("./test/pbtest.txt")
+    test_gui = StackedWindowGui("./test/osctest.txt")
     assert test_gui.Stack.count() == 1
     for child in test_gui.Stack.currentWidget().children():
-        if type(child) == Button:
+        if type(child) == OSCButton:
             assert child.button.text() == "None"
             child.button.click()
             QTest.qWait(500)
-            out, err = capfd.readouterr()
-            assert out.index("Trigger {'topic': 'annotation', 'label': 'test', 'timestamp':") != -1
-            assert out.endswith(", 'duration': 1} Message forwarded.\n") == True
     QTimer.singleShot(100, handle_dialog)
     QTest.mouseClick(test_gui.forwardbutton, Qt.LeftButton, delay=1)
     test_gui.close()
 
     # reset file
     gui_load.gui.edit_layout.itemAt(ins_pos, 1).widget().clear()
-    gui_load.gui.edit_layout.itemAt(ins_pos, 1).widget().setText("Text")
-    assert gui_load.gui.edit_layout.itemAt(ins_pos, 1).widget().text() == "Text"
+    gui_load.gui.edit_layout.itemAt(ins_pos, 1).widget().setText("Send message")
+    assert gui_load.gui.edit_layout.itemAt(ins_pos, 1).widget().text() == "Send message"
     gui_load.gui.edit_layout.itemAt(ins_pos, 1).widget().editingFinished.emit()
-    assert gui_load.structure["Page 1"]["Question 1"]["inscription"] == "Text"
+    assert gui_load.structure["Page 1"]["Question 1"]["inscription"] == "Send message"
     gui_load.gui.load_preview()
     gui_load.gui.refresh_button.click()
-    assert gui_load.gui.edit_layout.itemAt(ins_pos, 1).widget().text() == "Text"
-    assert gui_load.structure["Page 1"]["Question 1"]["inscription"] == "Text"
+    assert gui_load.gui.edit_layout.itemAt(ins_pos, 1).widget().text() == "Send message"
+    assert gui_load.structure["Page 1"]["Question 1"]["inscription"] == "Send message"
     QTimer.singleShot(150, handle_dialog_error)
     error_found, warning_found, warning_details = validate_questionnaire(gui_load.structure)
     assert error_found == False
     assert warning_found == False
     QTest.keyClicks(gui_load, 's', modifier=Qt.ControlModifier)
 
-    os.remove("./test/results/results_pb.csv")
+    os.remove("./test/results/results_osc.csv")
     gui_load.close()
 
 
 # noinspection PyArgumentList
-@pytest.mark.pupil
-def test_custom_annotation_text(gui_load, qtbot, capfd):
+def test_address(gui_load, qtbot):
     QTimer.singleShot(150, handle_dialog_error)
     error_found, warning_found, warning_details = validate_questionnaire(gui_load.structure)
     assert error_found == False
@@ -270,48 +255,73 @@ def test_custom_annotation_text(gui_load, qtbot, capfd):
 
     rect = tv.visualItemRect(tv.currentItem())
     QTest.mouseClick(tv.viewport(), Qt.LeftButton, Qt.NoModifier, rect.center())
+    adr_pos = find_row_by_label(gui_load.gui.edit_layout, 'address')
 
-    # change text
-    gui_load.structure["Page 1"]["Question 1"]["annotation"] = "Custom text"
-    assert gui_load.structure["Page 1"]["Question 1"]["annotation"] == "Custom text"
+    # change text to without / -> warning
+    gui_load.gui.edit_layout.itemAt(adr_pos, 1).widget().clear()
+    gui_load.gui.edit_layout.itemAt(adr_pos, 1).widget().setText("send")
+    assert gui_load.gui.edit_layout.itemAt(adr_pos, 1).widget().text() == "send"
+    gui_load.gui.edit_layout.itemAt(adr_pos, 1).widget().editingFinished.emit()
+    assert gui_load.structure["Page 1"]["Question 1"]["address"] == "send"
     gui_load.gui.load_preview()
     gui_load.gui.refresh_button.click()
-    assert gui_load.structure["Page 1"]["Question 1"]["annotation"] == "Custom text"
+    assert gui_load.gui.edit_layout.itemAt(adr_pos, 1).widget().text() == "send"
+    assert gui_load.structure["Page 1"]["Question 1"]["address"] == "send"
     QTimer.singleShot(150, handle_dialog_error)
     error_found, warning_found, warning_details = validate_questionnaire(gui_load.structure)
     assert error_found == False
-    assert warning_found == False
+    assert warning_found == True
     gui_load.gui.refresh_button.click()
-    assert gui_load.structure["Page 1"]["Question 1"]["annotation"] == "Custom text"
     QTest.keyClicks(gui_load, 's', modifier=Qt.ControlModifier)
-    test_gui = StackedWindowGui("./test/pbtest.txt")
+    QTimer.singleShot(150, handle_dialog_warning)
+    test_gui = StackedWindowGui("./test/osctest.txt")
     assert test_gui.Stack.count() == 1
-    for child in test_gui.Stack.currentWidget().children():
-        if type(child) == Button:
-            child.button.click()
-            out, err = capfd.readouterr()
-            assert out.index("Trigger {'topic': 'annotation', 'label': 'Custom text', 'timestamp':") != -1
-            assert out.endswith(", 'duration': 1} Message forwarded.\n") == True
+    #for child in test_gui.Stack.currentWidget().children():
+        #if type(child) == OSCButton:
 
     QTimer.singleShot(100, handle_dialog)
     QTest.mouseClick(test_gui.forwardbutton, Qt.LeftButton, delay=1)
     test_gui.close()
 
-    gui_load.structure["Page 1"]["Question 1"].pop("annotation")
-    assert "annotation" not in gui_load.structure["Page 1"]["Question 1"].keys()
+    #  empty address -> error
+    gui_load.gui.edit_layout.itemAt(adr_pos, 1).widget().clear()
+    gui_load.gui.edit_layout.itemAt(adr_pos, 1).widget().setText("")
+    assert gui_load.gui.edit_layout.itemAt(adr_pos, 1).widget().text() == ""
+    gui_load.gui.edit_layout.itemAt(adr_pos, 1).widget().editingFinished.emit()
+    assert gui_load.structure["Page 1"]["Question 1"]["address"] == ""
+    QTimer.singleShot(150, handle_dialog_error)
+    gui_load.gui.load_preview()
+    QTimer.singleShot(150, handle_dialog_error)
+    gui_load.gui.refresh_button.click()
+    assert gui_load.gui.edit_layout.itemAt(adr_pos, 1).widget().text() == ""
+    #assert gui_load.structure["Page 1"]["Question 1"]["address"] == "" #TODO??
+    QTimer.singleShot(150, handle_dialog_error)
+    error_found, warning_found, warning_details = validate_questionnaire(gui_load.structure)
+    assert error_found == True
+    assert warning_found == False
+
+    # reset file
+    gui_load.gui.edit_layout.itemAt(adr_pos, 1).widget().clear()
+    gui_load.gui.edit_layout.itemAt(adr_pos, 1).widget().setText("/message")
+    assert gui_load.gui.edit_layout.itemAt(adr_pos, 1).widget().text() == "/message"
+    gui_load.gui.edit_layout.itemAt(adr_pos, 1).widget().editingFinished.emit()
+    assert gui_load.structure["Page 1"]["Question 1"]["address"] == "/message"
+    gui_load.gui.load_preview()
+    gui_load.gui.refresh_button.click()
+    assert gui_load.gui.edit_layout.itemAt(adr_pos, 1).widget().text() == "/message"
+    assert gui_load.structure["Page 1"]["Question 1"]["address"] == "/message"
     QTimer.singleShot(150, handle_dialog_error)
     error_found, warning_found, warning_details = validate_questionnaire(gui_load.structure)
     assert error_found == False
     assert warning_found == False
-    gui_load.gui.refresh_button.click()
-    assert "annotation" not in gui_load.structure["Page 1"]["Question 1"].keys()
     QTest.keyClicks(gui_load, 's', modifier=Qt.ControlModifier)
+
+    os.remove("./test/results/results_osc.csv")
     gui_load.close()
 
 
 # noinspection PyArgumentList
-@pytest.mark.pupil
-def test_custom_recording_name(gui_load, qtbot, capfd):
+def test_value(gui_load, qtbot):
     QTimer.singleShot(150, handle_dialog_error)
     error_found, warning_found, warning_details = validate_questionnaire(gui_load.structure)
     assert error_found == False
@@ -324,132 +334,72 @@ def test_custom_recording_name(gui_load, qtbot, capfd):
 
     rect = tv.visualItemRect(tv.currentItem())
     QTest.mouseClick(tv.viewport(), Qt.LeftButton, Qt.NoModifier, rect.center())
-    func_pos = find_row_by_label(gui_load.gui.edit_layout, 'function')
-    func_cb = gui_load.gui.edit_layout.itemAt(func_pos, 1).widget()
-
-    QTest.mouseClick(func_cb, Qt.LeftButton)
-    QTest.keyClick(func_cb, Qt.Key_Down)
-    QTest.keyClick(func_cb, Qt.Key_Enter)
-    assert func_cb.currentText() == "Recording"
-    QTimer.singleShot(150, handle_dialog_error)
-    error_found, warning_found, warning_details = validate_questionnaire(gui_load.structure)
-    assert error_found == False
-    assert warning_found == False
-    gui_load.gui.refresh_button.click()
-    assert gui_load.structure["Page 1"]["Question 1"]["function"] == "Recording"
+    val_pos = find_row_by_label(gui_load.gui.edit_layout, 'value')
 
     # change text
-    gui_load.structure["Page 1"]["Question 1"]["recording_name"] = "MyRecording"
-    assert gui_load.structure["Page 1"]["Question 1"]["recording_name"] == "MyRecording"
+    gui_load.gui.edit_layout.itemAt(val_pos, 1).widget().clear()
+    gui_load.gui.edit_layout.itemAt(val_pos, 1).widget().setText("send")
+    assert gui_load.gui.edit_layout.itemAt(val_pos, 1).widget().text() == "send"
+    gui_load.gui.edit_layout.itemAt(val_pos, 1).widget().editingFinished.emit()
+    assert gui_load.structure["Page 1"]["Question 1"]["value"] == "send"
     gui_load.gui.load_preview()
     gui_load.gui.refresh_button.click()
-    assert gui_load.structure["Page 1"]["Question 1"]["recording_name"] == "MyRecording"
+    assert gui_load.gui.edit_layout.itemAt(val_pos, 1).widget().text() == "send"
+    assert gui_load.structure["Page 1"]["Question 1"]["value"] == "send"
     QTimer.singleShot(150, handle_dialog_error)
     error_found, warning_found, warning_details = validate_questionnaire(gui_load.structure)
     assert error_found == False
     assert warning_found == False
     gui_load.gui.refresh_button.click()
-    assert gui_load.structure["Page 1"]["Question 1"]["recording_name"] == "MyRecording"
     QTest.keyClicks(gui_load, 's', modifier=Qt.ControlModifier)
-    test_gui = StackedWindowGui("./test/pbtest.txt")
+    test_gui = StackedWindowGui("./test/osctest.txt")
     assert test_gui.Stack.count() == 1
-    for child in test_gui.Stack.currentWidget().children():
-        if type(child) == Button:
-            child.button.click()
-            out, err = capfd.readouterr()
-            assert out.endswith("MyRecording\nStart recording... OK\n") == True
-
-    test_gui.pupil_remote.send_string('r')
-    print("Stop recording...", test_gui.pupil_remote.recv_string())
-
-    QTimer.singleShot(500, handle_dialog)
-    QTest.mouseClick(test_gui.forwardbutton, Qt.LeftButton, delay=1)
-    test_gui.close()
-    assert os.path.exists(recording_path+"MyRecording") == True
-    # os.remove(recording_path+"MyRecording")
-
-    QTest.mouseClick(func_cb, Qt.LeftButton)
-    QTest.keyClick(func_cb, Qt.Key_Up)
-    QTest.keyClick(func_cb, Qt.Key_Enter)
-    assert func_cb.currentText() == "Annotate"
-    gui_load.structure["Page 1"]["Question 1"].pop("recording_name")
-    assert "recording_name" not in gui_load.structure["Page 1"]["Question 1"].keys()
-    QTimer.singleShot(150, handle_dialog_error)
-    error_found, warning_found, warning_details = validate_questionnaire(gui_load.structure)
-    assert error_found == False
-    assert warning_found == False
-    gui_load.gui.refresh_button.click()
-    assert "recording_name" not in gui_load.structure["Page 1"]["Question 1"].keys()
-    gui_load.save()
-    gui_load.close()
-
-
-# noinspection PyArgumentList
-@pytest.mark.pupil
-def test_custom_recording_name_id(gui_load2, qtbot, capfd):
-    QTimer.singleShot(150, handle_dialog_error)
-    error_found, warning_found, warning_details = validate_questionnaire(gui_load2.structure)
-    assert error_found == False
-    assert warning_found == False
-    tv = gui_load2.gui.treeview
-    tv.expandAll()
-    tv.setCurrentItem(tv.topLevelItem(0).child(0).child(0))  # should be 'Question 1'
-    assert len(tv.selectedItems()) == 1
-    assert tv.selectedItems()[0].text(0) == "Question 1"
-
-    rect = tv.visualItemRect(tv.currentItem())
-    QTest.mouseClick(tv.viewport(), Qt.LeftButton, Qt.NoModifier, rect.center())
-    func_pos = find_row_by_label(gui_load2.gui.edit_layout, 'function')
-    func_cb = gui_load2.gui.edit_layout.itemAt(func_pos, 1).widget()
-
-    assert func_cb.currentText() == "Recording"
-    assert gui_load2.structure["Page 1"]["Question 1"]["function"] == "Recording"
-
-    # change text
-    gui_load2.structure["Page 1"]["Question 1"]["recording_name"] = "id:tf"
-    assert gui_load2.structure["Page 1"]["Question 1"]["recording_name"] == "id:tf"
-    gui_load2.gui.load_preview()
-    gui_load2.gui.refresh_button.click()
-    assert gui_load2.structure["Page 1"]["Question 1"]["recording_name"] == "id:tf"
-    QTimer.singleShot(150, handle_dialog_error)
-    error_found, warning_found, warning_details = validate_questionnaire(gui_load2.structure)
-    assert error_found == False
-    assert warning_found == False
-    gui_load2.gui.refresh_button.click()
-    assert gui_load2.structure["Page 1"]["Question 1"]["recording_name"] == "id:tf"
-    QTest.keyClicks(gui_load2, 's', modifier=Qt.ControlModifier)
-    test_gui = StackedWindowGui("./test/pbtest2.txt")
-    assert test_gui.Stack.count() == 1
-    for child in test_gui.Stack.currentWidget().children():
-        if type(child) == QLineEdit:
-            # noinspection PyTypeChecker
-            QTest.keyClicks(child, "test", Qt.NoModifier, delay=1)
-            assert child.text() == "test"
-    for child in test_gui.Stack.currentWidget().children():
-        if type(child) == Button:
-            child.button.click()
-            out, err = capfd.readouterr()
-            assert out.endswith("test\nStart recording... OK\n") == True
-
-    test_gui.pupil_remote.send_string('r')
-    print("Stop recording...", test_gui.pupil_remote.recv_string())
+    #for child in test_gui.Stack.currentWidget().children():
+        #if type(child) == OSCButton:
 
     QTimer.singleShot(100, handle_dialog)
     QTest.mouseClick(test_gui.forwardbutton, Qt.LeftButton, delay=1)
     test_gui.close()
-    assert os.path.exists(recording_path+"test") == True
-    # os.remove(recording_path+"test")
 
-    gui_load2.structure["Page 1"]["Question 1"].pop("recording_name")
-    assert "recording_name" not in gui_load2.structure["Page 1"]["Question 1"].keys()
-    assert "recording_name" not in gui_load2.structure["Page 1"]["Question 1"].keys()
-    gui_load2.save()
-    gui_load2.close()
+    #  empty value
+    gui_load.gui.edit_layout.itemAt(val_pos, 1).widget().clear()
+    #gui_load.gui.edit_layout.itemAt(val_pos, 1).widget().setText("")
+    #assert gui_load.gui.edit_layout.itemAt(val_pos, 1).widget().text() == ""
+    gui_load.gui.edit_layout.itemAt(val_pos, 1).widget().editingFinished.emit()
+    assert gui_load.structure["Page 1"]["Question 1"]["value"] == ""
+    QTimer.singleShot(150, handle_dialog_error)
+    gui_load.gui.load_preview()
+    QTimer.singleShot(150, handle_dialog_error)
+    gui_load.gui.refresh_button.click()
+    assert gui_load.gui.edit_layout.itemAt(val_pos, 1).widget().text() == ""
+    #assert gui_load.structure["Page 1"]["Question 1"]["address"] == "" #TODO??
+    QTimer.singleShot(150, handle_dialog_error)
+    error_found, warning_found, warning_details = validate_questionnaire(gui_load.structure)
+    assert error_found == True
+    assert warning_found == False
+
+    # reset file
+    gui_load.gui.edit_layout.itemAt(val_pos, 1).widget().clear()
+    gui_load.gui.edit_layout.itemAt(val_pos, 1).widget().setText("Hello world!")
+    assert gui_load.gui.edit_layout.itemAt(val_pos, 1).widget().text() == "Hello world!"
+    gui_load.gui.edit_layout.itemAt(val_pos, 1).widget().editingFinished.emit()
+    assert gui_load.structure["Page 1"]["Question 1"]["value"] == "Hello world!"
+    gui_load.gui.load_preview()
+    gui_load.gui.refresh_button.click()
+    assert gui_load.gui.edit_layout.itemAt(val_pos, 1).widget().text() == "Hello world!"
+    assert gui_load.structure["Page 1"]["Question 1"]["value"] == "Hello world!"
+    QTimer.singleShot(150, handle_dialog_error)
+    error_found, warning_found, warning_details = validate_questionnaire(gui_load.structure)
+    assert error_found == False
+    assert warning_found == False
+    QTest.keyClicks(gui_load, 's', modifier=Qt.ControlModifier)
+
+    os.remove("./test/results/results_osc.csv")
+    gui_load.close()
 
 
 # noinspection PyArgumentList
-@pytest.mark.pupil
-def test_function(gui_load, qtbot, capfd):
+def test_receiver(gui_load, qtbot):
     QTimer.singleShot(150, handle_dialog_error)
     error_found, warning_found, warning_details = validate_questionnaire(gui_load.structure)
     assert error_found == False
@@ -462,104 +412,99 @@ def test_function(gui_load, qtbot, capfd):
 
     rect = tv.visualItemRect(tv.currentItem())
     QTest.mouseClick(tv.viewport(), Qt.LeftButton, Qt.NoModifier, rect.center())
-    func_pos = find_row_by_label(gui_load.gui.edit_layout, 'function')
-    func_cb = gui_load.gui.edit_layout.itemAt(func_pos, 1).widget()
-    assert func_cb.currentText() == 'Annotate'
-    QTest.keyClicks(gui_load, 's', modifier=Qt.ControlModifier)
-    test_gui = StackedWindowGui("./test/pbtest.txt")
-    for child in test_gui.Stack.currentWidget().children():
-        if type(child) == Button:
-            child.button.click()
-            out, err = capfd.readouterr()
-            assert out.index("Trigger {'topic': 'annotation', 'label': 'test', 'timestamp':") != -1
-            assert out.endswith(", 'duration': 1} Message forwarded.\n") == True
-            QTest.qWait(500)
-    test_gui.close()
+    rec_pos = find_row_by_label(gui_load.gui.edit_layout, 'receiver')
+    rec_cb = gui_load.gui.edit_layout.itemAt(rec_pos, 1).widget().layout().itemAt(0).widget()
+    rec_ip = gui_load.gui.edit_layout.itemAt(rec_pos, 1).widget().layout().itemAt(1).widget().layout().itemAt(1).widget()
+    rec_port = gui_load.gui.edit_layout.itemAt(rec_pos, 1).widget().layout().itemAt(1).widget().layout().itemAt(3).widget()
 
-    QTest.mouseClick(func_cb, Qt.LeftButton)
-    QTest.keyClick(func_cb, Qt.Key_Down)
-    QTest.keyClick(func_cb, Qt.Key_Enter)
-    assert func_cb.currentText() == "Recording"
+    QTest.mouseClick(rec_cb, Qt.LeftButton)
+    QTest.keyClick(rec_cb, Qt.Key_Down)
+    QTest.keyClick(rec_cb, Qt.Key_Enter)
+    assert rec_cb.currentText() == "audio"
+    assert rec_ip.isEnabled() == False
+    assert rec_ip.text() == gui_load.structure["audio_ip"]
+    assert rec_port.isEnabled() == False
+    assert rec_port.text() == gui_load.structure["audio_port"]
     QTimer.singleShot(150, handle_dialog_error)
     error_found, warning_found, warning_details = validate_questionnaire(gui_load.structure)
     assert error_found == False
     assert warning_found == False
     gui_load.gui.refresh_button.click()
-    assert gui_load.structure["Page 1"]["Question 1"]["function"] == "Recording"
-    gui_load.save()
-    test_gui = StackedWindowGui("./test/pbtest.txt")
-    for child in test_gui.Stack.currentWidget().children():
-        if type(child) == Button:
-            child.button.click()
-            out, err = capfd.readouterr()
-            assert out.endswith("Start recording... OK\n") == True
-            QTest.qWait(500)
-    test_gui.close()
-
-    QTest.mouseClick(func_cb, Qt.LeftButton)
-    QTest.keyClick(func_cb, Qt.Key_Down)
-    QTest.keyClick(func_cb, Qt.Key_Enter)
-    assert func_cb.currentText() == "Stop"
-    QTimer.singleShot(150, handle_dialog_error)
-    error_found, warning_found, warning_details = validate_questionnaire(gui_load.structure)
-    assert error_found == False
-    assert warning_found == False
-    gui_load.gui.refresh_button.click()
-    gui_load.save()
-    test_gui = StackedWindowGui("./test/pbtest.txt")
-    for child in test_gui.Stack.currentWidget().children():
-        if type(child) == Button:
-            child.button.click()
-            out, err = capfd.readouterr()
-            assert out.endswith("Stop recording... OK\n") == True
-            QTest.qWait(500)
-    test_gui.close()
-
-    QTest.mouseClick(func_cb, Qt.LeftButton)
-    QTest.keyClick(func_cb, Qt.Key_Down)
-    QTest.keyClick(func_cb, Qt.Key_Enter)
-    assert func_cb.currentText() == "Calibration"
-    QTimer.singleShot(150, handle_dialog_error)
-    error_found, warning_found, warning_details = validate_questionnaire(gui_load.structure)
-    assert error_found == False
-    assert warning_found == False
-    gui_load.gui.refresh_button.click()
-    gui_load.save()
+    assert gui_load.structure["Page 1"]["Question 1"]["receiver"] == ["127.0.0.1", "8000"]
     '''
-    test_gui = StackedWindowGui("./test/pbtest.txt")
-    for child in test_gui.Stack.currentWidget().children():
-        if type(child) == Button:
-            child.button.click()
-            out, err = capfd.readouterr()
-            assert out.endswith("Calibrate... OK\n") == True
-            QTest.qWait(5000)
-    test_gui.close()
+    QTest.mouseClick(rec_cb, Qt.LeftButton)
+    QTest.keyClick(rec_cb, Qt.Key_Down)
+    QTest.keyClick(rec_cb, Qt.Key_Enter)
+    assert rec_cb.currentText() == "help"
+    assert rec_ip.isEnabled() == False
+    assert rec_ip.text() == gui_load.structure["help_ip"]
+    assert rec_port.isEnabled() == False
+    assert rec_port.text() == gui_load.structure["help_port"]
+    QTimer.singleShot(150, handle_dialog_error)
+    error_found, warning_found, warning_details = validate_questionnaire(gui_load.structure)
+    assert error_found == False
+    assert warning_found == False
+    gui_load.gui.refresh_button.click()
+    assert gui_load.structure["Page 1"]["Question 1"]["receiver"] == ["", ""]
     '''
+    QTest.mouseClick(rec_cb, Qt.LeftButton)
+    QTest.keyClick(rec_cb, Qt.Key_Down)
+    QTest.keyClick(rec_cb, Qt.Key_Enter)
+    assert rec_cb.currentText() == "video"
+    assert rec_ip.isEnabled() == False
+    assert rec_ip.text() == gui_load.structure["video_ip"]
+    assert rec_port.isEnabled() == False
+    assert rec_port.text() == gui_load.structure["video_port"]
+    QTimer.singleShot(150, handle_dialog_error)
+    error_found, warning_found, warning_details = validate_questionnaire(gui_load.structure)
+    assert error_found == False
+    assert warning_found == False
+    gui_load.gui.refresh_button.click()
+    assert gui_load.structure["Page 1"]["Question 1"]["receiver"] == ["127.0.0.1", "5005"]
 
-    QTest.mouseClick(func_cb, Qt.LeftButton)
-    QTest.keyClick(func_cb, Qt.Key_Up)
-    QTest.keyClick(func_cb, Qt.Key_Up)
-    QTest.keyClick(func_cb, Qt.Key_Up)
-    QTest.keyClick(func_cb, Qt.Key_Enter)
-    assert func_cb.currentText() == 'Annotate'
-    QTest.keyClicks(gui_load, 's', modifier=Qt.ControlModifier)
+    # TODO test actual sending
+    # revert file
+    QTest.mouseClick(rec_cb, Qt.LeftButton)
+    QTest.keyClick(rec_cb, Qt.Key_Up)
+    QTest.keyClick(rec_cb, Qt.Key_Up)
+    QTest.keyClick(rec_cb, Qt.Key_Up)
+    QTest.keyClick(rec_cb, Qt.Key_Enter)
+    assert rec_cb.currentText() == "<new>"
+    assert rec_ip.isEnabled()
+    assert rec_ip.text() == ""
+    assert rec_port.isEnabled()
+    assert rec_port.text() == ""
+    rec_ip.clear()
+    rec_ip.setText("127.0.0.1")
+    assert rec_ip.text() == "127.0.0.1"
+    rec_ip.editingFinished.emit()
+    assert gui_load.structure["Page 1"]["Question 1"]["receiver"] == ["127.0.0.1", ""]
+    QTimer.singleShot(150, handle_dialog_error)
+    error_found, warning_found, warning_details = validate_questionnaire(gui_load.structure)
+    assert error_found == True
+    assert warning_found == False
+    rec_port.clear()
+    rec_port.setText("8000")
+    assert rec_port.text() == "8000"
+    rec_port.editingFinished.emit()
+    assert gui_load.structure["Page 1"]["Question 1"]["receiver"] == ["127.0.0.1", "8000"]
+    gui_load.gui.refresh_button.click()
+    assert gui_load.structure["Page 1"]["Question 1"]["receiver"] == ["127.0.0.1", "8000"]
     gui_load.save()
-    os.remove("./test/results/results_pb.csv")
     gui_load.close()
 
 
 # noinspection PyArgumentList
-@pytest.mark.pupil
 def test_execute_questionnaire_no_interaction(run, qtbot):
-    if os.path.exists("./test/results/results_pb.csv"):
-        os.remove("./test/results/results_pb.csv")
+    if os.path.exists("./test/results/results_osc.csv"):
+        os.remove("./test/results/results_osc.csv")
     assert run.Stack.count() == 1
 
     QTimer.singleShot(100, handle_dialog)
     QTest.mouseClick(run.forwardbutton, Qt.LeftButton)
 
     results = []
-    with open('./test/results/results_pb.csv', mode='r') as file:
+    with open('./test/results/results_osc.csv', mode='r') as file:
         csv_file = csv.reader(file, delimiter=';')
 
         for lines in csv_file:
@@ -572,27 +517,23 @@ def test_execute_questionnaire_no_interaction(run, qtbot):
     assert lines[0] == '1'  # participant number
     assert re.match(r'\d+-\d+-\d+ \d+:\d+:\d+.\d+', lines[1])  # timestamp
     assert re.match(r'\d+-\d+-\d+ \d+:\d+:\d+.\d+', lines[2])  # timestamp
-    os.remove("./test/results/results_pb.csv")
+    os.remove("./test/results/results_osc.csv")
 
 
 # noinspection PyArgumentList
-@pytest.mark.pupil
-def test_execute_questionnaire(run, qtbot, capfd):
-    if os.path.exists("./test/results/results_pb.csv"):
-        os.remove("./test/results/results_pb.csv")
+def test_execute_questionnaire(run, qtbot):
+    if os.path.exists("./test/results/results_osc.csv"):
+        os.remove("./test/results/results_osc.csv")
     assert run.Stack.count() == 1
     for child in run.Stack.currentWidget().children():
-        if type(child) is Button:
+        if type(child) is OSCButton:
             child.button.click()
-            out, err = capfd.readouterr()
-            assert out.startswith("Trigger {'topic': 'annotation', 'label': 'test', 'timestamp':") == True
-            assert out.endswith(", 'duration': 1} Message forwarded.\n") == True
 
     QTimer.singleShot(100, handle_dialog)
     QTest.mouseClick(run.forwardbutton, Qt.LeftButton)
 
     results = []
-    with open('./test/results/results_pb.csv', mode='r') as file:
+    with open('./test/results/results_osc.csv', mode='r') as file:
         csv_file = csv.reader(file, delimiter=';')
 
         for lines in csv_file:
@@ -605,4 +546,4 @@ def test_execute_questionnaire(run, qtbot, capfd):
     assert lines[0] == '1'  # participant number
     assert re.match(r'\d+-\d+-\d+ \d+:\d+:\d+.\d+', lines[1])  # timestamp
     assert re.match(r'\d+-\d+-\d+ \d+:\d+:\d+.\d+', lines[2])  # timestamp
-    os.remove("./test/results/results_pb.csv")
+    os.remove("./test/results/results_osc.csv")

@@ -56,8 +56,6 @@ def test_create(gui_init, qtbot):
     QTest.keyClick(gui_init.gui.questiontype, Qt.Key_Down)
     QTest.keyClick(gui_init.gui.questiontype, Qt.Key_Down)
     QTest.keyClick(gui_init.gui.questiontype, Qt.Key_Down)
-    QTest.keyClick(gui_init.gui.questiontype, Qt.Key_Down)
-    QTest.keyClick(gui_init.gui.questiontype, Qt.Key_Down)
     QTest.keyClick(gui_init.gui.questiontype, Qt.Key_Enter)
     assert gui_init.gui.questiontype.currentText() == "Text"
     # check if the layout is correct, if all needed fields are loaded and have correct default values (if applicable)
@@ -85,7 +83,7 @@ def test_create(gui_init, qtbot):
                     assert layout.itemAt(row, 1).itemAt(cnt).widget().group().checkedId() + 1 == \
                            default_values[layout.itemAt(row, 0).widget().text()]
     assert not_none_rows == len(fields_per_type["Text"][0].keys())
-    assert len(gui_init.undo_stack) == 7  # 2 for creating page & question, 5 for choosing Text
+    assert len(gui_init.undo_stack) == 5  # 2 for creating page & question, 3 for choosing Text
 
     # Check structure
     structure = ConfigObj()  # {}

@@ -25,6 +25,7 @@ from src.AnswerCheckBox import make_answers as make_answers_cb
 from src.AnswerRadioButton import make_answers
 from src.Lines import QHLine
 from src.MUSHRA import MUSHRA
+from src.OSCButton import OSCButton
 from src.Player import Player
 import src.LabeledSlider as LabeledSlider
 import src.Slider as Slider
