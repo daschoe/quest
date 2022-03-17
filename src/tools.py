@@ -77,7 +77,7 @@ tooltips = {
     "width": "The width of the image in pixels.",
     "height": "The height of the image in pixels.",
     "image_file": "The file of the image.",
-    "address": "The OSC adress to send to, should start with '/'.",
+    "address": "The OSC address to send to, should start with '/'.",
     "value": "The value to send over OSC, use 'id:' to refer to a preceding field.",
     "receiver": "IP and port of the OSC receiver to send to."
 }

@@ -113,7 +113,7 @@ class Page(QWidget):
                                 objectname=structure[quest]["objectName"] if "objectName" in structure[quest].keys() else None,
                                 annotation=structure[quest]["annotation"] if "annotation" in structure[quest].keys() else None)
                 layout.addRow(button)
-                # self.evaluationvars[structure[quest]["id"]] = button.used
+                self.evaluationvars[structure[quest]["id"]] = button
                 self.required[structure[quest]["id"]] = [True if ("required" in structure[quest].keys()) and (
                     structure[quest].as_bool("required")) else False, button.button, button.name, button.used]
             elif structure[quest]["type"] == "OSCButton":
@@ -121,6 +121,7 @@ class Page(QWidget):
                                    structure[quest]["value"], self, structure[quest]["id"], structure[quest]["receiver"],
                                    objectname=structure[quest]["objectName"] if "objectName" in structure[quest].keys() else None)
                 layout.addRow(oscbutton)
+                self.evaluationvars[structure[quest]["id"]] = oscbutton
                 self.required[structure[quest]["id"]] = [True if ("required" in structure[quest].keys()) and (
                     structure[quest].as_bool("required")) else False, oscbutton.button, oscbutton.name, oscbutton.used]
             elif structure[quest]["type"] == "Player":

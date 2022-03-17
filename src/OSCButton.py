@@ -108,6 +108,9 @@ class OSCButton(QWidget):
     def set_used(self):
         self.used = True
 
+    def get_used(self):
+        return self.used
+
     def __click_animation(self):
         __btn = self.sender()
         __btn.setDown(True)

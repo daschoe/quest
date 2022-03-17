@@ -28,6 +28,7 @@ from src.RadioMatrix import RadioMatrix
 from src.Slider import Slider
 from src.Validator import listify, validate_questionnaire
 from src.ABX import ABX
+from src.OSCButton import OSCButton
 from src.randomization import *
 
 TIMEOUT = 0.5  # TODO change this to your liking
@@ -441,7 +442,8 @@ class StackedWindowGui(QWidget):
                          and not self.Stack.currentWidget().required[quest][3]) or \
                         ((type(ans) is bool) and not ans) or \
                         (type(ans) is ABX and ([] in self.Stack.currentWidget().required[quest][3] or ans.answer.checkedId() == -1) or \
-                         (type(ans) is RadioMatrix) and (-1 in [bg.checkedId() for bg in ans.buttongroups])):
+                         (type(ans) is RadioMatrix) and (-1 in [bg.checkedId() for bg in ans.buttongroups])) or \
+                        ((type(ans) is OSCButton or type(ans) is Button) and not ans.used):
                     not_all_answered = True
                     if (type(self.Stack.currentWidget().required[quest][1]) is QLabel) or \
                             (type(self.Stack.currentWidget().required[quest][1]) is QPushButton):
@@ -700,6 +702,8 @@ class StackedWindowGui(QWidget):
                             fields[qid] = ans.toPlainText().replace("\n", " ")
                         elif (type(ans) is Slider) or (type(ans) is LabeledSlider) or (type(ans) is QSlider):
                             fields[qid] = ans.value()
+                        elif (type(ans) is Button) or type(ans) is OSCButton:
+                            fields[qid] = ans.used
                         else:
                             fields[qid] = ans
         if self.rand == "balanced latin square":

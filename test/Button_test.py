@@ -566,12 +566,14 @@ def test_execute_questionnaire_no_interaction(run, qtbot):
             results = lines
             if results[0].startswith('data'):
                 assert lines[0] == 'data_row_number'  # participant number
-                assert lines[1] == 'Start'
-                assert lines[2] == 'End'
-    assert len(results) == 3  # there is no result from the button
+                assert lines[1] == 'pb'
+                assert lines[2] == 'Start'
+                assert lines[3] == 'End'
+    assert len(results) == 4
     assert lines[0] == '1'  # participant number
-    assert re.match(r'\d+-\d+-\d+ \d+:\d+:\d+.\d+', lines[1])  # timestamp
+    assert lines[1] == 'False' # the button was not clicked
     assert re.match(r'\d+-\d+-\d+ \d+:\d+:\d+.\d+', lines[2])  # timestamp
+    assert re.match(r'\d+-\d+-\d+ \d+:\d+:\d+.\d+', lines[3])  # timestamp
     os.remove("./test/results/results_pb.csv")
 
 
@@ -599,10 +601,12 @@ def test_execute_questionnaire(run, qtbot, capfd):
             results = lines
             if results[0].startswith('data'):
                 assert lines[0] == 'data_row_number'  # participant number
-                assert lines[1] == 'Start'
-                assert lines[2] == 'End'
-    assert len(results) == 3
+                assert lines[1] == 'pb'
+                assert lines[2] == 'Start'
+                assert lines[3] == 'End'
+    assert len(results) == 4
     assert lines[0] == '1'  # participant number
-    assert re.match(r'\d+-\d+-\d+ \d+:\d+:\d+.\d+', lines[1])  # timestamp
+    assert lines[1] == 'True' # button was clicked
     assert re.match(r'\d+-\d+-\d+ \d+:\d+:\d+.\d+', lines[2])  # timestamp
+    assert re.match(r'\d+-\d+-\d+ \d+:\d+:\d+.\d+', lines[3])  # timestamp
     os.remove("./test/results/results_pb.csv")
