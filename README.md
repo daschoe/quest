@@ -119,11 +119,12 @@ The necessary python libraries are given in ```requirements.txt```.
    ```
 2. Install necessary python libraries
    ```sh
-   pip install requirements.txt
+   pip install -r requirements.txt
    ```
-3. Run by executing ```Launcher.exe``` or running
+3. Run by executing ```launcher.exe``` (located in the folder src) or running
    ```sh
-   python launcher.py
+   cd quest
+   python src/Launcher.py
    ```
 
 <p align="right">(<a href="#top">back to top</a>)</p>
