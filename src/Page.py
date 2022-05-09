@@ -198,8 +198,8 @@ class Page(QWidget):
                     structure[quest].as_bool("required")) else False, lbl]
             elif structure[quest]["type"] == "Slider":
                 ans_layout, slider = mas(structure[quest].as_bool("labelled"), structure[quest]["id"],
-                                         structure[quest].as_int("min"), structure[quest].as_int("max"),
-                                         structure[quest].as_int("start"),
+                                         structure[quest].as_float("min"), structure[quest].as_float("max"),
+                                         structure[quest].as_float("start"), structure[quest].as_float("step"),
                                          structure[quest]["header"] if "header" in structure[quest].keys() else None,
                                          structure[quest]["label"] if "label" in structure[quest].keys() else None,
                                          self,

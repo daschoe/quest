@@ -32,7 +32,7 @@ def test_global_settings(gui_init):
     err, warn, det = validate_questionnaire(structure, True)
     assert err == True
     assert warn == False
-    assert text.find("Invalid help IP(v4) found.\n") > -1
+    assert -1 <= text.find("Invalid help IP(v4) found.\n") > -1
     structure["help_ip"] = ""
     err, warn, det = validate_questionnaire(structure, True)
     assert err == False
@@ -52,7 +52,7 @@ def test_global_settings(gui_init):
     err, warn, det = validate_questionnaire(structure, True)
     assert err == True
     assert warn == False
-    assert text.find("Invalid help port, couldn't be converted to a number 0-65535.\n") > -1
+    assert -1 <= text.find("Invalid help port, couldn't be converted to a number 0-65535.\n") > -1
     structure["help_port"] = ""
     err, warn, det = validate_questionnaire(structure, True)
     assert err == False
@@ -68,13 +68,13 @@ def test_global_settings(gui_init):
     err, warn, det = validate_questionnaire(structure, True)
     assert err == True
     assert warn == False
-    assert text.find("Invalid help port, couldn't be converted to a number 0-65535.\n") > -1
+    assert -1 <= text.find("Invalid help port, couldn't be converted to a number 0-65535.\n") > -1
     structure["help_port"] = 65536
     QTimer.singleShot(150, handle_dialog_error)
     err, warn, det = validate_questionnaire(structure, True)
     assert err == True
     assert warn == False
-    assert text.find("Invalid help port, couldn't be converted to a number 0-65535.\n") > -1
+    assert -1 <= text.find("Invalid help port, couldn't be converted to a number 0-65535.\n") > -1
     structure["help_port"] = 3500
     err, warn, det = validate_questionnaire(structure, True)
     assert err == False
@@ -94,7 +94,7 @@ def test_global_settings(gui_init):
     err, warn, det = validate_questionnaire(structure, True)
     assert err == True
     assert warn == False
-    assert text.find("Invalid audio IP(v4) found.\n") > -1
+    assert -1 <= text.find("Invalid audio IP(v4) found.\n") > -1
     structure["audio_ip"] = ""
     err, warn, det = validate_questionnaire(structure, True)
     assert err == False
@@ -114,7 +114,7 @@ def test_global_settings(gui_init):
     err, warn, det = validate_questionnaire(structure, True)
     assert err == True
     assert warn == False
-    assert text.find("Invalid audio port, couldn't be converted to a number 0-65535.\n") > -1
+    assert -1 <= text.find("Invalid audio port, couldn't be converted to a number 0-65535.\n") > -1
     structure["audio_port"] = ""
     err, warn, det = validate_questionnaire(structure, True)
     assert err == False
@@ -130,13 +130,13 @@ def test_global_settings(gui_init):
     err, warn, det = validate_questionnaire(structure, True)
     assert err == True
     assert warn == False
-    assert text.find("Invalid audio port, couldn't be converted to a number 0-65535.\n") > -1
+    assert -1 <= text.find("Invalid audio port, couldn't be converted to a number 0-65535.\n") > -1
     structure["audio_port"] = 65536
     QTimer.singleShot(150, handle_dialog_error)
     err, warn, det = validate_questionnaire(structure, True)
     assert err == True
     assert warn == False
-    assert text.find("Invalid audio port, couldn't be converted to a number 0-65535.\n") > -1
+    assert -1 <= text.find("Invalid audio port, couldn't be converted to a number 0-65535.\n") > -1
     structure["audio_port"] = 3500
     err, warn, det = validate_questionnaire(structure, True)
     assert err == False
@@ -153,14 +153,14 @@ def test_global_settings(gui_init):
     err, warn, det = validate_questionnaire(structure, True)
     assert err == True
     assert warn == True
-    assert text.find("Invalid audio track number, couldn't be converted to a number greater than 0.\n") > -1
+    assert -1 <= text.find("Invalid audio track number, couldn't be converted to a number greater than 0.\n") > -1
     assert det[0] == "No audio connection given, but tracks. Audio will be disabled.\n"
     structure["audio_tracks"] = "ten"
     QTimer.singleShot(150, handle_dialog_error)
     err, warn, det = validate_questionnaire(structure, True)
     assert err == True
     assert warn == True
-    assert text.find("Invalid audio track number, couldn't be converted to a number greater than 0.\n") > -1
+    assert -1 <= text.find("Invalid audio track number, couldn't be converted to a number greater than 0.\n") > -1
     assert det[0] == "No audio connection given, but tracks. Audio will be disabled.\n"
     structure.pop("audio_tracks")
     # -------video-------
@@ -170,7 +170,7 @@ def test_global_settings(gui_init):
     err, warn, det = validate_questionnaire(structure, True)
     assert err == True
     assert warn == False
-    assert text.find("Invalid video IP(v4) found.\n") > -1
+    assert -1 <= text.find("Invalid video IP(v4) found.\n") > -1
     structure["video_ip"] = ""
     err, warn, det = validate_questionnaire(structure, True)
     assert err == False
@@ -190,7 +190,7 @@ def test_global_settings(gui_init):
     err, warn, det = validate_questionnaire(structure, True)
     assert err == True
     assert warn == False
-    assert text.find("Invalid video port, couldn't be converted to a number 0-65535.\n") > -1
+    assert -1 <= text.find("Invalid video port, couldn't be converted to a number 0-65535.\n") > -1
     structure["video_port"] = ""
     err, warn, det = validate_questionnaire(structure, True)
     assert err == False
@@ -206,13 +206,13 @@ def test_global_settings(gui_init):
     err, warn, det = validate_questionnaire(structure, True)
     assert err == True
     assert warn == False
-    assert text.find("Invalid video port, couldn't be converted to a number 0-65535.\n") > -1
+    assert -1 <= text.find("Invalid video port, couldn't be converted to a number 0-65535.\n") > -1
     structure["video_port"] = 65536
     QTimer.singleShot(150, handle_dialog_error)
     err, warn, det = validate_questionnaire(structure, True)
     assert err == True
     assert warn == False
-    assert text.find("Invalid video port, couldn't be converted to a number 0-65535.\n") > -1
+    assert -1 <= text.find("Invalid video port, couldn't be converted to a number 0-65535.\n") > -1
     structure["video_port"] = 3500
     err, warn, det = validate_questionnaire(structure, True)
     assert err == False
@@ -226,7 +226,7 @@ def test_global_settings(gui_init):
     err, warn, det = validate_questionnaire(structure, True)
     assert err == True
     assert warn == False
-    assert text.find("Invalid pupil IP(v4) found.\n") > -1
+    assert -1 <= text.find("Invalid pupil IP(v4) found.\n") > -1
     structure["pupil_ip"] = ""
     err, warn, det = validate_questionnaire(structure, True)
     assert err == False
@@ -246,7 +246,7 @@ def test_global_settings(gui_init):
     err, warn, det = validate_questionnaire(structure, True)
     assert err == True
     assert warn == False
-    assert text.find("Invalid pupil port, couldn't be converted to a number 0-65535.\n") > -1
+    assert -1 <= text.find("Invalid pupil port, couldn't be converted to a number 0-65535.\n") > -1
     structure["pupil_port"] = ""
     err, warn, det = validate_questionnaire(structure, True)
     assert err == False
@@ -262,13 +262,13 @@ def test_global_settings(gui_init):
     err, warn, det = validate_questionnaire(structure, True)
     assert err == True
     assert warn == False
-    assert text.find("Invalid pupil port, couldn't be converted to a number 0-65535.\n") > -1
+    assert -1 <= text.find("Invalid pupil port, couldn't be converted to a number 0-65535.\n") > -1
     structure["pupil_port"] = 65536
     QTimer.singleShot(150, handle_dialog_error)
     err, warn, det = validate_questionnaire(structure, True)
     assert err == True
     assert warn == False
-    assert text.find("Invalid pupil port, couldn't be converted to a number 0-65535.\n") > -1
+    assert -1 <= text.find("Invalid pupil port, couldn't be converted to a number 0-65535.\n") > -1
     structure["pupil_port"] = 3500
     err, warn, det = validate_questionnaire(structure, True)
     assert err == False
@@ -304,7 +304,7 @@ def test_global_settings(gui_init):
     err, warn, det = validate_questionnaire(structure, True)
     assert err == True
     assert warn == False
-    assert text.find("No valid value found for 'go_back'.\n") > -1
+    assert -1 <= text.find("No valid value found for 'go_back'.\n") > -1
     structure["go_back"] = "false"
     # TODO Tests for pagecount_text?
     # ------save message------
@@ -313,7 +313,7 @@ def test_global_settings(gui_init):
     err, warn, det = validate_questionnaire(structure, True)
     assert err == True
     assert warn == False
-    assert text.find("The value given for 'save_after' is not the name of a page of this questionnaire.\n") > -1
+    assert -1 <= text.find("The value given for 'save_after' is not the name of a page of this questionnaire.\n") > -1
     structure.pop("save_after")
     err, warn, det = validate_questionnaire(structure, True)
     assert err == False
@@ -338,7 +338,7 @@ def test_global_settings(gui_init):
     err, warn, det = validate_questionnaire(structure, True)
     assert err == True
     assert warn == False
-    assert text.find("Invalid delimiter found. It can only have one character.\n") > -1
+    assert -1 <= text.find("Invalid delimiter found. It can only have one character.\n") > -1
     structure["delimiter"] = "\t"
     err, warn, det = validate_questionnaire(structure, True)
     assert err == False
@@ -350,7 +350,7 @@ def test_global_settings(gui_init):
     assert err == True
     assert warn == True
     assert det[0] == "Path for results file does not exist. It will be created.\n"
-    assert text.find("Invalid drive name for results file path.\n") > -1
+    assert -1 <= text.find("Invalid drive name for results file path.\n") > -1
     structure["filepath_results"] = "./test/results/results.csv"
     err, warn, det = validate_questionnaire(structure, True)
     assert err == False
@@ -367,13 +367,13 @@ def test_global_settings(gui_init):
     err, warn, det = validate_questionnaire(structure, True)
     assert err == True
     assert warn == False
-    assert text.find("'button_fade' could not be converted to a non-negative number.\n") > -1
+    assert -1 <= text.find("'button_fade' could not be converted to a non-negative number.\n") > -1
     structure["button_fade"] = -5
     QTimer.singleShot(150, handle_dialog_error)
     err, warn, det = validate_questionnaire(structure, True)
     assert err == True
     assert warn == False
-    assert text.find("'button_fade' could not be converted to a non-negative number.\n") > -1
+    assert -1 <= text.find("'button_fade' could not be converted to a non-negative number.\n") > -1
     structure["button_fade"] = "600"
     err, warn, det = validate_questionnaire(structure, True)
     assert err == False
@@ -383,13 +383,13 @@ def test_global_settings(gui_init):
     err, warn, det = validate_questionnaire(structure, True)
     assert err == True
     assert warn == False
-    assert text.find("Invalid stylesheet path.\n") > -1
+    assert -1 <= text.find("Invalid stylesheet path.\n") > -1
     structure["stylesheet"] = "./src/Images/RadioChecked.svg"
     QTimer.singleShot(150, handle_dialog_error)
     err, warn, det = validate_questionnaire(structure, True)
     assert err == True
     assert warn == False
-    assert text.find("Invalid file for stylesheet, it has to be *.qss.\n") > -1
+    assert -1 <= text.find("Invalid file for stylesheet, it has to be *.qss.\n") > -1
     structure["stylesheet"] = "./src/stylesheets/minimal.qss"
     err, warn, det = validate_questionnaire(structure, True)
     assert err == False
@@ -399,7 +399,7 @@ def test_global_settings(gui_init):
     err, warn, det = validate_questionnaire(structure, True)
     assert err == True
     assert warn == False
-    assert text.find("Invalid randomization option.\n") > -1
+    assert -1 <= text.find("Invalid randomization option.\n") > -1
     structure["randomization"] = "None"
     err, warn, det = validate_questionnaire(structure, True)
     assert err == False
@@ -409,25 +409,25 @@ def test_global_settings(gui_init):
     err, warn, det = validate_questionnaire(structure, True)
     assert err == True
     assert warn == False
-    assert text.find("Randomization 'from file' chosen, but no file given.\n") > -1
+    assert -1 <= text.find("Randomization 'from file' chosen, but no file given.\n") > -1
     structure["randomization_file"] = "A://B/C/D.css"
     QTimer.singleShot(150, handle_dialog_error)
     err, warn, det = validate_questionnaire(structure, True)
     assert err == True
     assert warn == False
-    assert text.find("Invalid randomization_file path.\n") > -1
+    assert -1 <= text.find("Invalid randomization_file path.\n") > -1
     structure["randomization_file"] = "./src/Images/RadioChecked.svg"
     QTimer.singleShot(150, handle_dialog_error)
     err, warn, det = validate_questionnaire(structure, True)
     assert err == True
     assert warn == False
-    assert text.find("Invalid file for randomization, it has to be *.txt or *.csv.\n") > -1
+    assert -1 <= text.find("Invalid file for randomization, it has to be *.txt or *.csv.\n") > -1
     structure["randomization_file"] = "./src/Configs/all_question_types.txt"
     QTimer.singleShot(150, handle_dialog_error)
     err, warn, det = validate_questionnaire(structure, True)
     assert err == True
     assert warn == False
-    assert text.find("Contents of randomization_file invalid.\n") > -1
+    assert -1 <= text.find("Contents of randomization_file invalid.\n") > -1
     structure["randomization_file"] = "./test/random.txt"
     err, warn, det = validate_questionnaire(structure, True)
     assert err == False
@@ -516,7 +516,7 @@ def test_question_settings(gui_init):
     err, warn, det = validate_questionnaire(structure, True)
     assert err == True
     assert warn == False
-    assert text.find("No ID was given for question 'Question' on page 'Page'.\n") > -1
+    assert -1 <= text.find("No ID was given for question 'Question' on page 'Page'.\n") > -1
     structure["Page"]["Question"]["type"] = "HLine"
     structure["Page"]["Question"].pop("id")
     err, warn, det = validate_questionnaire(structure, True)
@@ -527,7 +527,7 @@ def test_question_settings(gui_init):
     err, warn, det = validate_questionnaire(structure, True)
     assert err == True
     assert warn == True  # from the question type
-    assert text.find("No ID was given for question 'Question' on page 'Page'.\n") > -1
+    assert -1 <= text.find("No ID was given for question 'Question' on page 'Page'.\n") > -1
     structure["Page"]["Question"].pop("type")
     structure["Page"]["Question"].pop("text")
     structure["Page"]["Question"].pop("answers")
@@ -537,14 +537,14 @@ def test_question_settings(gui_init):
     err, warn, det = validate_questionnaire(structure, True)
     assert err == True
     assert warn == False
-    assert text.find("ID 'some id' already used in question 'Question' on page 'Page'. Found again in question 'Question2' on page 'Page'.\n") > -1
+    assert -1 <= text.find("ID 'some id' already used in question 'Question' on page 'Page'. Found again in question 'Question2' on page 'Page'.\n") > -1
     structure["Page"].pop("Question2")
     structure["Page2"] = {"Question": {"id": "some id"}}
     QTimer.singleShot(150, handle_dialog_error)
     err, warn, det = validate_questionnaire(structure, True)
     assert err == True
     assert warn == False
-    assert text.find(
+    assert -1 <= text.find(
         "ID 'some id' already used in question 'Question' on page 'Page'. Found again in question 'Question' on page 'Page2'.\n") > -1
     structure.pop("Page2")
 
@@ -554,7 +554,7 @@ def test_question_settings(gui_init):
     err, warn, det = validate_questionnaire(structure, True)
     assert err == True
     assert warn == False
-    assert text.find("No valid value found for 'x' for question 'Question' on page 'Page'.\n") > -1
+    assert -1 <= text.find("No valid value found for 'x' for question 'Question' on page 'Page'.\n") > -1
     structure["Page"]["Question"]["x"] = True
     err, warn, det = validate_questionnaire(structure, True)
     assert err == False
@@ -575,7 +575,7 @@ def test_question_settings(gui_init):
     err, warn, det = validate_questionnaire(structure, True)
     assert err == True
     assert warn == False
-    assert text.find("No valid value found for 'play_once' for question 'Question' on page 'Page'.\n") > -1
+    assert -1 <= text.find("No valid value found for 'play_once' for question 'Question' on page 'Page'.\n") > -1
     structure["Page"]["Question"]["play_once"] = True
     err, warn, det = validate_questionnaire(structure, True)
     assert err == False
@@ -596,7 +596,7 @@ def test_question_settings(gui_init):
     err, warn, det = validate_questionnaire(structure, True)
     assert err == True
     assert warn == False
-    assert text.find("No valid value found for 'required' for question 'Question' on page 'Page'.\n") > -1
+    assert -1 <= text.find("No valid value found for 'required' for question 'Question' on page 'Page'.\n") > -1
     structure["Page"]["Question"]["required"] = True
     err, warn, det = validate_questionnaire(structure, True)
     assert err == False
@@ -609,7 +609,7 @@ def test_question_settings(gui_init):
     err, warn, det = validate_questionnaire(structure, True)
     assert err == True
     assert warn == False
-    assert text.find("No valid value found for 'labelled' for question 'Question' on page 'Page'.\n") > -1
+    assert -1 <= text.find("No valid value found for 'labelled' for question 'Question' on page 'Page'.\n") > -1
     structure["Page"]["Question"]["labelled"] = True
     err, warn, det = validate_questionnaire(structure, True)
     assert err == False
@@ -617,6 +617,7 @@ def test_question_settings(gui_init):
     structure["Page"]["Question"]["type"] = "Slider"
     structure["Page"]["Question"]["min"] = 1
     structure["Page"]["Question"]["max"] = 10
+    structure["Page"]["Question"]["step"] = 1
     structure["Page"]["Question"]["start"] = 10
     structure["Page"]["Question"].pop("labelled")
     err, warn, det = validate_questionnaire(structure, True)
@@ -632,7 +633,7 @@ def test_question_settings(gui_init):
     err, warn, det = validate_questionnaire(structure, True)
     assert err == True
     assert warn == False
-    assert text.find("No valid value found for 'question_above' for question 'Question' on page 'Page'.\n") > -1
+    assert -1 <= text.find("No valid value found for 'question_above' for question 'Question' on page 'Page'.\n") > -1
     structure["Page"]["Question"]["question_above"] = True
     err, warn, det = validate_questionnaire(structure, True)
     assert err == False
@@ -675,13 +676,13 @@ def test_question_settings(gui_init):
     err, warn, det = validate_questionnaire(structure, True)
     assert err == True
     assert warn == False
-    assert text.find("Please give two answer options for the ABX type question 'Question' on page 'Page' or leave this field empty.\n")
+    assert -1 <= text.find("Please give two answer options for the ABX type question 'Question' on page 'Page' or leave this field empty.\n")
     structure["Page"]["Question"]["answers"] = ["1", "b", "c"]
     QTimer.singleShot(150, handle_dialog_error)
     err, warn, det = validate_questionnaire(structure, True)
     assert err == True
     assert warn == False
-    assert text.find(
+    assert -1 <= text.find(
         "Please give two answer options for the ABX type question 'Question' on page 'Page' or leave this field empty.\n")
     structure["Page"]["Question"]["answers"] = ["1", "2"]
     err, warn, det = validate_questionnaire(structure, True)
@@ -706,13 +707,13 @@ def test_question_settings(gui_init):
     err, warn, det = validate_questionnaire(structure, True)
     assert err == True
     assert warn == False
-    assert text.find("The start answer ID in question 'Question' on page 'Page' can't have a negative value.\n")
+    assert -1 <= text.find("The start answer ID in question 'Question' on page 'Page' can't have a negative value.\n")
     structure["Page"]["Question"]["start_answer_id"] = ""
     QTimer.singleShot(150, handle_dialog_error)
     err, warn, det = validate_questionnaire(structure, True)
     assert err == True
     assert warn == False
-    assert text.find("The start answer ID in question 'Question' on page 'Page' couldn't be interpreted as an integer.\n")
+    assert -1 <= text.find("The start answer ID in question 'Question' on page 'Page' couldn't be interpreted as an integer.\n")
     structure["Page"]["Question"] = {'id': 'id'}
 
     # ------min------
@@ -721,16 +722,21 @@ def test_question_settings(gui_init):
     err, warn, det = validate_questionnaire(structure, True)
     assert err == True
     assert warn == False
-    assert text.find("No minimum value found for the slider in question 'Question' on page 'Page'.\n")
+    assert -1 <= text.find("No minimum value found for the slider in question 'Question' on page 'Page'.\n")
+    structure["Page"]["Question"]["min"] = 1.5
+    err, warn, det = validate_questionnaire(structure, True)
+    assert err == False
+    assert warn == False
     structure["Page"]["Question"]["min"] = "ten"
     QTimer.singleShot(150, handle_dialog_error)
     err, warn, det = validate_questionnaire(structure, True)
     assert err == True
     assert warn == False
-    assert text.find("The minimum value found for the slider in question 'Question' on page 'Page' couldn't be interpreted as an integer.\n")
+    assert -1 <= text.find("The minimum value found for the slider in question 'Question' on page 'Page' couldn't be interpreted as an integer.\n")
     structure["Page"]["Question"]["type"] = "Slider"
     structure["Page"]["Question"]["max"] = 10
     structure["Page"]["Question"]["start"] = 10
+    structure["Page"]["Question"]["step"] = 1
     structure["Page"]["Question"]["labelled"] = False
     structure["Page"]["Question"]["text"] = "some text"
     structure["Page"]["Question"].pop("min")
@@ -738,7 +744,7 @@ def test_question_settings(gui_init):
     err, warn, det = validate_questionnaire(structure, True)
     assert err == True
     assert warn == False
-    assert text.find("No minimum value was given for the slider in question 'Question' on page 'Page'")
+    assert -1 <= text.find("No minimum value was given for the slider in question 'Question' on page 'Page'")
     structure["Page"]["Question"]["min"] = 20
     err, warn, det = validate_questionnaire(structure, True)
     assert err == False
@@ -751,15 +757,16 @@ def test_question_settings(gui_init):
     err, warn, det = validate_questionnaire(structure, True)
     assert err == True
     assert warn == False
-    assert text.find("No maximum value found for the slider in question 'Question' on page 'Page'.\n")
+    assert -1 <= text.find("No maximum value found for the slider in question 'Question' on page 'Page'.\n")
     structure["Page"]["Question"]["max"] = "ten"
     QTimer.singleShot(150, handle_dialog_error)
     err, warn, det = validate_questionnaire(structure, True)
     assert err == True
     assert warn == False
-    assert text.find("The maximum value found for the slider in question 'Question' on page 'Page' couldn't be interpreted as an integer.\n")
+    assert -1 <= text.find("The maximum value found for the slider in question 'Question' on page 'Page' couldn't be interpreted as an integer.\n")
     structure["Page"]["Question"]["type"] = "Slider"
     structure["Page"]["Question"]["min"] = 10
+    structure["Page"]["Question"]["step"] = 0.1
     structure["Page"]["Question"]["start"] = 10
     structure["Page"]["Question"]["labelled"] = False
     structure["Page"]["Question"]["text"] = "some text"
@@ -768,8 +775,12 @@ def test_question_settings(gui_init):
     err, warn, det = validate_questionnaire(structure, True)
     assert err == True
     assert warn == False
-    assert text.find("No maximum value was given for the slider in question 'Question' on page 'Page'")
+    assert -1 <= text.find("No maximum value was given for the slider in question 'Question' on page 'Page'")
     structure["Page"]["Question"]["max"] = 0
+    err, warn, det = validate_questionnaire(structure, True)
+    assert err == False
+    assert warn == False
+    structure["Page"]["Question"]["max"] = 0.1
     err, warn, det = validate_questionnaire(structure, True)
     assert err == False
     assert warn == False
@@ -778,7 +789,7 @@ def test_question_settings(gui_init):
     err, warn, det = validate_questionnaire(structure, True)
     assert err == True
     assert warn == False
-    assert text.find("Maximum and Minimum value for the slider in question 'Question' on page 'Page' are the same.\n")
+    assert -1 <= text.find("Maximum and Minimum value for the slider in question 'Question' on page 'Page' are the same.\n")
     structure["Page"]["Question"] = {'id': 'id'}
 
     # ------start------
@@ -787,17 +798,18 @@ def test_question_settings(gui_init):
     err, warn, det = validate_questionnaire(structure, True)
     assert err == True
     assert warn == False
-    assert text.find("No starting value found for the slider in question 'Question' on page 'Page'.\n")
+    assert -1 <= text.find("No starting value found for the slider in question 'Question' on page 'Page'.\n")
     structure["Page"]["Question"]["start"] = "ten"
     QTimer.singleShot(150, handle_dialog_error)
     err, warn, det = validate_questionnaire(structure, True)
     assert err == True
     assert warn == False
-    assert text.find(
+    assert -1 <= text.find(
         "The starting value found for the slider in question 'Question' on page 'Page' couldn't be interpreted as an integer.\n")
     structure["Page"]["Question"]["type"] = "Slider"
     structure["Page"]["Question"]["max"] = 10
     structure["Page"]["Question"]["min"] = 0
+    structure["Page"]["Question"]["step"] = 0.5
     structure["Page"]["Question"]["labelled"] = False
     structure["Page"]["Question"]["text"] = "some text"
     structure["Page"]["Question"].pop("start")
@@ -805,8 +817,57 @@ def test_question_settings(gui_init):
     err, warn, det = validate_questionnaire(structure, True)
     assert err == True
     assert warn == False
-    assert text.find("No starting value was given for the slider in question 'Question' on page 'Page'")
+    assert -1 <= text.find("No starting value was given for the slider in question 'Question' on page 'Page'")
     structure["Page"]["Question"]["start"] = 0
+    err, warn, det = validate_questionnaire(structure, True)
+    assert err == False
+    assert warn == False
+    structure["Page"]["Question"]["start"] = 0.5
+    err, warn, det = validate_questionnaire(structure, True)
+    assert err == False
+    assert warn == False
+    structure["Page"]["Question"] = {'id': 'id'}
+    
+    # ------step------
+    structure["Page"]["Question"]["step"] = ""
+    QTimer.singleShot(150, handle_dialog_error)
+    err, warn, det = validate_questionnaire(structure, True)
+    assert err == True
+    assert warn == False
+    assert -1 <= text.find("No step value found for the slider in question 'Question' on page 'Page'.\n")
+    structure["Page"]["Question"]["step"] = "ten"
+    QTimer.singleShot(150, handle_dialog_error)
+    err, warn, det = validate_questionnaire(structure, True)
+    assert err == True
+    assert warn == False
+    assert -1 <= text.find(
+        "The step value found for the slider in question 'Question' on page 'Page' couldn't be interpreted as a number.\n")
+    structure["Page"]["Question"]["type"] = "Slider"
+    structure["Page"]["Question"]["max"] = 1.5
+    structure["Page"]["Question"]["min"] = 0.5
+    structure["Page"]["Question"]["start"] = 0.1
+    structure["Page"]["Question"]["labelled"] = False
+    structure["Page"]["Question"]["text"] = "some text"
+    structure["Page"]["Question"].pop("step")
+    QTimer.singleShot(150, handle_dialog_error)
+    err, warn, det = validate_questionnaire(structure, True)
+    assert err == True
+    assert warn == False
+    assert -1 <= text.find("No step value was given for the slider in question 'Question' on page 'Page'")
+    structure["Page"]["Question"]["step"] = 0
+    QTimer.singleShot(150, handle_dialog_error)
+    err, warn, det = validate_questionnaire(structure, True)
+    assert err == True
+    assert warn == False
+    assert -1 <= text.find("The step value found for the slider in question 'Question' on page 'Page' needs to be bigger than 0.\n")
+    structure["Page"]["Question"]["step"] = 2
+    QTimer.singleShot(150, handle_dialog_error)
+    err, warn, det = validate_questionnaire(structure, True)
+    assert err == True
+    assert warn == False
+    assert -1 <= text.find(
+        "The step value for the slider in question 'Question' on page 'Page' is bigger than the range.\n")
+    structure["Page"]["Question"]["step"] = 0.5
     err, warn, det = validate_questionnaire(structure, True)
     assert err == False
     assert warn == False
@@ -816,6 +877,7 @@ def test_question_settings(gui_init):
     structure["Page"]["Question"]["type"] = "Slider"
     structure["Page"]["Question"]["max"] = 10
     structure["Page"]["Question"]["min"] = 0
+    structure["Page"]["Question"]["step"] = 1
     structure["Page"]["Question"]["labelled"] = False
     structure["Page"]["Question"]["text"] = "some text"
     structure["Page"]["Question"]["start"] = 0
@@ -828,8 +890,36 @@ def test_question_settings(gui_init):
     err, warn, det = validate_questionnaire(structure, True)
     assert err == True
     assert warn == False
-    assert text.find("The number of given labels doesn't match the number of ticks for question 'Question' on page 'Page'.\n")
+    assert -1 <= text.find("The number of given labels doesn't match the number of ticks for question 'Question' on page 'Page'.\n")
     structure["Page"]["Question"]["label"] = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10]
+    err, warn, det = validate_questionnaire(structure, True)
+    assert err == False
+    assert warn == False
+    structure["Page"]["Question"]["label"] = [[1, 2, "test"]]
+    QTimer.singleShot(150, handle_dialog_error)
+    err, warn, det = validate_questionnaire(structure, True)
+    assert err == True
+    assert warn == False
+    assert -1 <= text.find("No valid format for labels for question 'Question' on page 'Page'.\n")
+    structure["Page"]["Question"]["label"] = [[-1, "no"], [11, "out"]]
+    QTimer.singleShot(150, handle_dialog_error)
+    err, warn, det = validate_questionnaire(structure, True)
+    assert err == True
+    assert warn == False
+    assert -1 <= text.find("Tick value outside of slider range found for question 'Question' on page 'Page'.\n")
+    structure["Page"]["Question"]["label"] = [[5, "no"], [5, "out"]]
+    QTimer.singleShot(150, handle_dialog_error)
+    err, warn, det = validate_questionnaire(structure, True)
+    assert err == True
+    assert warn == False
+    assert -1 <= text.find("Double definition of tick labels found for question 'Question' on page 'Page'.\n")
+    structure["Page"]["Question"]["label"] = [["null", "no"]]
+    QTimer.singleShot(150, handle_dialog_error)
+    err, warn, det = validate_questionnaire(structure, True)
+    assert err == True
+    assert warn == False
+    assert -1 <= text.find("A label tick for the slider in question 'Question' on page 'Page' couldn't be interpreted as a number.\n")
+    structure["Page"]["Question"]["label"] = [[0,"negativ"], [10, "positiv"]]
     err, warn, det = validate_questionnaire(structure, True)
     assert err == False
     assert warn == False
@@ -841,13 +931,13 @@ def test_question_settings(gui_init):
     err, warn, det = validate_questionnaire(structure, True)
     assert err == True
     assert warn == False
-    assert text.find("Invalid policy type in question 'Question' on page 'Page'.\n")
+    assert -1 <= text.find("Invalid policy type in question 'Question' on page 'Page'.\n")
     structure["Page"]["Question"]["policy"] = ["something"]
     QTimer.singleShot(150, handle_dialog_error)
     err, warn, det = validate_questionnaire(structure, True)
     assert err == True
     assert warn == False
-    assert text.find("Invalid policy type in question 'Question' on page 'Page'.\n")
+    assert -1 <= text.find("Invalid policy type in question 'Question' on page 'Page'.\n")
     structure["Page"]["Question"]["policy"] = "None"
     err, warn, det = validate_questionnaire(structure, True)
     assert err == False
@@ -857,41 +947,41 @@ def test_question_settings(gui_init):
     err, warn, det = validate_questionnaire(structure, True)
     assert err == True
     assert warn == False
-    assert text.find("Policy type 'int' takes two arguments, a different amount was given in question 'Question' on page 'Page'.\n")
+    assert -1 <= text.find("Policy type 'int' takes two arguments, a different amount was given in question 'Question' on page 'Page'.\n")
     structure["Page"]["Question"]["policy"] = ["int", 1, 2, 3]
     QTimer.singleShot(150, handle_dialog_error)
     err, warn, det = validate_questionnaire(structure, True)
     assert err == True
     assert warn == False
-    assert text.find(
+    assert -1 <= text.find(
         "Policy type 'int' takes two arguments, a different amount was given in question 'Question' on page 'Page'.\n")
     structure["Page"]["Question"]["policy"] = ["int", "", 2]
     QTimer.singleShot(150, handle_dialog_error)
     err, warn, det = validate_questionnaire(structure, True)
     assert err == True
     assert warn == False
-    assert text.find(
+    assert -1 <= text.find(
         "No minimum value was given for the policy in question 'Question' on page 'Page'.\n")
     structure["Page"]["Question"]["policy"] = ["int", "ab", 2]
     QTimer.singleShot(150, handle_dialog_error)
     err, warn, det = validate_questionnaire(structure, True)
     assert err == True
     assert warn == False
-    assert text.find(
+    assert -1 <= text.find(
         "Minimum value given for the policy in question 'Question' on page 'Page' couldn't be converted to a valid number.\n")
     structure["Page"]["Question"]["policy"] = ["int", 1, "ab"]
     QTimer.singleShot(150, handle_dialog_error)
     err, warn, det = validate_questionnaire(structure, True)
     assert err == True
     assert warn == False
-    assert text.find(
+    assert -1 <= text.find(
         "Maximum value given for the policy in question 'Question' on page 'Page' couldn't be converted to a valid number.\n")
     structure["Page"]["Question"]["policy"] = ["int", 1, ""]
     QTimer.singleShot(150, handle_dialog_error)
     err, warn, det = validate_questionnaire(structure, True)
     assert err == True
     assert warn == False
-    assert text.find("No maximum value was given for the policy in question 'Question' on page 'Page'.\n")
+    assert -1 <= text.find("No maximum value was given for the policy in question 'Question' on page 'Page'.\n")
     structure["Page"]["Question"]["policy"] = ["int", 1, 100]
     err, warn, det = validate_questionnaire(structure, True)
     assert err == False
@@ -901,55 +991,55 @@ def test_question_settings(gui_init):
     err, warn, det = validate_questionnaire(structure, True)
     assert err == True
     assert warn == False
-    assert text.find(
+    assert -1 <= text.find(
         "Policy type 'double' takes three arguments, a different amount was given in question 'Question' on page 'Page'.\n")
     structure["Page"]["Question"]["policy"] = ["double", 1, 2, 3, 4]
     QTimer.singleShot(150, handle_dialog_error)
     err, warn, det = validate_questionnaire(structure, True)
     assert err == True
     assert warn == False
-    assert text.find(
+    assert -1 <= text.find(
         "Policy type 'double' takes two arguments, a different amount was given in question 'Question' on page 'Page'.\n")
     structure["Page"]["Question"]["policy"] = ["double", "", 2, 3]
     QTimer.singleShot(150, handle_dialog_error)
     err, warn, det = validate_questionnaire(structure, True)
     assert err == True
     assert warn == False
-    assert text.find(
+    assert -1 <= text.find(
         "No minimum value was given for the policy in question 'Question' on page 'Page'.\n")
     structure["Page"]["Question"]["policy"] = ["double", "ab", 2, 3]
     QTimer.singleShot(150, handle_dialog_error)
     err, warn, det = validate_questionnaire(structure, True)
     assert err == True
     assert warn == False
-    assert text.find(
+    assert -1 <= text.find(
         "Minimum value given for the policy in question 'Question' on page 'Page' couldn't be converted to a valid number.\n")
     structure["Page"]["Question"]["policy"] = ["double", 1, "ab", 3]
     QTimer.singleShot(150, handle_dialog_error)
     err, warn, det = validate_questionnaire(structure, True)
     assert err == True
     assert warn == False
-    assert text.find(
+    assert -1 <= text.find(
         "Maximum value given for the policy in question 'Question' on page 'Page' couldn't be converted to a valid number.\n")
     structure["Page"]["Question"]["policy"] = ["double", 1, "", 3]
     QTimer.singleShot(150, handle_dialog_error)
     err, warn, det = validate_questionnaire(structure, True)
     assert err == True
     assert warn == False
-    assert text.find("No maximum value was given for the policy in question 'Question' on page 'Page'.\n")
+    assert -1 <= text.find("No maximum value was given for the policy in question 'Question' on page 'Page'.\n")
     structure["Page"]["Question"]["policy"] = ["double", 1, 2, "ab"]
     QTimer.singleShot(150, handle_dialog_error)
     err, warn, det = validate_questionnaire(structure, True)
     assert err == True
     assert warn == False
-    assert text.find(
+    assert -1 <= text.find(
         "Number of decimals given for the policy in question 'Question' on page 'Page' couldn't be converted to a valid number.\n")
     structure["Page"]["Question"]["policy"] = ["double", 1, 2, ""]
     QTimer.singleShot(150, handle_dialog_error)
     err, warn, det = validate_questionnaire(structure, True)
     assert err == True
     assert warn == False
-    assert text.find("No number of decimals was given for the policy in question 'Question' on page 'Page'.\n")
+    assert -1 <= text.find("No number of decimals was given for the policy in question 'Question' on page 'Page'.\n")
     structure["Page"]["Question"]["policy"] = ["double", 1, 100, 3]
     err, warn, det = validate_questionnaire(structure, True)
     assert err == False
@@ -959,28 +1049,28 @@ def test_question_settings(gui_init):
     err, warn, det = validate_questionnaire(structure, True)
     assert err == True
     assert warn == False
-    assert text.find(
+    assert -1 <= text.find(
         "Policy type 'regex' takes one argument, a different amount was given in question 'Question' on page 'Page'.\n")
     structure["Page"]["Question"]["policy"] = ["regex", "some", 67]
     QTimer.singleShot(150, handle_dialog_error)
     err, warn, det = validate_questionnaire(structure, True)
     assert err == True
     assert warn == False
-    assert text.find(
+    assert -1 <= text.find(
         "Policy type 'regex' takes one argument, a different amount was given in question 'Question' on page 'Page'.\n")
     structure["Page"]["Question"]["policy"] = ["regex", ""]
     QTimer.singleShot(150, handle_dialog_error)
     err, warn, det = validate_questionnaire(structure, True)
     assert err == True
     assert warn == False
-    assert text.find(
+    assert -1 <= text.find(
         "No regex was given for the policy in question 'Question' on page 'Page'.\n")
     structure["Page"]["Question"]["policy"] = ["regex", "[.*"]
     QTimer.singleShot(150, handle_dialog_error)
     err, warn, det = validate_questionnaire(structure, True)
     assert err == True
     assert warn == False
-    assert text.find(
+    assert -1 <= text.find(
         "An invalid regex was given for the policy in question 'Question' on page 'Page'.\n")
     structure["Page"]["Question"]["policy"] = ["regex", "[A-Z]\\d"]
     err, warn, det = validate_questionnaire(structure, True)
@@ -994,13 +1084,13 @@ def test_question_settings(gui_init):
     err, warn, det = validate_questionnaire(structure, True)
     assert err == True
     assert warn == False
-    assert text.find("No start cue was given in question 'Question' on page 'Page'.\n")
+    assert -1 <= text.find("No start cue was given in question 'Question' on page 'Page'.\n")
     structure["Page"]["Question"]["start_cue"] = [12]
     QTimer.singleShot(150, handle_dialog_error)
     err, warn, det = validate_questionnaire(structure, True)
     assert err == True
     assert warn == False
-    assert text.find("Start cue given in question 'Question' on page 'Page' couldn't be converted to a number.\n")
+    assert -1 <= text.find("Start cue given in question 'Question' on page 'Page' couldn't be converted to a number.\n")
     structure["Page"]["Question"]["start_cue"] = 12
     err, warn, det = validate_questionnaire(structure, True)
     assert err == False
@@ -1014,7 +1104,7 @@ def test_question_settings(gui_init):
     err, warn, det = validate_questionnaire(structure, True)
     assert err == True
     assert warn == False
-    assert text.find("No start cue was given in question 'Question' on page 'Page'.\n")
+    assert -1 <= text.find("No start cue was given in question 'Question' on page 'Page'.\n")
     structure["Page"]["Question"] = {'id': 'id'}
 
     # ------end_cue------
@@ -1023,13 +1113,13 @@ def test_question_settings(gui_init):
     err, warn, det = validate_questionnaire(structure, True)
     assert err == True
     assert warn == False
-    assert text.find("No end cue was given in question 'Question' on page 'Page'.\n")
+    assert -1 <= text.find("No end cue was given in question 'Question' on page 'Page'.\n")
     structure["Page"]["Question"]["end_cue"] = [12]
     QTimer.singleShot(150, handle_dialog_error)
     err, warn, det = validate_questionnaire(structure, True)
     assert err == True
     assert warn == False
-    assert text.find("End cue given in question 'Question' on page 'Page' couldn't be converted to a number.\n")
+    assert -1 <= text.find("End cue given in question 'Question' on page 'Page' couldn't be converted to a number.\n")
     structure["Page"]["Question"]["end_cue"] = 12
     err, warn, det = validate_questionnaire(structure, True)
     assert err == False
@@ -1039,7 +1129,7 @@ def test_question_settings(gui_init):
     err, warn, det = validate_questionnaire(structure, True)
     assert err == True
     assert warn == False
-    assert text.find("The same cue (12) was used as start- and end-cue for one condition in question 'Question' on page 'Page'.\n")
+    assert -1 <= text.find("The same cue (12) was used as start- and end-cue for one condition in question 'Question' on page 'Page'.\n")
     structure["Page"]["Question"]["end_cue"] = 14
     err, warn, det = validate_questionnaire(structure, True)
     assert err == False
@@ -1052,7 +1142,7 @@ def test_question_settings(gui_init):
     err, warn, det = validate_questionnaire(structure, True)
     assert err == True
     assert warn == False
-    assert text.find("No track(s) was given in question 'Question' on page 'Page'.\n")
+    assert -1 <= text.find("No track(s) was given in question 'Question' on page 'Page'.\n")
     structure["Page"]["Question"]["track"] = [1]
     err, warn, det = validate_questionnaire(structure, True)
     assert err == False
@@ -1066,13 +1156,13 @@ def test_question_settings(gui_init):
     err, warn, det = validate_questionnaire(structure, True)
     assert err == True
     assert warn == False
-    assert text.find("Track given for question 'Question' on page 'Page' needs to be greater than 0.\n")
+    assert -1 <= text.find("Track given for question 'Question' on page 'Page' needs to be greater than 0.\n")
     structure["Page"]["Question"]["track"] = 3
     QTimer.singleShot(150, handle_dialog_error)
     err, warn, det = validate_questionnaire(structure, True)
     assert err == True
     assert warn == False
-    assert text.find("Track given for question 'Question' on page 'Page' needs to be smaller than or equal to the number of total tracks.\n")
+    assert -1 <= text.find("Track given for question 'Question' on page 'Page' needs to be smaller than or equal to the number of total tracks.\n")
     structure["Page"]["Question"]["type"] = "Player"
     structure["Page"]["Question"].pop("track")
     structure["Page"]["Question"]["start_cue"] = 1
@@ -1082,13 +1172,13 @@ def test_question_settings(gui_init):
     err, warn, det = validate_questionnaire(structure, True)
     assert err == True
     assert warn == False
-    assert text.find("No track(s) was given in question 'Question' on page 'Page'.\n")
+    assert -1 <= text.find("No track(s) was given in question 'Question' on page 'Page'.\n")
     structure["Page"]["Question"]["track"] = [1, [1, 1]]
     QTimer.singleShot(150, handle_dialog_error)
     err, warn, det = validate_questionnaire(structure, True)
     assert err == True
     assert warn == False
-    assert text.find(
+    assert -1 <= text.find(
         "Tracks given for question 'Question' on page 'Page' need to be one or more integers, not lists.\n")
     structure["Page"]["Question"] = {'id': 'id'}
     structure["Page"]["Question"]["type"] = "ABX"
@@ -1108,7 +1198,7 @@ def test_question_settings(gui_init):
     err, warn, det = validate_questionnaire(structure, True)
     assert err == True
     assert warn == False
-    assert text.find("Track given for question 'Question' on page 'Page' needs to be smaller than or equal to the number of total tracks.\n")
+    assert -1 <= text.find("Track given for question 'Question' on page 'Page' needs to be smaller than or equal to the number of total tracks.\n")
     structure["audio_tracks"] = 2
     err, warn, det = validate_questionnaire(structure, True)
     assert err == False
@@ -1118,13 +1208,13 @@ def test_question_settings(gui_init):
     err, warn, det = validate_questionnaire(structure, True)
     assert err == True
     assert warn == False
-    assert text.find("Track given for question 'Question' on page 'Page' needs to be greater than 0.\n")
+    assert -1 <= text.find("Track given for question 'Question' on page 'Page' needs to be greater than 0.\n")
     structure["Page"]["Question"]["track"] = [1, [1, 2]]
     QTimer.singleShot(150, handle_dialog_error)
     err, warn, det = validate_questionnaire(structure, True)
     assert err == True
     assert warn == False
-    assert text.find("Tracks given for question 'Question' on page 'Page' need to be one or more integers, not lists.\n")
+    assert -1 <= text.find("Tracks given for question 'Question' on page 'Page' need to be one or more integers, not lists.\n")
     structure["Page"]["Question"] = {'id': 'id'}
     structure["Page"]["Question"]["type"] = "MUSHRA"
     structure["Page"]["Question"]["start_cues"] = [1, 2]
@@ -1143,7 +1233,7 @@ def test_question_settings(gui_init):
     err, warn, det = validate_questionnaire(structure, True)
     assert err == True
     assert warn == False
-    assert text.find("The number of tracks given doesn't equal the number of cues given in question 'Question' on page 'Page'.\n")
+    assert -1 <= text.find("The number of tracks given doesn't equal the number of cues given in question 'Question' on page 'Page'.\n")
     structure["Page"]["Question"]["track"] = [1, 2]
     err, warn, det = validate_questionnaire(structure, True)
     assert err == False
@@ -1157,14 +1247,14 @@ def test_question_settings(gui_init):
     err, warn, det = validate_questionnaire(structure, True)
     assert err == True
     assert warn == False
-    assert text.find(
+    assert -1 <= text.find(
         "Track given for question 'Question' on page 'Page' needs to be smaller than or equal to the number of total tracks.\n")
     structure["Page"]["Question"]["track"] = [[1, 2], [1, 2, -3]]
     QTimer.singleShot(150, handle_dialog_error)
     err, warn, det = validate_questionnaire(structure, True)
     assert err == True
     assert warn == False
-    assert text.find("Track given for question 'Question' on page 'Page' needs to be greater than 0.\n")
+    assert -1 <= text.find("Track given for question 'Question' on page 'Page' needs to be greater than 0.\n")
     structure["Page"]["Question"] = {'id': 'id'}
 
     # ------buttons------
@@ -1188,13 +1278,13 @@ def test_question_settings(gui_init):
     err, warn, det = validate_questionnaire(structure, True)
     assert err == True
     assert warn == False
-    assert text.find("Invalid value found for 'buttons' for question 'Question' on page 'Page'.\n")
+    assert -1 <= text.find("Invalid value found for 'buttons' for question 'Question' on page 'Page'.\n")
     structure["Page"]["Question"]["buttons"] = ["Skip"]
     QTimer.singleShot(150, handle_dialog_error)
     err, warn, det = validate_questionnaire(structure, True)
     assert err == True
     assert warn == False
-    assert text.find("Invalid value found for 'buttons' for question 'Question' on page 'Page'.\n")
+    assert -1 <= text.find("Invalid value found for 'buttons' for question 'Question' on page 'Page'.\n")
     structure["Page"]["Question"]["type"] = "Player"
     structure["Page"]["Question"]["track"] = 1
     structure["Page"]["Question"]["start_cue"] = 1
@@ -1212,19 +1302,19 @@ def test_question_settings(gui_init):
     err, warn, det = validate_questionnaire(structure, True)
     assert err == True
     assert warn == False
-    assert text.find("No start cues were given in question 'Question' on page 'Page'.\n")
+    assert -1 <= text.find("No start cues were given in question 'Question' on page 'Page'.\n")
     structure["Page"]["Question"]["start_cues"] = ["abc"]
     QTimer.singleShot(150, handle_dialog_error)
     err, warn, det = validate_questionnaire(structure, True)
     assert err == True
     assert warn == False
-    assert text.find("Start cues given for question 'Question' on page 'Page' couldn't be converted to a list of number.\n")
+    assert -1 <= text.find("Start cues given for question 'Question' on page 'Page' couldn't be converted to a list of number.\n")
     structure["Page"]["Question"]["start_cues"] = "abc"
     QTimer.singleShot(150, handle_dialog_error)
     err, warn, det = validate_questionnaire(structure, True)
     assert err == True
     assert warn == False
-    assert text.find(
+    assert -1 <= text.find(
         "Start cues given for question 'Question' on page 'Page' couldn't be converted to a list of number.\n")
     structure["Page"]["Question"]["type"] = "ABX"
     structure["Page"]["Question"]["start_cues"] = 14
@@ -1235,13 +1325,13 @@ def test_question_settings(gui_init):
     err, warn, det = validate_questionnaire(structure, True)
     assert err == True
     assert warn == False
-    assert text.find("There should be exactly 2 start_cues for AB(X)-tests, but 1 were given in question 'Question' on page 'Page'.\n")
+    assert -1 <= text.find("There should be exactly 2 start_cues for AB(X)-tests, but 1 were given in question 'Question' on page 'Page'.\n")
     structure["Page"]["Question"]["start_cues"] = [1, 2, 3]
     QTimer.singleShot(150, handle_dialog_error)
     err, warn, det = validate_questionnaire(structure, True)
     assert err == True
     assert warn == False
-    assert text.find(
+    assert -1 <= text.find(
         "There should be exactly 2 start_cues for AB(X)-tests, but 1 were given in question 'Question' on page 'Page'.\n")
     structure["Page"]["Question"]["start_cues"] = [1, 2]
     err, warn, det = validate_questionnaire(structure, True)
@@ -1252,7 +1342,7 @@ def test_question_settings(gui_init):
     err, warn, det = validate_questionnaire(structure, True)
     assert err == True
     assert warn == False
-    assert text.find("No start cues were given for question 'Question' on page 'Page'.\n")
+    assert -1 <= text.find("No start cues were given for question 'Question' on page 'Page'.\n")
     structure["Page"]["Question"] = {'id': 'id'}
     structure["Page"]["Question"]["type"] = "MUSHRA"
     structure["Page"]["Question"]["end_cues"] = [3, 4]
@@ -1262,7 +1352,7 @@ def test_question_settings(gui_init):
     err, warn, det = validate_questionnaire(structure, True)
     assert err == True
     assert warn == False
-    assert text.find("No start cues were given for question 'Question' on page 'Page'.\n")
+    assert -1 <= text.find("No start cues were given for question 'Question' on page 'Page'.\n")
     structure["Page"]["Question"] = {'id': 'id'}
 
     # ------end_cues------
@@ -1271,20 +1361,20 @@ def test_question_settings(gui_init):
     err, warn, det = validate_questionnaire(structure, True)
     assert err == True
     assert warn == False
-    assert text.find("No end cues were given in question 'Question' on page 'Page'.\n")
+    assert -1 <= text.find("No end cues were given in question 'Question' on page 'Page'.\n")
     structure["Page"]["Question"]["end_cues"] = ["abc"]
     QTimer.singleShot(150, handle_dialog_error)
     err, warn, det = validate_questionnaire(structure, True)
     assert err == True
     assert warn == False
-    assert text.find(
+    assert -1 <= text.find(
         "End cues given for question 'Question' on page 'Page' couldn't be converted to a list of number.\n")
     structure["Page"]["Question"]["end_cues"] = "abc"
     QTimer.singleShot(150, handle_dialog_error)
     err, warn, det = validate_questionnaire(structure, True)
     assert err == True
     assert warn == False
-    assert text.find(
+    assert -1 <= text.find(
         "End cues given for question 'Question' on page 'Page' couldn't be converted to a list of number.\n")
     structure["Page"]["Question"] = {'id': 'id'}
     structure["Page"]["Question"]["type"] = "MUSHRA"
@@ -1295,19 +1385,19 @@ def test_question_settings(gui_init):
     err, warn, det = validate_questionnaire(structure, True)
     assert err == True
     assert warn == False
-    assert text.find("No end cues were given for question 'Question' on page 'Page'.\n")
+    assert -1 <= text.find("No end cues were given for question 'Question' on page 'Page'.\n")
     structure["Page"]["Question"]["end_cues"] = [4, 4]
     QTimer.singleShot(150, handle_dialog_error)
     err, warn, det = validate_questionnaire(structure, True)
     assert err == True
     assert warn == False
-    assert text.find("The same cue (4) was used as start- and end-cue for one condition in question 'Question' on page 'Page'.\n")
+    assert -1 <= text.find("The same cue (4) was used as start- and end-cue for one condition in question 'Question' on page 'Page'.\n")
     structure["Page"]["Question"]["end_cues"] = [1, 2, 3]
     QTimer.singleShot(150, handle_dialog_error)
     err, warn, det = validate_questionnaire(structure, True)
     assert err == True
     assert warn == False
-    assert text.find(
+    assert -1 <= text.find(
         "The number of start- and end-cues in question 'Question' on page 'Page' doesn't match.\n")
     structure["Page"]["Question"] = {'id': 'id'}
 
@@ -1317,7 +1407,7 @@ def test_question_settings(gui_init):
     err, warn, det = validate_questionnaire(structure, True)
     assert err == True
     assert warn == False
-    assert text.find("No valid value found for 'xfade' for question 'Question' on page 'Page'.\n")
+    assert -1 <= text.find("No valid value found for 'xfade' for question 'Question' on page 'Page'.\n")
     structure["Page"]["Question"]["start_cues"] = [1, 1, 2]
     structure["Page"]["Question"]["end_cues"] = [2, 2, 2]
     structure["Page"]["Question"]["track"] = [1, 2, 3]
@@ -1327,7 +1417,7 @@ def test_question_settings(gui_init):
     err, warn, det = validate_questionnaire(structure, True)
     assert err == True
     assert warn == False
-    assert text.find("Xfade is only applicable if all start- and end-markers are the same each in question 'Question' on page 'Page'.\n")
+    assert -1 <= text.find("Xfade is only applicable if all start- and end-markers are the same each in question 'Question' on page 'Page'.\n")
     structure["Page"]["Question"]["start_cues"] = [1, 1, 1]
     err, warn, det = validate_questionnaire(structure, True)
     assert err == False
@@ -1337,13 +1427,13 @@ def test_question_settings(gui_init):
     err, warn, det = validate_questionnaire(structure, True)
     assert err == True
     assert warn == False
-    assert text.find("For xfade stimuli need to be placed on different tracks in question 'Question' on page 'Page'.\n")
+    assert -1 <= text.find("For xfade stimuli need to be placed on different tracks in question 'Question' on page 'Page'.\n")
     structure["Page"]["Question"]["track"] = 2
     QTimer.singleShot(150, handle_dialog_error)
     err, warn, det = validate_questionnaire(structure, True)
     assert err == True
     assert warn == False
-    assert text.find("For xfade stimuli need to be placed on different tracks in question 'Question' on page 'Page'.\n")
+    assert -1 <= text.find("For xfade stimuli need to be placed on different tracks in question 'Question' on page 'Page'.\n")
     structure["Page"]["Question"] = {'id': 'id'}
 
     # ------inscription------
@@ -1391,7 +1481,7 @@ def test_question_settings(gui_init):
     err, warn, det = validate_questionnaire(structure, True)
     assert err == True
     assert warn == False
-    assert text.find("The timer in question 'Question' on page 'Page' needs to be a numeric value.\n")
+    assert -1 <= text.find("The timer in question 'Question' on page 'Page' needs to be a numeric value.\n")
     structure["Page"]["Question"]["timer"] = -20
     err, warn, det = validate_questionnaire(structure, True)
     assert err == False
@@ -1410,7 +1500,7 @@ def test_question_settings(gui_init):
     err, warn, det = validate_questionnaire(structure, True)
     assert err == True
     assert warn == False
-    assert text.find("No valid password_file for question 'Question' on page 'Page'.\n")
+    assert -1 <= text.find("No valid password_file for question 'Question' on page 'Page'.\n")
     structure["Page"]["Question"]["type"] = "Password"
     structure["Page"]["Question"]["text"] = "text"
     structure["Page"]["Question"].pop("password_file")
@@ -1427,7 +1517,7 @@ def test_question_settings(gui_init):
     err, warn, det = validate_questionnaire(structure, True)
     assert err == True
     assert warn == False
-    assert text.find("Please give no, two or three (if option X is used) button_texts for the ABX type question 'Question' on page 'Page'.\n")
+    assert -1 <= text.find("Please give no, two or three (if option X is used) button_texts for the ABX type question 'Question' on page 'Page'.\n")
     structure["Page"]["Question"]["x"] = True
     structure["Page"]["Question"]["button_texts"] = [1, 1, 1]
     err, warn, det = validate_questionnaire(structure, True)
@@ -1438,14 +1528,14 @@ def test_question_settings(gui_init):
     err, warn, det = validate_questionnaire(structure, True)
     assert err == True
     assert warn == False
-    assert text.find(
+    assert -1 <= text.find(
         "Please give no, two or three (if option X is used) button_texts for the ABX type question 'Question' on page 'Page'.\n")
     structure["Page"]["Question"]["button_texts"] = "sth"
     QTimer.singleShot(150, handle_dialog_error)
     err, warn, det = validate_questionnaire(structure, True)
     assert err == True
     assert warn == False
-    assert text.find(
+    assert -1 <= text.find(
         "Please give no, two or three (if option X is used) button_texts for the ABX type question 'Question' on page 'Page'.\n")
     structure["Page"]["Question"] = {'id': 'id'}
 
@@ -1455,7 +1545,7 @@ def test_question_settings(gui_init):
     err, warn, det = validate_questionnaire(structure, True)
     assert err == True
     assert warn == False
-    assert text.find("No valid value found for 'randomize' for question 'Question' on page 'Page'.\n")
+    assert -1 <= text.find("No valid value found for 'randomize' for question 'Question' on page 'Page'.\n")
     structure["Page"]["Question"]["type"] = "Matrix"
     structure["Page"]["Question"]["text"] = "some text"
     structure["Page"]["Question"]["answers"] = "some answer"
@@ -1495,13 +1585,13 @@ def test_question_settings(gui_init):
     err, warn, det = validate_questionnaire(structure, True)
     assert err == True
     assert warn == False
-    assert text.find("Invalid value for width for question 'Question' on page 'Page'.\n")
+    assert -1 <= text.find("Invalid value for width for question 'Question' on page 'Page'.\n")
     structure["Page"]["Question"]["width"] = -20
     QTimer.singleShot(150, handle_dialog_error)
     err, warn, det = validate_questionnaire(structure, True)
     assert err == True
     assert warn == False
-    assert text.find("Width needs to be bigger than 0 for question 'Question' on page 'Page'.\n")
+    assert -1 <= text.find("Width needs to be bigger than 0 for question 'Question' on page 'Page'.\n")
     structure["Page"]["Question"]["width"] = 300
     err, warn, det = validate_questionnaire(structure, True)
     assert err == False
@@ -1515,13 +1605,13 @@ def test_question_settings(gui_init):
     err, warn, det = validate_questionnaire(structure, True)
     assert err == True
     assert warn == False
-    assert text.find("Invalid value for height for question 'Question' on page 'Page'.\n")
+    assert -1 <= text.find("Invalid value for height for question 'Question' on page 'Page'.\n")
     structure["Page"]["Question"]["height"] = -20
     QTimer.singleShot(150, handle_dialog_error)
     err, warn, det = validate_questionnaire(structure, True)
     assert err == True
     assert warn == False
-    assert text.find("Height needs to be bigger than 0 for question 'Question' on page 'Page'.\n")
+    assert -1 <= text.find("Height needs to be bigger than 0 for question 'Question' on page 'Page'.\n")
     structure["Page"]["Question"]["height"] = 300
     err, warn, det = validate_questionnaire(structure, True)
     assert err == False
@@ -1535,13 +1625,13 @@ def test_question_settings(gui_init):
     err, warn, det = validate_questionnaire(structure, True)
     assert err == True
     assert warn == False
-    assert text.find("Invalid value for x position for question 'Question' on page 'Page'.\n")
+    assert -1 <= text.find("Invalid value for x position for question 'Question' on page 'Page'.\n")
     structure["Page"]["Question"]["x_pos"] = -20
     QTimer.singleShot(150, handle_dialog_error)
     err, warn, det = validate_questionnaire(structure, True)
     assert err == True
     assert warn == False
-    assert text.find("X position needs to be bigger or equal to 0 for question 'Question' on page 'Page'.\n")
+    assert -1 <= text.find("X position needs to be bigger or equal to 0 for question 'Question' on page 'Page'.\n")
     structure["Page"]["Question"]["x_pos"] = 300
     err, warn, det = validate_questionnaire(structure, True)
     assert err == False
@@ -1563,13 +1653,13 @@ def test_question_settings(gui_init):
     err, warn, det = validate_questionnaire(structure, True)
     assert err == True
     assert warn == False
-    assert text.find("Invalid value for y position for question 'Question' on page 'Page'.\n")
+    assert -1 <= text.find("Invalid value for y position for question 'Question' on page 'Page'.\n")
     structure["Page"]["Question"]["y_pos"] = -20
     QTimer.singleShot(150, handle_dialog_error)
     err, warn, det = validate_questionnaire(structure, True)
     assert err == True
     assert warn == False
-    assert text.find("Y position needs to be bigger or equal to 0 for question 'Question' on page 'Page'.\n")
+    assert -1 <= text.find("Y position needs to be bigger or equal to 0 for question 'Question' on page 'Page'.\n")
     structure["Page"]["Question"]["y_pos"] = 300
     err, warn, det = validate_questionnaire(structure, True)
     assert err == False
@@ -1596,7 +1686,7 @@ def test_question_settings(gui_init):
     err, warn, det = validate_questionnaire(structure, True)
     assert err == True
     assert warn == False
-    assert text.find("No valid image_file for question 'Question' on page 'Page'.\n")
+    assert -1 <= text.find("No valid image_file for question 'Question' on page 'Page'.\n")
     structure["Page"]["Question"]["type"] = "Image"
     structure["Page"]["Question"]["image_position"] = "here"
     structure["Page"]["Question"].pop("image_file")
@@ -1612,7 +1702,7 @@ def test_question_settings(gui_init):
     err, warn, det = validate_questionnaire(structure, True)
     assert err == True
     assert warn == False
-    assert text.find("Invalid image position found for question 'Question' on page 'Page'.\n")
+    assert -1 <= text.find("Invalid image position found for question 'Question' on page 'Page'.\n")
     structure["Page"]["Question"]["image_position"] = "free"
     err, warn, det = validate_questionnaire(structure, True)
     assert err == False
@@ -1625,7 +1715,7 @@ def test_question_settings(gui_init):
     err, warn, det = validate_questionnaire(structure, True)
     assert err == True
     assert warn == False
-    assert text.find("No image_position found for question 'Question' on page 'Page'.\n")
+    assert -1 <= text.find("No image_position found for question 'Question' on page 'Page'.\n")
     structure["Page"]["Question"] = {'id': 'id'}
 
     # ------receiver------
@@ -1634,19 +1724,19 @@ def test_question_settings(gui_init):
     err, warn, det = validate_questionnaire(structure, True)
     assert err == True
     assert warn == False
-    assert text.find("No valid IP address given for the receiver in question 'Question' on page 'Page'.") > -1
+    assert -1 <= text.find("No valid IP address given for the receiver in question 'Question' on page 'Page'.") > -1
     structure["Page"]["Question"]["receiver"] = ["", 3000]
     QTimer.singleShot(150, handle_dialog_error)
     err, warn, det = validate_questionnaire(structure, True)
     assert err == True
     assert warn == False
-    assert text.find("No valid IP address given for the receiver in question 'Question' on page 'Page'.") > -1
+    assert -1 <= text.find("No valid IP address given for the receiver in question 'Question' on page 'Page'.") > -1
     structure["Page"]["Question"]["receiver"] = ["127.0.0.1", ""]
     QTimer.singleShot(150, handle_dialog_error)
     err, warn, det = validate_questionnaire(structure, True)
     assert err == True
     assert warn == False
-    assert text.find("Invalid receiver port in question 'Question' on page 'Page', couldn't be converted to a number 0-65535.") > -1
+    assert -1 <= text.find("Invalid receiver port in question 'Question' on page 'Page', couldn't be converted to a number 0-65535.") > -1
     structure["Page"]["Question"]["receiver"] = ["127.0.0.1", 800]
     err, warn, det = validate_questionnaire(structure, True)
     assert err == False
@@ -1656,7 +1746,7 @@ def test_question_settings(gui_init):
     err, warn, det = validate_questionnaire(structure, True)
     assert err == True
     assert warn == False
-    assert text.find("The receiver of question 'Question' on page 'Page' needs to have the format (IP, Port).") > -1
+    assert -1 <= text.find("The receiver of question 'Question' on page 'Page' needs to have the format (IP, Port).") > -1
     structure["Page"]["Question"].pop("receiver")
     structure["Page"]["Question"]["type"] = "OSCButton"
     structure["Page"]["Question"]["address"] = "/msg"
@@ -1666,7 +1756,7 @@ def test_question_settings(gui_init):
     err, warn, det = validate_questionnaire(structure, True)
     assert err == True
     assert warn == False
-    assert text.find("No reveiver found for question 'Question' on page 'Page'.\n") > -1
+    assert -1 <= text.find("No reveiver found for question 'Question' on page 'Page'.\n") > -1
     structure["Page"]["Question"] = {'id': 'id'}
 
     # ------address------
@@ -1675,7 +1765,7 @@ def test_question_settings(gui_init):
     err, warn, det = validate_questionnaire(structure, True)
     assert err == True
     assert warn == False
-    assert text.find("No OSC-address for question 'Question' on page 'Page' was given.\n") > -1
+    assert -1 <= text.find("No OSC-address for question 'Question' on page 'Page' was given.\n") > -1
     structure["Page"]["Question"]["address"] = "message"
     err, warn, det = validate_questionnaire(structure, True)
     assert err == False
@@ -1694,7 +1784,7 @@ def test_question_settings(gui_init):
     err, warn, det = validate_questionnaire(structure, True)
     assert err == True
     assert warn == False
-    assert text.find("No OSC-address for question 'Question' on page 'Page' was given.\n") > -1
+    assert -1 <= text.find("No OSC-address for question 'Question' on page 'Page' was given.\n") > -1
     structure["Page"]["Question"] = {'id': 'id'}
 
     # ------value------
@@ -1706,7 +1796,7 @@ def test_question_settings(gui_init):
     err, warn, det = validate_questionnaire(structure, True)
     assert err == True
     assert warn == False
-    assert text.find("No value for question 'Question' on page 'Page' was given.\n") > -1
+    assert -1 <= text.find("No value for question 'Question' on page 'Page' was given.\n") > -1
     structure["Page"]["Question"] = {'id': 'id'}
 
 

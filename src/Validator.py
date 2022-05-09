@@ -123,6 +123,52 @@ def listify(structure, status=None, status_duration=None):
                 if status is not None:
                     status.showMessage("Invalid value found in a 'end-cues' field.\n", status_duration)
 
+            if "label" in structure[page][quest].keys() and ("," in structure[page][quest]["label"] or
+                                                             "[" in structure[page][quest]["label"] or
+                                                             "]" in structure[page][quest]["label"] or
+                                                             type(structure[page][quest]["label"]) == list):
+                sublist = False
+                lblcpy = structure[page][quest]["label"]
+                labels = []
+                try:
+                    if type(lblcpy) == str:
+                        if lblcpy[0] == "[" and lblcpy[1] == "[" and lblcpy[-1] == "]" and lblcpy[-2] == "]":
+                            lblcpy = lblcpy.strip(' "')[1:-1]
+                        elif lblcpy.count("[") == 1 and lblcpy.count("]") == 1 and lblcpy.count(",") == 0:
+                            lblcpy = lblcpy.strip(' []"')
+                        lblcpy = lblcpy.split(",")
+                    for t in range(0, len(lblcpy)):
+                        if type(lblcpy[t]) == str:
+                            if '[' in lblcpy[t]:  # t is list:
+                                if ('[' in lblcpy[t]) and (']' not in lblcpy[t]):
+                                    sublist = True
+                                if ',' not in lblcpy[t]:
+                                    labels.append([float(lblcpy[t].strip(" '][").strip('"'))])
+                                else:
+                                    if len(lblcpy[t].split(",")) == 2:
+                                        entry = lblcpy[t].split(",")
+                                        labels.append([float(entry[0].strip(" '[]").strip('"')), entry[1].strip(" '[]").strip('"')])
+                                    else:
+                                        labels[-1].append(float(entry.strip(" '[]").strip('"')))
+                            elif sublist:
+                                if ']' in lblcpy[t]:
+                                    sublist = False
+                                    labels[-1].append(lblcpy[t].strip(" ]['").strip('"'))
+                                else:
+                                    labels[-1].append(float(lblcpy[t]))
+                            elif not sublist:
+                                labels.append(lblcpy[t].strip(" '[]").strip('"'))
+                        else:
+                            if type(lblcpy[t]) == list or type(lblcpy[t]) == tuple:
+                                if len(lblcpy[t]) == 2:
+                                    labels.append([float(lblcpy[t][0]), lblcpy[t][1]])
+                                else:
+                                    labels[-1].append(lblcpy[t])
+                    structure[page][quest]["label"] = labels
+                except (ValueError, SyntaxError) as e:
+                    if status is not None:
+                        status.showMessage("Invalid value found in a 'label' field: {}".format(e), status_duration)
+
             if "track" in structure[page][quest].keys() and ("," in structure[page][quest]["track"] or
                                                              "[" in structure[page][quest]["track"] or
                                                              "]" in structure[page][quest]["track"] or
@@ -195,14 +241,6 @@ def listify(structure, status=None, status_duration=None):
                         for entry in range(len(structure[page][quest]["header"])):
                             structure[page][quest]["header"][entry] = structure[page][quest]["header"][entry].strip(
                                 "[] ")
-                if "label" in structure[page][quest].keys():
-                    if "," in structure[page][quest]["label"]:
-                        structure[page][quest]["label"] = ast.literal_eval(structure[page][quest]["label"])
-                    elif type(structure[page][quest]["label"]) == str:
-                        structure[page][quest]["label"] = structure[page][quest]["label"].strip("[] ")
-                    else:  # list-like
-                        for entry in range(len(structure[page][quest]["label"])):
-                            structure[page][quest]["label"][entry] = structure[page][quest]["label"][entry].strip("[] ")
                 if "questions" in structure[page][quest].keys():
                     if "," in structure[page][quest]["questions"]:
                         structure[page][quest]["questions"] = ast.literal_eval(structure[page][quest]["questions"])
@@ -711,11 +749,11 @@ def validate_questionnaire(structure, suppress=False) -> (bool, bool, str):
                                                                                                             page))
                 else:
                     try:
-                        int(structure[page][quest]["min"])
+                        float(structure[page][quest]["min"])
                     except ValueError:
                         error_found = True
                         error_details.append(
-                            "The minimum value found for the slider in question '{}' on page '{}' couldn't be interpreted as an integer.\n".format(
+                            "The minimum value found for the slider in question '{}' on page '{}' couldn't be interpreted as a number.\n".format(
                                 quest, page))
             elif "type" in structure[page][quest].keys() and structure[page][quest]["type"] == "Slider" and \
                     "min" not in structure[page][quest].keys():
@@ -731,14 +769,14 @@ def validate_questionnaire(structure, suppress=False) -> (bool, bool, str):
                                                                                                             page))
                 else:
                     try:
-                        int(structure[page][quest]["max"])
+                        float(structure[page][quest]["max"])
                     except ValueError:
                         error_found = True
                         error_details.append(
-                            "The maximum value found for the slider in question '{}' on page '{}' couldn't be interpreted as an integer.\n".format(
+                            "The maximum value found for the slider in question '{}' on page '{}' couldn't be interpreted as a number.\n".format(
                                 quest, page))
                 try:
-                    if "min" in structure[page][quest].keys() and (int(structure[page][quest]["max"]) - int(structure[page][quest]["min"])) == 0:
+                    if "min" in structure[page][quest].keys() and round(float(structure[page][quest]["max"]) - float(structure[page][quest]["min"]), 3) == 0.0:
                         error_found = True
                         error_details.append(
                             "Maximum and Minimum value for the slider in question '{}' on page '{}' are the same.\n".format(
@@ -759,11 +797,18 @@ def validate_questionnaire(structure, suppress=False) -> (bool, bool, str):
                                                                                                              page))
                 else:
                     try:
-                        int(structure[page][quest]["start"])
+                        float(structure[page][quest]["start"])
+                        if "min" in structure[page][quest].keys() and "max" in structure[page][quest].keys():
+                            if float(structure[page][quest]["start"]) < float(structure[page][quest]["min"]) < float(structure[page][quest]["max"]) or \
+                                    float(structure[page][quest]["start"]) > float(structure[page][quest]["min"]) > float(structure[page][quest]["max"]):
+                                structure[page][quest]["start"] = float(structure[page][quest]["min"])
+                            elif float(structure[page][quest]["start"]) > float(structure[page][quest]["max"]) < float(structure[page][quest]["min"]) or \
+                                    float(structure[page][quest]["start"]) < float(structure[page][quest]["max"]) < float(structure[page][quest]["min"]):
+                                structure[page][quest]["start"] = float(structure[page][quest]["max"])
                     except ValueError:
                         error_found = True
                         error_details.append(
-                            "The starting value found for the slider in question '{}' on page '{}' couldn't be interpreted as an integer.\n".format(
+                            "The starting value found for the slider in question '{}' on page '{}' couldn't be interpreted as a number.\n".format(
                                 quest, page))
             elif "type" in structure[page][quest].keys() and structure[page][quest]["type"] == "Slider" and \
                     "start" not in structure[page][quest].keys():
@@ -771,14 +816,68 @@ def validate_questionnaire(structure, suppress=False) -> (bool, bool, str):
                 error_details.append(
                     "No starting value was given for the slider in question '{}' on page '{}'.\n".format(quest, page))
 
-            if "label" in structure[page][quest].keys() and "labelled" in structure[page][quest].keys() and \
-                    structure[page][quest].as_bool("labelled"):
-                if len(structure[page][quest]["label"]) != int(structure[page][quest]["max"]) - int(
-                        structure[page][quest]["min"]) + 1:
+            if "step" in structure[page][quest].keys():
+                if structure[page][quest]["step"] == "":
                     error_found = True
                     error_details.append(
-                        "The number of given labels doesn't match the number of ticks for question '{}' on page '{}'.\n".format(
-                            quest, page))
+                        "No step value was given for the slider in question '{}' on page '{}'.\n".format(quest,
+                                                                                                            page))
+                else:
+                    try:
+                        if float(structure[page][quest]["step"]) <= 0:
+                            error_found = True
+                            error_details.append(
+                                "The step value found for the slider in question '{}' on page '{}' needs to be bigger than 0.\n".format(
+                                    quest, page))
+                    except ValueError:
+                        error_found = True
+                        error_details.append(
+                            "The step value found for the slider in question '{}' on page '{}' couldn't be interpreted as a number.\n".format(
+                                quest, page))
+                try:
+                    if "min" in structure[page][quest].keys() and "max" in structure[page][quest].keys() \
+                            and abs(float(structure[page][quest]["max"]) - float(structure[page][quest]["min"])) < float(structure[page][quest]["step"]):
+                        error_found = True
+                        error_details.append(
+                            "The step value for the slider in question '{}' on page '{}' is bigger than the range.\n".format(
+                                quest, page))
+                except ValueError:
+                    pass
+            elif "type" in structure[page][quest].keys() and structure[page][quest]["type"] == "Slider" and \
+                    "step" not in structure[page][quest].keys():
+                error_found = True
+                error_details.append(
+                    "No step value was given for the slider in question '{}' on page '{}'.\n".format(quest, page))
+
+            if "label" in structure[page][quest].keys() and "labelled" in structure[page][quest].keys() and \
+                    structure[page][quest].as_bool("labelled"):
+                if type(structure[page][quest]["label"][0]) != list and type(structure[page][quest]["label"][0]) != tuple:
+                    if len(structure[page][quest]["label"]) != (float(structure[page][quest]["max"]) - float(
+                            structure[page][quest]["min"])) / float(structure[page][quest]["step"]) + 1:
+                        error_found = True
+                        error_details.append(
+                            "The number of given labels doesn't match the number of ticks for question '{}' on page '{}'.\n".format(
+                                quest, page))
+                elif len(structure[page][quest]["label"][0]) != 2:
+                    error_found = True
+                    error_details.append("No valid format for labels for question '{}' on page '{}'.\n".format(quest, page))
+                else: # list / tuple of single pairs
+                    tick = []
+                    try:
+                        for pair in structure[page][quest]["label"]:
+                            tick.append(float(pair[0]))
+                            if not (float(structure[page][quest]["max"]) <= float(pair[0]) <= float(structure[page][quest]["min"]) or
+                                    float(structure[page][quest]["max"]) >= float(pair[0]) >= float(structure[page][quest]["min"])):
+                                error_found = True
+                                error_details.append("Tick value outside of slider range found for question '{}' on page '{}'.\n".format(quest, page))
+                        if len(tick) != len(set(tick)):
+                            error_found = True
+                            error_details.append("Double definition of tick labels found for question '{}' on page '{}'.\n".format(quest, page))
+                    except ValueError:
+                        error_found = True
+                        error_details.append(
+                            "A label tick for the slider in question '{}' on page '{}' couldn't be interpreted as a number.\n".format(
+                                quest, page))
 
             if "policy" in structure[page][quest].keys():
                 if structure[page][quest]["policy"] == "None" or structure[page][quest]["policy"] == "[None]":
