@@ -51,7 +51,6 @@ class Slider(QSlider):
         event : QPaintEvent
         """
         super(Slider, self).paintEvent(event)
-
         p = QPainter(self)
         pen = QPen()
         if self.isEnabled():
@@ -70,8 +69,8 @@ class Slider(QSlider):
 
         interval = self.tickInterval()
         if self.tickPosition() != QSlider.NoTicks:
-            min_value = self.minimum()
-            max_value = self.maximum()
+            min_value = 0 #self.minimum()
+            max_value = int((self._max-self._min)/self.step) if self._max > self._min else - 1 * int((self._max-self._min)/self.step)  #self.maximum()
             for i in range(0, max_value - min_value + 1, interval):
                 h = 10
                 magic_height = 4
@@ -206,6 +205,45 @@ class Slider(QSlider):
                 if self.orientation() == Qt.Horizontal:
                     self.blockSignals(True)
 
+    def value(self):
+        value = round(self._min + super(Slider, self).value() * (self.step if self._min<self._max else -1*self.step) , str(self.step)[::-1].find('.'))
+        return value if int(self.step) != float(self.step) else int(value)
+    '''
+    def setValue(self, value):
+        index = round((value - self._min) / self.step)
+        return super(Slider, self).setValue(index)
+
+    def value(self):
+        return self.index * self.step + self._min
+
+    @property
+    def index(self):
+        return super(Slider, self).value()
+
+    def setIndex(self, index):
+        return super(Slider, self).setValue(index)
+
+    def setMinimum(self, value):
+        self._min = value
+        self._range_adjusted()
+
+    def setMaximum(self, value):
+        self._max = value
+        self._range_adjusted()
+
+    def setInterval(self, value):
+        # To avoid division by zero
+        if not value:
+            raise ValueError('Interval of zero specified')
+        self.step = value
+        self._range_adjusted()
+
+    def _range_adjusted(self):
+        number_of_steps = int((self._max - self._min) / self.step)
+        print(number_of_steps, self._max, self._min, self.step)
+        super(Slider, self).setMaximum(max(number_of_steps, self._max))
+        print(self.minimum(), self.maximum(), self.value())
+    '''
     def pixel_pos_to_range_value(self, pos):
         """
         Helper to move the slider to the cursor independently of the OS and stylesheet.
@@ -255,18 +293,21 @@ class Slider(QSlider):
         tickpos : QSlider.TickPosition, default=QSlider.TicksBelow
             position of tickmarks (if any), see also PyQt5.QtWidgets.QSlider
         """
+        self._min = min_val
+        self._max = max_val
+        self.step = step
         if self.orientation() == Qt.Horizontal:
             self.blockSignals(True)  # don't spam new values on move, click and release
-        if min_val > max_val:
-            self.setInvertedAppearance(True)
-            self.setMinimum(max_val)
-            self.setMaximum(min_val)
-        else:
-            self.setMinimum(min_val)
-            self.setMaximum(max_val)
-        self.setTickInterval(step)
-        self.setSingleStep(step)
-        self.setValue(start)
+        self.setMinimum(0)#min_val)
+        self.setMaximum(int((max_val-min_val)/self.step) if max_val>min_val else -1*int((max_val-min_val)/self.step))#max_val)
+        #if int(step) == float(step):
+        #    self.setTickInterval(int(step))
+        #    self.setSingleStep(int(step))
+        #else:
+        self.setTickInterval(1)
+        self.setSingleStep(1)
+        #self.setInterval(self.step)
+        self.setValue(round(abs((start-self._min)/step)))# if self._min < self._max else int((start-self._max)/step))
         self.setTickPosition(tickpos)
 
         if hasattr(self.parent(), "page_log"):  # awkward workaround to reference "Page"

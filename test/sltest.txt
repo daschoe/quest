@@ -22,3 +22,4 @@ start = 0
 labelled = False
 text = Some interesting description.
 question_above = False
+step = 1

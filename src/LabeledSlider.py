@@ -18,7 +18,7 @@ class LabeledSlider(QtWidgets.QWidget):
     This functionality is from: https://stackoverflow.com/questions/47494305/python-pyqt4-slider-with-tick-labels
     """
 
-    def __init__(self, minimum, maximum, start, interval=1, orientation=Qt.Horizontal, labels=None, parent=None, objectname=None):
+    def __init__(self, minimum, maximum, start, step=1, orientation=Qt.Horizontal, labels=None, parent=None, objectname=None):
         """
 
         Parameters
@@ -29,7 +29,7 @@ class LabeledSlider(QtWidgets.QWidget):
             maximal value of the slider range
         start : int
             default position of the slider's handle, if outside minimum/maximum, it is set to the nearest value
-        interval : int, default=1
+        step : int, default=1
             numerical distance between tick values
         orientation : Qt.Orientation, default=Qt.Horizontal
             orientation of the slider
@@ -50,18 +50,25 @@ class LabeledSlider(QtWidgets.QWidget):
         """
         super(LabeledSlider, self).__init__(parent=parent)
 
-        levels = range(minimum, maximum + interval, interval) if minimum < maximum \
-            else range(minimum, maximum + interval*-1, interval*-1)
+        levels = range(int((maximum-minimum)/step)+1) if minimum < maximum \
+            else range((int((maximum-minimum)/step)*-1+1))
         if labels is not None:
             if not isinstance(labels, (tuple, list)):
                 raise TypeError("<labels> is a list or tuple.")
-            if len(labels) != len(levels):
+            if len(labels) != len(levels) and not isinstance(labels[0], (tuple, list)):
                 raise ValueError("Size of <labels> doesn't match levels.")
-            self.levels = list(zip(levels, labels))
+            if not isinstance(labels[0], (tuple, list)):
+                self.levels = list(zip(levels, labels))
+            else:
+                new_labels = [""] * len(levels)
+                for pair in labels:
+                    new_labels[int(abs(pair[0]-minimum)/step)] = pair[1]
+                self.levels = list(zip(levels, new_labels))
         else:
-            levels = range(minimum, maximum + interval, interval) if minimum < maximum \
-                else range(minimum, maximum + interval*-1, interval*-1)
-            self.levels = list(zip(levels, map(str, levels)))
+            labels = self.create_range(minimum, maximum, step)
+            #levels = range(minimum, maximum + step, step) if minimum < maximum \
+            #    else range(minimum, maximum + step * -1, step * -1)
+            self.levels = list(zip(levels, map(str, labels)))
 
         if orientation == Qt.Horizontal:
             self.layout = QtWidgets.QVBoxLayout(self)
@@ -80,7 +87,7 @@ class LabeledSlider(QtWidgets.QWidget):
         self.sl = Slider(orientation, parent=parent)
         if objectname is not None:
             self.sl.setObjectName(objectname)
-        self.sl.prepare_slider(minimum, maximum, start, tickpos=QtWidgets.QSlider.TicksBelow if orientation == Qt.Horizontal else QtWidgets.QSlider.TicksLeft)
+        self.sl.prepare_slider(minimum, maximum, start, step, tickpos=QtWidgets.QSlider.TicksBelow if orientation == Qt.Horizontal else QtWidgets.QSlider.TicksLeft)
 
         self.layout.addWidget(self.sl)
 
@@ -116,15 +123,18 @@ class LabeledSlider(QtWidgets.QWidget):
         for v, v_str in self.levels:
 
             # get the size of the label
-            rect = painter.drawText(QRect(), Qt.TextDontPrint, v_str)
+            if type(v_str) != str:
+                v_str = str(v_str)
+            rect = painter.drawText(QRect(), Qt.TextDontPrint | Qt.TextDontClip, v_str)
+            rect.setHeight(int(rect.height()*1.5))
 
             if self.sl.orientation() == Qt.Horizontal:
                 # I assume the offset is half the length of slider, therefore + length//2
                 x_loc = QStyle.sliderPositionFromValue(self.sl.minimum(), self.sl.maximum(), v, available, self.sl.invertedAppearance()) + length // 2
 
                 # left bound of the text = center - half of text width + L_margin
-                left = x_loc - rect.width() // 2 + self.left_margin
-                bottom = self.rect().bottom()
+                left = x_loc - int(rect.width() / 2) + self.left_margin
+                bottom = self.rect().bottom() - int(self.rect().height()/6)
 
                 # enlarge margins if clipping
                 if v == self.sl.minimum():
@@ -151,4 +161,45 @@ class LabeledSlider(QtWidgets.QWidget):
                     self.layout.setContentsMargins(self.left_margin, self.top_margin, self.right_margin, self.bottom_margin)
 
             pos = QPoint(left, bottom)
-            painter.drawText(pos, v_str)
+            painter.drawText(pos, str(v_str))
+
+    def create_range(self, min, max, step):
+        """
+        Create a range with floats.
+
+        Parameters
+        ----------
+        min : int
+            minimum value
+        max : int
+            maxmimum value
+        step : float
+            stepwidth
+
+        Returns
+        -------
+        list<int>
+            created range
+        """
+        vals = []
+        if int(step) == float(step) and int(min) == float(min) and int(max) == float(max):
+            step = int(step)
+            min = int(min)
+            max = int(max)
+            vals = range(min, max+step, step) if min < max else range(min, max-step, -1*step)
+        else:
+            tmp = None
+            min = float(min)
+            if min > max:
+                tmp = min
+                min = max
+                max = tmp
+            while min <= max:
+                if int(min) == float(min):
+                    vals.append(int(min))
+                else:
+                    vals.append(round(min, str(step)[::-1].find('.')) if round(min, str(step)[::-1].find('.')) != -0.0 else 0.0)
+                min += step
+            if tmp is not None:
+                vals.reverse()
+        return vals

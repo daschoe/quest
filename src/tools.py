@@ -79,7 +79,8 @@ tooltips = {
     "image_file": "The file of the image.",
     "address": "The OSC address to send to, should start with '/'.",
     "value": "The value to send over OSC, use 'id:' to refer to a preceding field.",
-    "receiver": "IP and port of the OSC receiver to send to."
+    "receiver": "IP and port of the OSC receiver to send to.",
+    "step": "Difference of two successive values."
 }
 
 # question types and their fields
@@ -93,8 +94,8 @@ fields_per_type = {
               "required": "QCheckBox", "size": "QRadioButton", "policy": "QComboBox"}],
     "Slider": [{"type": "QComboBox", "objectName": "QLineEdit", "id": "QLineEdit", "text": "QPlainTextEdit",
                 "required": "QCheckBox", "min": "QLineEdit", "max": "QLineEdit", "start": "QLineEdit",
-                "labelled": "QCheckBox", "label": "QPlainTextEdit", "question_above": "QCheckBox",
-                "header": "QPlainTextEdit"}],
+                "step": "QLineEdit", "labelled": "QCheckBox", "label": "QPlainTextEdit",
+                "question_above": "QCheckBox", "header": "QPlainTextEdit"}],
     "Player": [{"type": "QComboBox", "objectName": "QLineEdit", "id": "QLineEdit", "required": "QCheckBox",
                 "start_cue": "QLineEdit", "track": "QLineEdit", "video": "QLineEdit", "buttons": "QCheckBox",
                 "pupil": "QLineEdit", "timer": "QLineEdit", "play_once": "QCheckBox"}],
@@ -194,6 +195,7 @@ default_values = {
     "min": "",
     "max": "",
     "start": "",
+    "step": "",
     "labelled": False,
     "buttons": player_buttons,
     "policy": ["None"],
