@@ -10,7 +10,7 @@ from PyQt5.QtWidgets import QSizePolicy, QMessageBox
 from PyQt5.QtCore import QRegExp
 
 from src.MessageBox import ResizeMessageBox
-from src.tools import fields_per_type, player_buttons, policy_possibilities, randomize_options, image_positions
+from src.tools import fields_per_type, player_buttons, policy_possibilities, randomize_options, image_positions, video_player
 
 
 def validate_passwords(file, policy):
@@ -380,6 +380,20 @@ def validate_questionnaire(structure, suppress=False) -> (bool, bool, str):
     elif "video_ip" in structure.keys() and structure["video_ip"] != "":
         warning_found = True
         warning_details.append("No video_port found, but IP. Video will be disabled.\n")
+
+    if "video_player" in structure.keys():
+        if structure["video_player"] not in video_player:
+            error_found = True
+            error_details.append("Invalid value for video_player.\n")
+        elif structure["video_player"] in video_player and ("video_ip" not in structure.keys() or structure["video_ip"] == "" or "video_port" not in structure.keys() or structure["video_port"] != ""):
+            warning_found = True
+            warning_details.append("Incomplete information for video player.\n")
+        elif "video_ip" in structure.keys() and "video_ip" in structure.keys() and structure["video_player"] == "None":
+            warning_found = True
+            warning_details.append("No video_player chosen, but IP and port. Video will be disabled.\n")
+    elif "video_ip" in structure.keys() and "video_ip" in structure.keys():
+        warning_found = True
+        warning_details.append("No video_player found, but IP and port. Video will be disabled.\n")
 
     if "pupil_ip" in structure.keys():
         if structure["pupil_ip"] != "":

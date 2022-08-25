@@ -76,6 +76,7 @@ class StackedWindowGui(QWidget):
         self.audio_tracks = 0
         self.video_ip = None
         self.video_port = None
+        self.video_player = None
         self.pupil_ip = None
         self.pupil_port = None
         self.help_ip = None
@@ -155,6 +156,8 @@ class StackedWindowGui(QWidget):
                         self.video_ip = structure[key]
                     elif key == "video_port" and structure[key] != "":
                         self.video_port = structure.as_int(key)
+                    elif key == "video_player" and structure[key] != "":
+                        self.video_player = structure[key]
                     elif key == "pupil_ip" and structure[key] != "":
                         self.pupil_ip = structure[key]
                     elif key == "pupil_port" and structure[key] != "":
@@ -172,7 +175,7 @@ class StackedWindowGui(QWidget):
                         self.rand_file = structure[key]
 
                 #  Set up client/server connections
-                if self.popup and not self.preview and self.video_ip is not None and self.video_port is not None:
+                if self.popup and not self.preview and self.video_ip is not None and self.video_port is not None and self.video_player is not None:
                     self.video_client = udp_client.SimpleUDPClient(self.video_ip, self.video_port)
                 else:
                     self.video_client = None
@@ -553,7 +556,7 @@ class StackedWindowGui(QWidget):
             if i == self.sections.index(self.save_after)+1:
                 answer = self.continue_message()
                 if answer == QMessageBox.AcceptRole:
-                    if self.video_ip is not None:
+                    if self.video_ip is not None: #TODO
                         self.video_client.send_message("/vlc_finish", "stop")
                     if not self.preview:
                         self.collect_and_save_data()
@@ -612,7 +615,7 @@ class StackedWindowGui(QWidget):
         else:
             self.page_label = QLabel(self.pagecount_text, None)
         if not self.preview and (len(self.Stack.widget(self.prev_index).players) > 0) and (len(self.Stack.widget(index).players) == 0):
-            if self.video_client is not None:
+            if self.video_client is not None: # TODO
                 self.video_client.send_message("/vlc_still", "")
         self.prev_index = index
 

@@ -79,7 +79,8 @@ tooltips = {
     "image_file": "The file of the image.",
     "address": "The OSC address to send to, should start with '/'.",
     "value": "The value to send over OSC, use 'id:' to refer to a preceding field.",
-    "receiver": "IP and port of the OSC receiver to send to."
+    "receiver": "IP and port of the OSC receiver to send to.",
+    "video_player": "Choose the video player that will be used."
 }
 
 # question types and their fields
@@ -128,6 +129,8 @@ randomize_options = ["None", "balanced latin square", "from file"]
 
 image_positions = ["here", "top", "bottom", "left", "right", "free"]
 
+video_player = ["None", "MadMapper", "VLC"]
+
 # page fields
 page_fields = ["title", "description", "randomgroup", "pupil_on_next"]
 
@@ -141,6 +144,7 @@ general_fields = [
     "audio_tracks",
     "video_ip",
     "video_port",
+    "video_player",
     "pupil_ip",
     "pupil_port",
     "go_back",
@@ -216,6 +220,7 @@ default_values = {
     "height": "",
     "image_position": "here",
     "receiver": [],
-    "address": ""
+    "address": "",
+    "video_player": video_player
     #"pupil_on_next": ''
 }
