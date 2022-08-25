@@ -758,42 +758,9 @@ class StackedWindowGui(QWidget):
                 writer.writerow(header)
             with open(self.filepath_results, "a", newline='', encoding='utf_8') as csvfile:
                 writer = csv.writer(csvfile, delimiter=self.delimiter)
-                row = [participant_number]
-                for s in range(0, self.Stack.count()):
-                    if self.Stack.widget(s).evaluationvars is not None:
-                        for _, ans in self.Stack.widget(s).evaluationvars.items():
-                            if type(ans) is QButtonGroup:
-                                row.append(ans.checkedId())
-                            elif type(ans) is QCheckBox:
-                                row.append(ans.isChecked())
-                            elif type(ans) is QLineEdit or type(ans) is PasswordEntry:
-                                if type(ans.validator()) == QDoubleValidator:
-                                    ans.setText(ans.text().replace(",", "."))
-                                row.append(ans.text())
-                            elif type(ans) is QPlainTextEdit:
-                                row.append(ans.toPlainText().replace("\n", " "))
-                            elif (type(ans) is Slider) or (type(ans) is LabeledSlider) or (type(ans) is QSlider):
-                                row.append(ans.value())
-                            elif type(ans) is ABX:
-                                row.append(ans.order)
-                                row.append(ans.answer.checkedId())
-                                row.append(ans.a_button.duration)
-                                row.append(ans.b_button.duration)
-                                if ans.x_button is not None:
-                                    row.append(ans.x_button.duration)
-                            elif type(ans) is RadioMatrix:
-                                for cnt in range(0, len(ans.questions)):
-                                    row.append(ans.buttongroups[cnt].checkedId())
-                            else:
-                                row.append(ans)
-                                # row.append("Unbekannter Typ"+type(ans))
-                if self.rand == "balanced latin square":
-                    orders = []
-                    for rg in self.random_groups:
-                        orders.append(balanced_latin_squares(rg)[self.get_participant_number()-1])
-                    row.append(orders)
-                elif self.rand == "from file":
-                    row.append(order_from_file(self.rand_file)[self.get_participant_number()-1])
+                row = []
+                for field in range(0, len(headers)):
+                    row.append(fields[headers[field]])
                 writer.writerow(row)
 
         print("DONE")
