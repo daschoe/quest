@@ -32,7 +32,7 @@ back_text = Zurück
         type = Password
         id = pw
         text = enter password (000-999)
-        policy = None,
+        policy = int, 0, 999
     [[Plain Text]]
         type = Plain Text
         text = '''Some plain text, that spans the whole page

@@ -38,7 +38,7 @@ if __name__ == "__main__":
     vlc_still("", "./2019-07-04_PreTest/Video/Hauptstudie/output.mp4")
 
     parser = argparse.ArgumentParser()
-    parser.add_argument("--ip", default="172.23.170.2", help="IPv4 from this computer.")
+    parser.add_argument("--ip", default="127.0.0.1", help="IPv4 from this computer.")
     parser.add_argument("--port", type=int, default=5005, help="The port to listen on.")
     args = parser.parse_args()
 

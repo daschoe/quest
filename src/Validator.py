@@ -385,9 +385,9 @@ def validate_questionnaire(structure, suppress=False) -> (bool, bool, str):
         if structure["video_player"] not in video_player:
             error_found = True
             error_details.append("Invalid value for video_player.\n")
-        elif structure["video_player"] in video_player and ("video_ip" not in structure.keys() or structure["video_ip"] == "" or "video_port" not in structure.keys() or structure["video_port"] != ""):
-            warning_found = True
-            warning_details.append("Incomplete information for video player.\n")
+        #elif structure["video_player"] in video_player and ("video_ip" not in structure.keys() or structure["video_ip"] == "" or "video_port" not in structure.keys() or structure["video_port"] == ""):
+        #    warning_found = True
+        #    warning_details.append("Incomplete information for video player.\n")
         elif "video_ip" in structure.keys() and "video_ip" in structure.keys() and structure["video_player"] == "None":
             warning_found = True
             warning_details.append("No video_player chosen, but IP and port. Video will be disabled.\n")

@@ -13,7 +13,7 @@ tooltips = {
     "start_cue": "The cue/marker in the audio software to start playing at.",
     "end_cue": "The cue/marker in the audio software to stop playing at. (optional)",
     "track": "The tack(s) that should be unmuted for playback.",
-    "video": "Path to the video file. (optional)",
+    "video": "Path to the video file (VLC) or name of the scene (MadMapper). (optional)",
     "start_cues": "List of starting points for MUSHRA playback. [Ref, Cue1, Cue2,...]",
     "end_cues": "List of ending points for MUSHRA playback. [Ref, Cue1, Cue2,...] (optional)",
     "text": "The text of the question.",
@@ -221,6 +221,6 @@ default_values = {
     "image_position": "here",
     "receiver": [],
     "address": "",
-    "video_player": video_player
+    "video_player": video_player[0]
     #"pupil_on_next": ''
 }

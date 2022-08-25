@@ -54,7 +54,7 @@ class Player(QWidget):
         track : int or list of int
             active tracks (e.g. in REAPER)
         video : str, optional
-            filename+path to the video which should be played.
+            filename+path / scene name to the video which should be played.
         qid : str
             id of the question
         parent : QObject, optional
@@ -177,7 +177,7 @@ class Player(QWidget):
 
         if self.paused:
             self.audio_client.send_message("/pause", 1)
-            if (self.video is not None) and (self.video_client is not None):
+            if (self.video is not None) and (self.video_client is not None): #TODO
                 self.video_client.send_message(self.video_player["play"][0], self.video_player["play"][1])  # unpauses TODO
             self.pause_button.setChecked(False)
             if str(type(self.parent())) == "<class 'src.Page.Page'>":
@@ -199,7 +199,12 @@ class Player(QWidget):
             self.audio_client.send_message("/stop", 1)
             self.audio_client.send_message("/play", 1)
             if (self.video is not None) and (self.video_client is not None):
-                self.video_client.send_message(self.video_player["play"][0], self.video_player["play"][1])
+                if "select" in self.video_player.keys():
+                    self.video_client.send_message(self.video_player["select"][0].format(self.video), self.video_player["select"][1])
+                    self.video_client.send_message(self.video_player["play"][0], self.video_player["play"][1])
+                else:
+                    self.video_client.send_message(self.video_player["play"][0], self.video_player["play"][1].format(self.video))
+
             if str(type(self.parent())) == "<class 'src.Page.Page'>":
                 self.parent().page_log += "\n\t{} - (Re-)Started Player {} ".format(datetime.datetime.now().replace(microsecond=0).__str__(), self.id)
             else:
@@ -281,8 +286,11 @@ class Player(QWidget):
     def stop(self):
         """Stop the playback."""
         self.audio_client.send_message("/stop", 1)
+        print((self.video is not None) and (self.video_client is not None) and not self.paused)
         if (self.video is not None) and (self.video_client is not None) and not self.paused:
+            print("Should send stop", self.video_player["stop"][0], self.video_player["stop"][1])
             self.video_client.send_message(self.video_player["stop"][0], self.video_player["stop"][1])
+            print("send")
         self.end = time()
         self.duration.append(self.end - self.start)
         self.start = 0

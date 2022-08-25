@@ -1,5 +1,5 @@
 """Testing the behaviour of Player.py + QEditGui.py"""
-# TODO how to test messages to REAPER
+# TODO how to test messages to REAPER + Video
 
 from context import *
 

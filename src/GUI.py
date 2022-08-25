@@ -27,6 +27,7 @@ from src.PupilCoreButton import Button
 from src.RadioMatrix import RadioMatrix
 from src.Slider import Slider
 from src.Validator import listify, validate_questionnaire
+from src.Video import *
 from src.ABX import ABX
 from src.OSCButton import OSCButton
 from src.randomization import *
@@ -177,8 +178,15 @@ class StackedWindowGui(QWidget):
                 #  Set up client/server connections
                 if self.popup and not self.preview and self.video_ip is not None and self.video_port is not None and self.video_player is not None:
                     self.video_client = udp_client.SimpleUDPClient(self.video_ip, self.video_port)
+                    if self.video_player == "MadMapper":
+                        self.video_player_commands = madmapper
+                    elif self.video_player == "VLC":
+                        self.video_player_commands = vlc
+                    else:
+                        self.video_player_commands = None
                 else:
                     self.video_client = None
+                    self.video_player_commands = None
                 if self.popup and not self.preview and self.help_ip is not None and self.help_port is not None:
                     self.help_client = udp_client.SimpleUDPClient(self.help_ip, self.help_port)
                     response = ping(self.help_ip, timeout=TIMEOUT)
@@ -556,8 +564,9 @@ class StackedWindowGui(QWidget):
             if i == self.sections.index(self.save_after)+1:
                 answer = self.continue_message()
                 if answer == QMessageBox.AcceptRole:
-                    if self.video_ip is not None: #TODO
-                        self.video_client.send_message("/vlc_finish", "stop")
+                    if self.video_player is not None:
+                        self.video_client.send_message(self.video_player_commands['blue_screen'][0] if 'blue_screen' in self.video_player_commands.keys() else self.video_player_commands["stop"][0],
+                                                       self.video_player_commands['blue_screen'][1] if 'blue_screen' in self.video_player_commands.keys() else self.video_player_commands["stop"][1])
                     if not self.preview:
                         self.collect_and_save_data()
                     self.saved = True
@@ -615,8 +624,9 @@ class StackedWindowGui(QWidget):
         else:
             self.page_label = QLabel(self.pagecount_text, None)
         if not self.preview and (len(self.Stack.widget(self.prev_index).players) > 0) and (len(self.Stack.widget(index).players) == 0):
-            if self.video_client is not None: # TODO
-                self.video_client.send_message("/vlc_still", "")
+            if self.video_client is not None:
+                self.video_client.send_message(self.video_player_commands['black_screen'][0] if 'black_screen' in self.video_player_commands.keys() else self.video_player_commands["stop"][0],
+                                               self.video_player_commands['black_screen'][1] if 'black_screen' in self.video_player_commands.keys() else self.video_player_commands["stop"][1])
         self.prev_index = index
 
         for player in self.Stack.currentWidget().players:
@@ -761,42 +771,9 @@ class StackedWindowGui(QWidget):
                 writer.writerow(header)
             with open(self.filepath_results, "a", newline='', encoding='utf_8') as csvfile:
                 writer = csv.writer(csvfile, delimiter=self.delimiter)
-                row = [participant_number]
-                for s in range(0, self.Stack.count()):
-                    if self.Stack.widget(s).evaluationvars is not None:
-                        for _, ans in self.Stack.widget(s).evaluationvars.items():
-                            if type(ans) is QButtonGroup:
-                                row.append(ans.checkedId())
-                            elif type(ans) is QCheckBox:
-                                row.append(ans.isChecked())
-                            elif type(ans) is QLineEdit or type(ans) is PasswordEntry:
-                                if type(ans.validator()) == QDoubleValidator:
-                                    ans.setText(ans.text().replace(",", "."))
-                                row.append(ans.text())
-                            elif type(ans) is QPlainTextEdit:
-                                row.append(ans.toPlainText().replace("\n", " "))
-                            elif (type(ans) is Slider) or (type(ans) is LabeledSlider) or (type(ans) is QSlider):
-                                row.append(ans.value())
-                            elif type(ans) is ABX:
-                                row.append(ans.order)
-                                row.append(ans.answer.checkedId())
-                                row.append(ans.a_button.duration)
-                                row.append(ans.b_button.duration)
-                                if ans.x_button is not None:
-                                    row.append(ans.x_button.duration)
-                            elif type(ans) is RadioMatrix:
-                                for cnt in range(0, len(ans.questions)):
-                                    row.append(ans.buttongroups[cnt].checkedId())
-                            else:
-                                row.append(ans)
-                                # row.append("Unbekannter Typ"+type(ans))
-                if self.rand == "balanced latin square":
-                    orders = []
-                    for rg in self.random_groups:
-                        orders.append(balanced_latin_squares(rg)[self.get_participant_number()-1])
-                    row.append(orders)
-                elif self.rand == "from file":
-                    row.append(order_from_file(self.rand_file)[self.get_participant_number()-1])
+                row = []
+                for field in range(0, len(headers)):
+                    row.append(fields[headers[field]])
                 writer.writerow(row)
 
         print("DONE")
