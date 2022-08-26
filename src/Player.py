@@ -200,6 +200,7 @@ class Player(QWidget):
             self.audio_client.send_message("/play", 1)
             if (self.video is not None) and (self.video_client is not None):
                 if "select" in self.video_player.keys():
+                    self.video_client.send_message(self.video_player["reset"][0], self.video_player["reset"][1])
                     self.video_client.send_message(self.video_player["select"][0].format(self.video), self.video_player["select"][1])
                     self.video_client.send_message(self.video_player["play"][0], self.video_player["play"][1])
                 else:
@@ -286,11 +287,8 @@ class Player(QWidget):
     def stop(self):
         """Stop the playback."""
         self.audio_client.send_message("/stop", 1)
-        print((self.video is not None) and (self.video_client is not None) and not self.paused)
         if (self.video is not None) and (self.video_client is not None) and not self.paused:
-            print("Should send stop", self.video_player["stop"][0], self.video_player["stop"][1])
             self.video_client.send_message(self.video_player["stop"][0], self.video_player["stop"][1])
-            print("send")
         self.end = time()
         self.duration.append(self.end - self.start)
         self.start = 0
