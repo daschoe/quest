@@ -52,6 +52,7 @@ and can have line breaks.'''
         max = 10
         start = -1
         id = S1
+        step = 1
     [[TextSingle]]
         text = Single line text input
         type = Text
