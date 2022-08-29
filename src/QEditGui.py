@@ -369,23 +369,31 @@ class EditGui(QWidget):
         self.page_add = QPushButton("Add Page")
         self.page_add.clicked.connect(self.add_page)
         self.page_add.setShortcut(QKeySequence("Ctrl+A"))
+        self.page_add.setToolTip("Add a page to the end.")
         self.page_remove = QPushButton("Remove Page")
         self.page_remove.clicked.connect(lambda: self.remove_page(self.treeview.currentItem()))
         self.page_remove.setShortcut(QKeySequence("Ctrl+X"))
+        self.page_remove.setToolTip("Remove highlighted page.")
         self.page_rename = QPushButton("Rename Page")
         self.page_rename.clicked.connect(lambda: self.rename_page(self.treeview.currentItem()))
+        self.page_rename.setToolTip("Change the name of the selected page.")
         self.question_add = QPushButton("Add Question")
         self.question_add.setShortcut(QKeySequence("Ctrl+A"))
         self.question_add.clicked.connect(lambda: self.add_question(self.treeview.currentItem()))
+        self.question_add.setToolTip("Add a question to the selected page.")
         self.question_remove = QPushButton("Remove Question")
         self.question_remove.setShortcut(QKeySequence("Ctrl+X"))
         self.question_remove.clicked.connect(lambda: self.remove_question(self.treeview.currentItem()))
+        self.question_remove.setToolTip("Remove the selected question.")
         self.question_rename = QPushButton("Rename Question")
         self.question_rename.clicked.connect(lambda: self.rename_question(self.treeview.currentItem()))
+        self.question_rename.setToolTip("Rename the selected question.")
         self.button_copy = QPushButton("Copy")
         self.button_copy.clicked.connect(lambda: self.copy(self.current_item, None))
+        self.button_copy.setToolTip("Copy selected element with all possible sub-elements and settings.")
         self.button_paste = QPushButton("Paste")
         self.button_paste.clicked.connect(self.paste)
+        self.button_paste.setToolTip("Paste after the highlighted element in the tree.")
         self.buttons = [self.page_add, self.page_remove, self.page_rename, self.question_add, self.question_remove,
                         self.question_rename, self.button_copy, self.button_paste]
         for button in self.buttons:
@@ -1128,6 +1136,24 @@ class EditGui(QWidget):
         if self.automatic_refresh.isChecked():
             self.load_preview()
 
+    def change_save_after_message(self, new_page):
+        """
+        Message box showing up whenever a new page is created and save_after is already set.
+
+        Returns
+        -------
+        QMessageBox.ButtonRole
+            value of the button clicked (True if it is supposed to be updated)
+        """
+        msg = QMessageBox()
+        msg.setIcon(QMessageBox.Question)
+        msg.setText('The current value of "save_after" is "{}". Do you want to change it to the new page ({})?'.format(self.save_after.currentText(), new_page))
+        msg.setWindowFlags(Qt.CustomizeWindowHint)  # removes title bar
+        msg.addButton("Yes", QMessageBox.AcceptRole)
+        msg.addButton("No", QMessageBox.RejectRole)
+        retval = msg.exec_()
+        return retval
+
     def clear_layout(self, layout):
         """Remove everything from the layout, so that contents can be changed.
 
@@ -1327,6 +1353,10 @@ class EditGui(QWidget):
                 self.parent().structure[text] = new_page
                 if "save_after" not in self.parent().structure.keys() or self.parent().structure["save_after"] is None:
                     self.parent().structure["save_after"] = text
+                else:
+                    new_val = self.change_save_after_message(text)  # TODO change save_after
+                    if new_val == QMessageBox.AcceptRole:
+                        self.parent().structure["save_after"] = text
             else:
                 page = QTreeWidgetItem(self.treeview.itemAt(0, 0), self.treeview.currentItem())
                 page.setText(0, text)
@@ -1338,6 +1368,9 @@ class EditGui(QWidget):
                         self.parent().structure[text][key] = copy.deepcopy(dict(data[key]))
                 for quest in data.sections:
                     _ = QTreeWidgetItem(page, [quest])
+                new_val = self.change_save_after_message(text)  # TODO change save_after
+                if new_val == QMessageBox.AcceptRole:
+                    self.parent().structure["save_after"] = text
                 self.update_structure()
             self.treeview.setCurrentItem(page)
             self.show_details(self.treeview.indexFromItem(page))
