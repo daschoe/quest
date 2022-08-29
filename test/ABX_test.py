@@ -684,6 +684,40 @@ def test_execute_questionnaire_no_interaction(run, qtbot):
 
 
 # noinspection PyArgumentList
+def test_execute_questionnaire_no_interaction_blocked(run, qtbot):
+    with mock_file(r'./test/results/results_abx.csv'):
+        assert run.Stack.count() == 1
+        QTimer.singleShot(100, handle_dialog)
+        QTest.mouseClick(run.forwardbutton, Qt.LeftButton)
+        res_file = None
+        for file in os.listdir("./test/results/"):
+            if file.find("_backup_"):
+                res_file = "./test/results/{}".format(file)
+        results = []
+        with open(res_file, mode='r') as file:
+            csv_file = csv.reader(file, delimiter=';')
+
+            for lines in csv_file:
+                results = lines
+                if results[0].startswith('data'):
+                    assert lines[0] == 'data_row_number'  # participant number
+                    assert lines[1] == '1_order'
+                    assert lines[2] == '1_answer'
+                    assert lines[3] == '1_duration_A'
+                    assert lines[4] == '1_duration_B'
+                    assert lines[5] == 'Start'
+                    assert lines[6] == 'End'
+        assert len(results) == 7
+        assert lines[0] == '-1'  # participant number unknown
+        assert lines[2] == '-1'  # no answer given in button group
+        assert lines[3] == '[]'  # first element not played
+        assert lines[4] == '[]'  # second element not played
+        assert re.match(r'\d+-\d+-\d+ \d+:\d+:\d+.\d+', lines[5])  # timestamp
+        assert re.match(r'\d+-\d+-\d+ \d+:\d+:\d+.\d+', lines[6])  # timestamp
+        os.remove(res_file)
+
+
+# noinspection PyArgumentList
 def test_execute_questionnaire_ab(run, qtbot):
     assert run.Stack.count() == 1
     for child in run.Stack.currentWidget().children():
@@ -704,6 +738,14 @@ def test_execute_questionnaire_ab(run, qtbot):
 
         for lines in csv_file:
             results = lines
+            if results[0].startswith('data'):
+                assert lines[0] == 'data_row_number'  # participant number
+                assert lines[1] == '1_order'
+                assert lines[2] == '1_answer'
+                assert lines[3] == '1_duration_A'
+                assert lines[4] == '1_duration_B'
+                assert lines[5] == 'Start'
+                assert lines[6] == 'End'
     assert len(results) == 7
     assert lines[0] == '1'  # participant number
     assert lines[2] == '0'  # first answer given in button group
@@ -714,6 +756,50 @@ def test_execute_questionnaire_ab(run, qtbot):
     assert re.match(r'\d+-\d+-\d+ \d+:\d+:\d+.\d+', lines[5])  # timestamp
     assert re.match(r'\d+-\d+-\d+ \d+:\d+:\d+.\d+', lines[6])  # timestamp
     os.remove("./test/results/results_abx.csv")
+
+
+# noinspection PyArgumentList
+def test_execute_questionnaire_blocked(run, qtbot):
+    with mock_file(r'./test/results/results_abx.csv'):
+        assert run.Stack.count() == 1
+        for child in run.Stack.currentWidget().children():
+            if type(child) == ABX:
+                QTest.mouseClick(child.a_button.play_button, Qt.LeftButton)
+                QTest.qWait(1000)
+                QTest.mouseClick(child.b_button.play_button, Qt.LeftButton)
+                QTest.qWait(500)
+                QTest.mouseClick(child.a_button.play_button, Qt.LeftButton)
+                QTest.mouseClick(child.answer.button(0), Qt.LeftButton, delay=1)
+        QTimer.singleShot(100, handle_dialog)
+        QTest.mouseClick(run.forwardbutton, Qt.LeftButton)
+        res_file = None
+        for file in os.listdir("./test/results/"):
+            if file.find("_backup_"):
+                res_file = "./test/results/{}".format(file)
+        results = []
+        with open(res_file, mode='r') as file:
+            csv_file = csv.reader(file, delimiter=';')
+
+            for lines in csv_file:
+                results = lines
+                if results[0].startswith('data'):
+                    assert lines[0] == 'data_row_number'  # participant number
+                    assert lines[1] == '1_order'
+                    assert lines[2] == '1_answer'
+                    assert lines[3] == '1_duration_A'
+                    assert lines[4] == '1_duration_B'
+                    assert lines[5] == 'Start'
+                    assert lines[6] == 'End'
+        assert len(results) == 7
+        assert lines[0] == '-1'  # participant number unknown
+        assert lines[2] == '0'  # first answer given in button group
+        assert len(ast.literal_eval(lines[3])) == 2  # first element played twice
+        assert float(ast.literal_eval(lines[3])[0]) > 1.0
+        assert len(ast.literal_eval(lines[4])) == 1  # second element played once
+        assert float(ast.literal_eval(lines[4])[0]) > 0.5
+        assert re.match(r'\d+-\d+-\d+ \d+:\d+:\d+.\d+', lines[5])  # timestamp
+        assert re.match(r'\d+-\d+-\d+ \d+:\d+:\d+.\d+', lines[6])  # timestamp
+        os.remove(res_file)
 
 
 # noinspection PyArgumentList
@@ -738,6 +824,42 @@ def test_execute_questionnaire_no_interaction_x(run2, qtbot):
     assert re.match(r'\d+-\d+-\d+ \d+:\d+:\d+.\d+', lines[6])  # timestamp
     assert re.match(r'\d+-\d+-\d+ \d+:\d+:\d+.\d+', lines[7])  # timestamp
     os.remove("./test/results/results_abx.csv")
+
+
+# noinspection PyArgumentList
+def test_execute_questionnaire_no_interaction_x_blocked(run2, qtbot):
+    with mock_file(r'./test/results/results_abx.csv'):
+        assert run2.Stack.count() == 1
+        QTimer.singleShot(100, handle_dialog)
+        QTest.mouseClick(run2.forwardbutton, Qt.LeftButton)
+        res_file = None
+        for file in os.listdir("./test/results/"):
+            if file.find("_backup_"):
+                res_file = "./test/results/{}".format(file)
+        results = []
+        with open(res_file, mode='r') as file:
+            csv_file = csv.reader(file, delimiter=';')
+
+            for lines in csv_file:
+                results = lines
+                if results[0].startswith('data'):
+                    assert lines[0] == 'data_row_number'  # participant number
+                    assert lines[1] == '1_order'
+                    assert lines[2] == '1_answer'
+                    assert lines[3] == '1_duration_A'
+                    assert lines[4] == '1_duration_B'
+                    assert lines[5] == '1_duration_X'
+                    assert lines[6] == 'Start'
+                    assert lines[7] == 'End'
+        assert len(results) == 8
+        assert lines[0] == '-1'  # participant number unknown
+        assert lines[2] == '-1'  # no answer given in button group
+        assert lines[3] == '[]'  # first element not played
+        assert lines[4] == '[]'  # second element not played
+        assert lines[5] == '[]'  # x not played
+        assert re.match(r'\d+-\d+-\d+ \d+:\d+:\d+.\d+', lines[6])  # timestamp
+        assert re.match(r'\d+-\d+-\d+ \d+:\d+:\d+.\d+', lines[7])  # timestamp
+        os.remove(res_file)
 
 
 # noinspection PyArgumentList
@@ -768,6 +890,15 @@ def test_execute_questionnaire_abx(run2, qtbot):
 
         for lines in csv_file:
             results = lines
+            if results[0].startswith('data'):
+                assert lines[0] == 'data_row_number'  # participant number
+                assert lines[1] == '1_order'
+                assert lines[2] == '1_answer'
+                assert lines[3] == '1_duration_A'
+                assert lines[3] == '1_duration_B'
+                assert lines[3] == '1_duration_X'
+                assert lines[4] == 'Start'
+                assert lines[5] == 'End'
     assert len(results) == 8
     assert lines[0] == '1'  # participant number
     assert lines[2] == '0'  # first answer given in button group
@@ -777,3 +908,54 @@ def test_execute_questionnaire_abx(run2, qtbot):
     assert re.match(r'\d+-\d+-\d+ \d+:\d+:\d+.\d+', lines[6])  # timestamp
     assert re.match(r'\d+-\d+-\d+ \d+:\d+:\d+.\d+', lines[7])  # timestamp
     os.remove("./test/results/results_abx.csv")
+
+
+# noinspection PyArgumentList
+def test_execute_questionnaire_abx_blocked(run2, qtbot):
+    with mock_file(r'./test/results/results_abx.csv'):
+        assert run2.Stack.count() == 1
+        for child in run2.Stack.currentWidget().children():
+            if type(child) == ABX:
+                QTest.mouseClick(child.x_button.play_button, Qt.LeftButton)
+                QTest.qWait(500)
+                QTest.mouseClick(child.a_button.play_button, Qt.LeftButton)
+                QTest.qWait(1000)
+                QTest.mouseClick(child.x_button.play_button, Qt.LeftButton)
+                QTest.qWait(500)
+                QTest.mouseClick(child.b_button.play_button, Qt.LeftButton)
+                QTest.qWait(500)
+                QTest.mouseClick(child.x_button.play_button, Qt.LeftButton)
+                QTest.qWait(500)
+                QTest.mouseClick(child.b_button.play_button, Qt.LeftButton)
+                QTest.qWait(2000)
+                QTest.mouseClick(child.answer.button(0), Qt.LeftButton, delay=1)
+        QTimer.singleShot(100, handle_dialog)
+        QTest.mouseClick(run2.forwardbutton, Qt.LeftButton)
+        res_file = None
+        for file in os.listdir("./test/results/"):
+            if file.find("_backup_"):
+                res_file = "./test/results/{}".format(file)
+        results = []
+        with open(res_file, mode='r') as file:
+            csv_file = csv.reader(file, delimiter=';')
+
+            for lines in csv_file:
+                results = lines
+                if results[0].startswith('data'):
+                    assert lines[0] == 'data_row_number'  # participant number
+                    assert lines[1] == '1_order'
+                    assert lines[2] == '1_answer'
+                    assert lines[3] == '1_duration_A'
+                    assert lines[4] == '1_duration_B'
+                    assert lines[5] == '1_duration_X'
+                    assert lines[6] == 'Start'
+                    assert lines[7] == 'End'
+        assert len(results) == 8
+        assert lines[0] == '-1'  # participant number unknown
+        assert lines[2] == '0'  # first answer given in button group
+        assert len(ast.literal_eval(lines[3])) == 1  # first element played once
+        assert len(ast.literal_eval(lines[4])) == 2  # second element played twice
+        assert len(ast.literal_eval(lines[5])) == 3  # third (x) element played three times
+        assert re.match(r'\d+-\d+-\d+ \d+:\d+:\d+.\d+', lines[6])  # timestamp
+        assert re.match(r'\d+-\d+-\d+ \d+:\d+:\d+.\d+', lines[7])  # timestamp
+        os.remove(res_file)

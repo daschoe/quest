@@ -7,9 +7,10 @@ from PyQt5.QtCore import Qt
 from PyQt5.QtTest import QTest
 from PyQt5.QtWidgets import QApplication, QMessageBox, QLineEdit, QWidgetItem, QHBoxLayout
 
-PUPIL_PATH = "C:\\Program Files (x86)\\Pupil-Labs\\Pupil v3.4.0\\Pupil Capture v3.4.0\\pupil_capture.exe"
+PUPIL_PATH = "C:\\Program Files (x86)\\Pupil-Labs\\Pupil v3.5.1\\Pupil Capture v3.5.1\\pupil_capture.exe"
 
 
+# noinspection PyArgumentList
 def handle_dialog_p():
     """Set page name in popup dialog."""
     dialog = QApplication.activeModalWidget()
@@ -17,6 +18,7 @@ def handle_dialog_p():
     dialog.accept()
 
 
+# noinspection PyArgumentList
 def handle_dialog_q():
     """Set question name in popup dialog."""
     dialog = QApplication.activeModalWidget()
@@ -24,30 +26,35 @@ def handle_dialog_q():
     dialog.accept()
 
 
+# noinspection PyArgumentList
 def handle_dialog():
     """Click 'Yes' on save dialog."""
     dialog = QApplication.activeModalWidget()
     QTest.mouseClick(dialog.buttons()[0], Qt.LeftButton)
 
 
+# noinspection PyArgumentList
 def handle_dialog_no_save():
     """Click 'No' on save dialog."""
     dialog = QApplication.activeModalWidget()
     QTest.mouseClick(dialog.buttons()[1], Qt.LeftButton)
 
 
+# noinspection PyArgumentList
 def handle_dialog_error():
     """Click 'OK' on error dialog."""
     dialog = QApplication.activeModalWidget()
     QTest.mouseClick(dialog.button(QMessageBox.Ok), Qt.LeftButton)
 
 
+# noinspection PyArgumentList
 def handle_dialog_warning():
     """Click 'Yes' on dialog and execute questionnaire."""
     dialog = QApplication.activeModalWidget()
     QTest.mouseClick(dialog.button(QMessageBox.Yes), Qt.LeftButton)
 
 
+# noinspection PyArgumentList
 def open_config_file(conf_name):
     """Type filename."""
     QTest.qWait(50)

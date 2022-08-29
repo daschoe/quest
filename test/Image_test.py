@@ -75,9 +75,7 @@ def test_create(gui_init, qtbot):
             not_none_rows += 1
             assert layout.itemAt(row, 0).widget().text() in fields_per_type["Image"][0].keys()
             assert str(type(layout.itemAt(row, 1).widget())).strip("'<>").rsplit(".", 1)[1] == \
-                   'TextEdit' if fields_per_type["Image"][0][
-                                     layout.itemAt(row, 0).widget().text()] == 'QPlainTextEdit' \
-                else fields_per_type["Image"][0][layout.itemAt(row, 0).widget().text()]
+                   'TextEdit' if fields_per_type["Image"][0][layout.itemAt(row, 0).widget().text()] == 'QPlainTextEdit' else fields_per_type["Image"][0][layout.itemAt(row, 0).widget().text()]
             if type(layout.itemAt(row, 1).widget()) == QLineEdit and layout.itemAt(row, 0).widget().text() in \
                     default_values:
                 assert layout.itemAt(row, 1).widget().text() == default_values[layout.itemAt(row, 0).widget().text()]
@@ -131,6 +129,7 @@ def test_create(gui_init, qtbot):
     gui_init.close()
 
 
+# noinspection PyArgumentList
 def test_file(gui_load, qtbot):
     QTimer.singleShot(150, handle_dialog_error)
     error_found, warning_found, warning_details = validate_questionnaire(gui_load.structure)
@@ -152,8 +151,7 @@ def test_file(gui_load, qtbot):
         keyboard.write("Logo.png")
         keyboard.press("enter")
 
-    img_btn = gui_load.gui.edit_layout.itemAt(find_row_by_label(gui_load.gui.edit_layout, 'image_file_btn')[0],
-                                             1).itemAt(0).widget()
+    img_btn = gui_load.gui.edit_layout.itemAt(find_row_by_label(gui_load.gui.edit_layout, 'image_file_btn')[0], 1).itemAt(0).widget()
     QTimer.singleShot(100, handle_file_chooser)
     QTest.mouseClick(img_btn, Qt.MouseButton.LeftButton)
 
@@ -282,7 +280,6 @@ def test_scale(gui_load, qtbot):
     gui_load.structure["Page 1"]["Image"]["height"] = 100
     gui_load.structure["Page 1"]["Image"]["width"] = 250
     QTest.keyClicks(gui_load, 's', modifier=Qt.ControlModifier)
-    #QTimer.singleShot(150, handle_dialog_no_save)
     gui_load.close()
     os.remove("./test/results/results_img.csv")
 
@@ -391,9 +388,7 @@ def test_move(gui_load, qtbot):
     assert gui_load.gui.edit_layout.itemAt(y_pos[0], 1).itemAt(y_pos[1]).widget().text() == "0"
     gui_load.gui.edit_layout.itemAt(y_pos[0], 1).itemAt(y_pos[1]).widget().editingFinished.emit()
     assert gui_load.structure["Page 1"]["Image"]["y_pos"] == "0"
-    #QTimer.singleShot(150, handle_dialog_error)
     gui_load.gui.load_preview()
-    #QTimer.singleShot(150, handle_dialog_error)
     gui_load.gui.refresh_button.click()
     assert gui_load.gui.edit_layout.itemAt(y_pos[0], 1).itemAt(y_pos[1]).widget().text() == "0"
     assert gui_load.structure["Page 1"]["Image"]["y_pos"] == "0"
@@ -574,3 +569,30 @@ def test_execute_questionnaire_no_interaction(run, qtbot):
     assert re.match(r'\d+-\d+-\d+ \d+:\d+:\d+.\d+', lines[1])  # timestamp
     assert re.match(r'\d+-\d+-\d+ \d+:\d+:\d+.\d+', lines[2])  # timestamp
     os.remove("./test/results/results_img.csv")
+
+
+# noinspection PyArgumentList
+def test_execute_questionnaire_no_interaction_blocked(run, qtbot):
+    with mock_file(r'./test/results/results_img.csv'):
+        assert run.Stack.count() == 1
+        QTimer.singleShot(100, handle_dialog)
+        QTest.mouseClick(run.forwardbutton, Qt.LeftButton)
+        res_file = None
+        for file in os.listdir("./test/results/"):
+            if file.find("_backup_"):
+                res_file = "./test/results/{}".format(file)
+        results = []
+        with open(res_file, mode='r') as file:
+            csv_file = csv.reader(file, delimiter=';')
+
+            for lines in csv_file:
+                results = lines
+                if results[0].startswith('data'):
+                    assert lines[0] == 'data_row_number'  # participant number
+                    assert lines[1] == 'Start'
+                    assert lines[2] == 'End'
+        assert len(results) == 3
+        assert lines[0] == '-1'  # participant number unknown
+        assert re.match(r'\d+-\d+-\d+ \d+:\d+:\d+.\d+', lines[1])  # timestamp
+        assert re.match(r'\d+-\d+-\d+ \d+:\d+:\d+.\d+', lines[2])  # timestamp
+        os.remove(res_file)

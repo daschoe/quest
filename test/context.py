@@ -5,10 +5,36 @@ import re
 from unittest.mock import patch
 import pytest
 from configobj import ConfigObj, ConfigObjError
+from contextlib import contextmanager
 import keyboard
+import portalocker
 from PyQt5.QtGui import QIntValidator, QDoubleValidator, QRegExpValidator
 from PyQt5.QtCore import QTimer, QPoint
 from PyQt5.QtWidgets import QCheckBox, QLabel, QRadioButton, QFormLayout, QButtonGroup, QPlainTextEdit
+
+
+@contextmanager
+def mock_file(filepath, content=''):
+    """
+    Mock that a file is opened in another application.
+
+    Parameters
+    ----------
+    filepath : str
+        file/path to the file to block
+    content: str, default ''
+        content for the file
+    """
+    file = open(filepath, 'w')
+    portalocker.lock(file, portalocker.LockFlags.EXCLUSIVE)
+    yield filepath
+    try:
+        file.close()
+        os.remove(filepath)
+    except Exception as e:
+        print(e)
+        pass
+
 
 import os
 import sys

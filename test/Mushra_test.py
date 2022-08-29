@@ -508,6 +508,39 @@ def test_execute_questionnaire_no_interaction(run, qtbot):
 
 
 # noinspection PyArgumentList
+def test_execute_questionnaire_no_interaction_blocked(run, qtbot):
+    with mock_file(r'./test/results/results_mr.csv'):
+        assert run.Stack.count() == 1
+        QTimer.singleShot(100, handle_dialog)
+        QTest.mouseClick(run.forwardbutton, Qt.LeftButton)
+        res_file = None
+        for file in os.listdir("./test/results/"):
+            if file.find("_backup_"):
+                res_file = "./test/results/{}".format(file)
+        results = []
+        with open(res_file, mode='r') as file:
+            csv_file = csv.reader(file, delimiter=';')
+
+            for lines in csv_file:
+                results = lines
+                if results[0].startswith('data'):
+                    assert lines[0] == 'data_row_number'  # participant number
+                    assert lines[1] == 'mr'
+                    assert lines[2] == 'mr_1'
+                    assert lines[3] == 'mr_2'
+                    assert lines[4] == 'Start'
+                    assert lines[5] == 'End'
+        assert len(results) == 6
+        assert lines[0] == '-1'  # participant number unknow
+        assert lines[1] == '[[], [], []]'  # no stimulus played yet
+        assert lines[2] == '100'  # default slider value
+        assert lines[3] == '100'  # default slider value
+        assert re.match(r'\d+-\d+-\d+ \d+:\d+:\d+.\d+', lines[4])  # timestamp
+        assert re.match(r'\d+-\d+-\d+ \d+:\d+:\d+.\d+', lines[5])  # timestamp
+        os.remove(res_file)
+
+
+# noinspection PyArgumentList
 def test_execute_questionnaire(run, qtbot):
     if os.path.exists("./test/results/results_mr.csv"):
         os.remove("./test/results/results_mr.csv")
@@ -542,3 +575,49 @@ def test_execute_questionnaire(run, qtbot):
     assert re.match(r'\d+-\d+-\d+ \d+:\d+:\d+.\d+', lines[4])  # timestamp
     assert re.match(r'\d+-\d+-\d+ \d+:\d+:\d+.\d+', lines[5])  # timestamp
     os.remove("./test/results/results_mr.csv")
+
+
+# noinspection PyArgumentList
+def test_execute_questionnaire_blocked(run, qtbot):
+    with mock_file(r'./test/results/results_mr.csv'):
+        assert run.Stack.count() == 1
+        for child in run.Stack.currentWidget().children():
+            if type(child) == MUSHRA:
+                assert child.conditionsUseSameMarker == False
+                assert hasattr(child, 'xfade') == False
+                assert child.playing == False
+                child.refbutton.click()
+                for sl in range(len(child.buttons)):
+                    assert child.sliders[sl].isEnabled() == False
+                for sl in range(len(child.buttons)):
+                    child.buttons[sl].click()  # starts each stimulus
+                    QTest.qWait(500)
+                    bb = child.sliders[sl].rect()
+                    QTest.mouseClick(child.sliders[sl], Qt.LeftButton,
+                                     pos=QPoint(bb.center().x(), int(bb.bottom() - 0.1 * (sl + 1) * bb.bottom())))
+        QTimer.singleShot(100, handle_dialog)
+        QTest.mouseClick(run.forwardbutton, Qt.LeftButton)
+        res_file = None
+        for file in os.listdir("./test/results/"):
+            if file.find("_backup_"):
+                res_file = "./test/results/{}".format(file)
+        results = []
+        with open(res_file, mode='r') as file:
+            csv_file = csv.reader(file, delimiter=';')
+
+            for lines in csv_file:
+                results = lines
+                if results[0].startswith('data'):
+                    assert lines[0] == 'data_row_number'  # participant number
+                    assert lines[1] == 'mr'
+                    assert lines[2] == 'mr_1'
+                    assert lines[3] == 'mr_2'
+                    assert lines[4] == 'Start'
+                    assert lines[5] == 'End'
+        assert len(results) == 6
+        assert lines[0] == '-1'  # participant number unknow
+        assert re.match(r'\[\[\d.\d+], \[\d.\d+], \[\d.\d+]]', lines[1])  # list of durations
+        assert int(lines[2]) < int(lines[3])
+        assert re.match(r'\d+-\d+-\d+ \d+:\d+:\d+.\d+', lines[4])  # timestamp
+        assert re.match(r'\d+-\d+-\d+ \d+:\d+:\d+.\d+', lines[5])  # timestamp
+        os.remove(res_file)

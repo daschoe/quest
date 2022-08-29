@@ -238,7 +238,6 @@ def test_labels(gui_load, qtbot):
     gui_load.structure = listify(gui_load.structure)
     QTimer.singleShot(150, handle_dialog_error)
     error_found, warning_found, warning_details = validate_questionnaire(gui_load.structure)
-    #assert gui_load.structure["Page 1"]["Question 1"]["label"] == [[0, "two", "three"], [4, "five", "six"]]
     assert error_found == True
     assert warning_found == False
 
@@ -251,7 +250,6 @@ def test_labels(gui_load, qtbot):
     gui_load.structure = listify(gui_load.structure)
     QTimer.singleShot(150, handle_dialog_error)
     error_found, warning_found, warning_details = validate_questionnaire(gui_load.structure)
-    #assert gui_load.structure["Page 1"]["Question 1"]["label"] == [["two", "three"]]
     assert error_found == True
     assert warning_found == False
 
@@ -577,7 +575,7 @@ def test_step(gui_load, qtbot):
     assert test_gui.Stack.count() == 1
     for child in test_gui.Stack.currentWidget().children():
         if type(child) == Slider.Slider:
-            print(child.tickInterval()) # TODO is it possible to count the displayed ticks/steps?
+            print(child.tickInterval())  # TODO is it possible to count the displayed ticks/steps?
             #assert child.value() == int(gui_load.structure["Page 1"]["Question 1"]["max"])
 
     QTimer.singleShot(100, handle_dialog)
@@ -617,7 +615,7 @@ def test_step(gui_load, qtbot):
     assert test_gui.Stack.count() == 1
     for child in test_gui.Stack.currentWidget().children():
         if type(child) == Slider.Slider:
-            print(child.tickInterval()) # TODO is it possible to count the displayed ticks/steps?
+            print(child.tickInterval())  # TODO is it possible to count the displayed ticks/steps?
             #assert child.value() == int(gui_load.structure["Page 1"]["Question 1"]["min"])
 
     QTimer.singleShot(100, handle_dialog)
@@ -631,7 +629,7 @@ def test_step(gui_load, qtbot):
             results = lines
     assert len(results) == 4
     assert lines[0] == '1'  # participant number
-    assert lines[1] == '0.0' # initial value
+    assert lines[1] == '0.0'  # initial value
     assert re.match(r'\d+-\d+-\d+ \d+:\d+:\d+.\d+', lines[2])  # timestamp
     assert re.match(r'\d+-\d+-\d+ \d+:\d+:\d+.\d+', lines[3])  # timestamp
     os.remove("./test/results/results_sl.csv")
@@ -717,9 +715,8 @@ def test_min(gui_load, qtbot):
         if type(child) == Slider.Slider:
             assert child.minimum() == 0
             assert child._min == int(gui_load.structure["Page 1"]["Question 1"]["min"])
-            assert child.maximum() == int((int(gui_load.structure["Page 1"]["Question 1"]["max"])-int(gui_load.structure["Page 1"]["Question 1"]["min"]))/int(gui_load.structure["Page 1"]["Question 1"]["step"])) if int(gui_load.structure["Page 1"]["Question 1"]["max"])>int(gui_load.structure["Page 1"]["Question 1"]["min"]) else -1*int((int(gui_load.structure["Page 1"]["Question 1"]["max"])-int(gui_load.structure["Page 1"]["Question 1"]["min"]))/int(gui_load.structure["Page 1"]["Question 1"]["step"]))
+            assert child.maximum() == int((int(gui_load.structure["Page 1"]["Question 1"]["max"])-int(gui_load.structure["Page 1"]["Question 1"]["min"]))/int(gui_load.structure["Page 1"]["Question 1"]["step"])) if int(gui_load.structure["Page 1"]["Question 1"]["max"]) > int(gui_load.structure["Page 1"]["Question 1"]["min"]) else -1*int((int(gui_load.structure["Page 1"]["Question 1"]["max"])-int(gui_load.structure["Page 1"]["Question 1"]["min"]))/int(gui_load.structure["Page 1"]["Question 1"]["step"]))
             assert child._max == int(gui_load.structure["Page 1"]["Question 1"]["max"])
-            #assert child.invertedAppearance() == True
 
     QTimer.singleShot(100, handle_dialog)
     QTest.mouseClick(test_gui.forwardbutton, Qt.LeftButton, delay=1)
@@ -763,7 +760,6 @@ def test_min(gui_load, qtbot):
                 gui_load.structure["Page 1"]["Question 1"]["min"])) / int(
                 gui_load.structure["Page 1"]["Question 1"]["step"]))
             assert child.sl._max == int(gui_load.structure["Page 1"]["Question 1"]["max"])
-            #assert child.sl.invertedAppearance() == True
         elif type(child) == Slider.Slider:
             assert False
     QTimer.singleShot(100, handle_dialog)
@@ -815,7 +811,6 @@ def test_min(gui_load, qtbot):
                 gui_load.structure["Page 1"]["Question 1"]["min"])) / int(
                 gui_load.structure["Page 1"]["Question 1"]["step"]))
             assert child._max == int(gui_load.structure["Page 1"]["Question 1"]["max"])
-            #assert child.invertedAppearance() == False
     QTimer.singleShot(100, handle_dialog)
     QTest.mouseClick(test_gui.forwardbutton, Qt.LeftButton, delay=1)
     test_gui.close()
@@ -910,7 +905,6 @@ def test_max(gui_load, qtbot):
                 gui_load.structure["Page 1"]["Question 1"]["min"])) / int(
                 gui_load.structure["Page 1"]["Question 1"]["step"]))
             assert child._max == int(gui_load.structure["Page 1"]["Question 1"]["max"])
-            #assert child.invertedAppearance() == True
 
     QTimer.singleShot(100, handle_dialog)
     QTest.mouseClick(test_gui.forwardbutton, Qt.LeftButton, delay=1)
@@ -954,7 +948,6 @@ def test_max(gui_load, qtbot):
                 gui_load.structure["Page 1"]["Question 1"]["min"])) / int(
                 gui_load.structure["Page 1"]["Question 1"]["step"]))
             assert child.sl._max == int(gui_load.structure["Page 1"]["Question 1"]["max"])
-            #assert child.sl.invertedAppearance() == True
         elif type(child) == Slider.Slider:
             assert False
     QTimer.singleShot(100, handle_dialog)
@@ -1006,7 +999,6 @@ def test_max(gui_load, qtbot):
                 gui_load.structure["Page 1"]["Question 1"]["min"])) / int(
                 gui_load.structure["Page 1"]["Question 1"]["step"]))
             assert child._max == int(gui_load.structure["Page 1"]["Question 1"]["max"])
-            #assert child.invertedAppearance() == False
     QTimer.singleShot(100, handle_dialog)
     QTest.mouseClick(test_gui.forwardbutton, Qt.LeftButton, delay=1)
     test_gui.close()
@@ -1187,6 +1179,35 @@ def test_execute_questionnaire_no_interaction(run, qtbot):
 
 
 # noinspection PyArgumentList
+def test_execute_questionnaire_no_interaction_blocked(run, qtbot):
+    with mock_file(r'./test/results/results_sl.csv'):
+        assert run.Stack.count() == 1
+        QTimer.singleShot(100, handle_dialog)
+        QTest.mouseClick(run.forwardbutton, Qt.LeftButton)
+        res_file = None
+        for file in os.listdir("./test/results/"):
+            if file.find("_backup_"):
+                res_file = "./test/results/{}".format(file)
+        results = []
+        with open(res_file, mode='r') as file:
+            csv_file = csv.reader(file, delimiter=';')
+
+            for lines in csv_file:
+                results = lines
+                if results[0].startswith('data'):
+                    assert lines[0] == 'data_row_number'  # participant number
+                    assert lines[1] == 'sl'  # first row
+                    assert lines[2] == 'Start'
+                    assert lines[3] == 'End'
+        assert len(results) == 4
+        assert lines[0] == '-1'  # participant number unknown
+        assert lines[1] == '0'  # initial value
+        assert re.match(r'\d+-\d+-\d+ \d+:\d+:\d+.\d+', lines[2])  # timestamp
+        assert re.match(r'\d+-\d+-\d+ \d+:\d+:\d+.\d+', lines[3])  # timestamp
+        os.remove(res_file)
+
+
+# noinspection PyArgumentList
 def test_execute_questionnaire(run, qtbot):
     if os.path.exists("./test/results/results_sl.csv"):
         os.remove("./test/results/results_sl.csv")
@@ -1212,3 +1233,37 @@ def test_execute_questionnaire(run, qtbot):
     assert re.match(r'\d+-\d+-\d+ \d+:\d+:\d+.\d+', lines[2])  # timestamp
     assert re.match(r'\d+-\d+-\d+ \d+:\d+:\d+.\d+', lines[3])  # timestamp
     os.remove("./test/results/results_sl.csv")
+
+
+# noinspection PyArgumentList
+def test_execute_questionnaire_blocked(run, qtbot):
+    with mock_file(r'./test/results/results_sl.csv'):
+        assert run.Stack.count() == 1
+        for child in run.Stack.currentWidget().children():
+            if type(child) == Slider.Slider:
+                bb = child.rect()
+                QTest.mouseClick(child, Qt.LeftButton, pos=bb.center())
+                assert child.value() == int((child._max + child._min) / 2)
+        QTimer.singleShot(100, handle_dialog)
+        QTest.mouseClick(run.forwardbutton, Qt.LeftButton)
+        res_file = None
+        for file in os.listdir("./test/results/"):
+            if file.find("_backup_"):
+                res_file = "./test/results/{}".format(file)
+        results = []
+        with open(res_file, mode='r') as file:
+            csv_file = csv.reader(file, delimiter=';')
+
+            for lines in csv_file:
+                results = lines
+                if results[0].startswith('data'):
+                    assert lines[0] == 'data_row_number'  # participant number
+                    assert lines[1] == 'sl'  # first row
+                    assert lines[2] == 'Start'
+                    assert lines[3] == 'End'
+        assert len(results) == 4
+        assert lines[0] == '-1'  # participant number unknown
+        assert lines[1] == '2'
+        assert re.match(r'\d+-\d+-\d+ \d+:\d+:\d+.\d+', lines[2])  # timestamp
+        assert re.match(r'\d+-\d+-\d+ \d+:\d+:\d+.\d+', lines[3])  # timestamp
+        os.remove(res_file)

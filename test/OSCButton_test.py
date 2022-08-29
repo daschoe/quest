@@ -276,8 +276,6 @@ def test_address(gui_load, qtbot):
     QTimer.singleShot(150, handle_dialog_warning)
     test_gui = StackedWindowGui("./test/osctest.txt")
     assert test_gui.Stack.count() == 1
-    #for child in test_gui.Stack.currentWidget().children():
-        #if type(child) == OSCButton:
 
     QTimer.singleShot(100, handle_dialog)
     QTest.mouseClick(test_gui.forwardbutton, Qt.LeftButton, delay=1)
@@ -354,8 +352,6 @@ def test_value(gui_load, qtbot):
     QTest.keyClicks(gui_load, 's', modifier=Qt.ControlModifier)
     test_gui = StackedWindowGui("./test/osctest.txt")
     assert test_gui.Stack.count() == 1
-    #for child in test_gui.Stack.currentWidget().children():
-        #if type(child) == OSCButton:
 
     QTimer.singleShot(100, handle_dialog)
     QTest.mouseClick(test_gui.forwardbutton, Qt.LeftButton, delay=1)
@@ -363,8 +359,6 @@ def test_value(gui_load, qtbot):
 
     #  empty value
     gui_load.gui.edit_layout.itemAt(val_pos, 1).widget().clear()
-    #gui_load.gui.edit_layout.itemAt(val_pos, 1).widget().setText("")
-    #assert gui_load.gui.edit_layout.itemAt(val_pos, 1).widget().text() == ""
     gui_load.gui.edit_layout.itemAt(val_pos, 1).widget().editingFinished.emit()
     assert gui_load.structure["Page 1"]["Question 1"]["value"] == ""
     QTimer.singleShot(150, handle_dialog_error)
@@ -516,10 +510,39 @@ def test_execute_questionnaire_no_interaction(run, qtbot):
                 assert lines[3] == 'End'
     assert len(results) == 4
     assert lines[0] == '1'  # participant number
-    assert lines[1] == 'False' # button not clicked
+    assert lines[1] == 'False'  # button not clicked
     assert re.match(r'\d+-\d+-\d+ \d+:\d+:\d+.\d+', lines[2])  # timestamp
     assert re.match(r'\d+-\d+-\d+ \d+:\d+:\d+.\d+', lines[3])  # timestamp
     os.remove("./test/results/results_osc.csv")
+
+
+# noinspection PyArgumentList
+def test_execute_questionnaire_no_interaction_blocked(run, qtbot):
+    with mock_file(r'./test/results/results_osc.csv'):
+        assert run.Stack.count() == 1
+        QTimer.singleShot(100, handle_dialog)
+        QTest.mouseClick(run.forwardbutton, Qt.LeftButton)
+        res_file = None
+        for file in os.listdir("./test/results/"):
+            if file.find("_backup_"):
+                res_file = "./test/results/{}".format(file)
+        results = []
+        with open(res_file, mode='r') as file:
+            csv_file = csv.reader(file, delimiter=';')
+
+            for lines in csv_file:
+                results = lines
+                if results[0].startswith('data'):
+                    assert lines[0] == 'data_row_number'  # participant number
+                    assert lines[1] == 'osc'
+                    assert lines[2] == 'Start'
+                    assert lines[3] == 'End'
+        assert len(results) == 4
+        assert lines[0] == '-1'  # participant number unknown
+        assert lines[1] == 'False'  # button not clicked
+        assert re.match(r'\d+-\d+-\d+ \d+:\d+:\d+.\d+', lines[2])  # timestamp
+        assert re.match(r'\d+-\d+-\d+ \d+:\d+:\d+.\d+', lines[3])  # timestamp
+        os.remove(res_file)
 
 
 # noinspection PyArgumentList
@@ -547,7 +570,39 @@ def test_execute_questionnaire(run, qtbot):
                 assert lines[3] == 'End'
     assert len(results) == 4
     assert lines[0] == '1'  # participant number
-    assert lines[1] == 'True' # button was clicked
+    assert lines[1] == 'True'  # button was clicked
     assert re.match(r'\d+-\d+-\d+ \d+:\d+:\d+.\d+', lines[2])  # timestamp
     assert re.match(r'\d+-\d+-\d+ \d+:\d+:\d+.\d+', lines[3])  # timestamp
     os.remove("./test/results/results_osc.csv")
+
+
+# noinspection PyArgumentList
+def test_execute_questionnaire_blocked(run, qtbot):
+    with mock_file(r'./test/results/results_osc.csv'):
+        assert run.Stack.count() == 1
+        for child in run.Stack.currentWidget().children():
+            if type(child) is OSCButton:
+                child.button.click()
+        QTimer.singleShot(100, handle_dialog)
+        QTest.mouseClick(run.forwardbutton, Qt.LeftButton)
+        res_file = None
+        for file in os.listdir("./test/results/"):
+            if file.find("_backup_"):
+                res_file = "./test/results/{}".format(file)
+        results = []
+        with open(res_file, mode='r') as file:
+            csv_file = csv.reader(file, delimiter=';')
+
+            for lines in csv_file:
+                results = lines
+                if results[0].startswith('data'):
+                    assert lines[0] == 'data_row_number'  # participant number
+                    assert lines[1] == 'osc'
+                    assert lines[2] == 'Start'
+                    assert lines[3] == 'End'
+        assert len(results) == 4
+        assert lines[0] == '-1'  # participant number unknown
+        assert lines[1] == 'True'  # button not clicked
+        assert re.match(r'\d+-\d+-\d+ \d+:\d+:\d+.\d+', lines[2])  # timestamp
+        assert re.match(r'\d+-\d+-\d+ \d+:\d+:\d+.\d+', lines[3])  # timestamp
+        os.remove(res_file)

@@ -607,6 +607,39 @@ def test_execute_questionnaire_no_interaction(run, qtbot):
 
 
 # noinspection PyArgumentList
+def test_execute_questionnaire_no_interaction_blocked(run, qtbot):
+    with mock_file(r'./test/results/results_rm.csv'):
+        assert run.Stack.count() == 1
+        QTimer.singleShot(100, handle_dialog)
+        QTest.mouseClick(run.forwardbutton, Qt.LeftButton)
+        res_file = None
+        for file in os.listdir("./test/results/"):
+            if file.find("_backup_"):
+                res_file = "./test/results/{}".format(file)
+        results = []
+        with open(res_file, mode='r') as file:
+            csv_file = csv.reader(file, delimiter=';')
+
+            for lines in csv_file:
+                results = lines
+                if results[0].startswith('data'):
+                    assert lines[0] == 'data_row_number'  # participant number
+                    assert lines[1] == 'rm_1'  # first row
+                    assert lines[2] == 'rm_2'  # second row
+                    assert lines[3] == 'rm_order'  # second row
+                    assert lines[4] == 'Start'
+                    assert lines[5] == 'End'
+        assert len(results) == 6
+        assert lines[0] == '-1'  # participant number unknown
+        assert lines[1] == '-1'  # no radiobutton checked
+        assert lines[2] == '-1'  # no radiobutton checked
+        assert lines[3] == '[1, 2]'  # order
+        assert re.match(r'\d+-\d+-\d+ \d+:\d+:\d+.\d+', lines[4])  # timestamp
+        assert re.match(r'\d+-\d+-\d+ \d+:\d+:\d+.\d+', lines[5])  # timestamp
+        os.remove(res_file)
+
+
+# noinspection PyArgumentList
 def test_execute_questionnaire(run, qtbot):
     if os.path.exists("./test/results/results_rm.csv"):
         os.remove("./test/results/results_rm.csv")
@@ -633,6 +666,43 @@ def test_execute_questionnaire(run, qtbot):
     assert re.match(r'\d+-\d+-\d+ \d+:\d+:\d+.\d+', lines[4])  # timestamp
     assert re.match(r'\d+-\d+-\d+ \d+:\d+:\d+.\d+', lines[5])  # timestamp
     os.remove("./test/results/results_rm.csv")
+
+
+# noinspection PyArgumentList
+def test_execute_questionnaire_blocked(run, qtbot):
+    with mock_file(r'./test/results/results_rm.csv'):
+        assert run.Stack.count() == 1
+        for child in run.Stack.currentWidget().children():
+            if type(child) == RadioMatrix.RadioMatrix:
+                for bg in range(len(child.buttongroups)):
+                    child.buttongroups[bg].button(bg).click()
+        QTimer.singleShot(100, handle_dialog)
+        QTest.mouseClick(run.forwardbutton, Qt.LeftButton)
+        res_file = None
+        for file in os.listdir("./test/results/"):
+            if file.find("_backup_"):
+                res_file = "./test/results/{}".format(file)
+        results = []
+        with open(res_file, mode='r') as file:
+            csv_file = csv.reader(file, delimiter=';')
+
+            for lines in csv_file:
+                results = lines
+                if results[0].startswith('data'):
+                    assert lines[0] == 'data_row_number'  # participant number
+                    assert lines[1] == 'rm_1'  # first row
+                    assert lines[2] == 'rm_2'  # second row
+                    assert lines[3] == 'rm_order'  # second row
+                    assert lines[4] == 'Start'
+                    assert lines[5] == 'End'
+        assert len(results) == 6
+        assert lines[0] == '-1'  # participant number unknown
+        assert lines[1] == '0'
+        assert lines[2] == '1'
+        assert lines[3] == '[1, 2]'  # order
+        assert re.match(r'\d+-\d+-\d+ \d+:\d+:\d+.\d+', lines[4])  # timestamp
+        assert re.match(r'\d+-\d+-\d+ \d+:\d+:\d+.\d+', lines[5])  # timestamp
+        os.remove(res_file)
 
 
 # noinspection PyArgumentList

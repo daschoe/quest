@@ -218,6 +218,39 @@ def test_execute_questionnaire_no_interaction(run, qtbot):
 
 
 # noinspection PyArgumentList
+def test_execute_questionnaire_no_interaction_blocked(run, qtbot):
+    with mock_file(r'./test/results/results_cb.csv'):
+        assert run.Stack.count() == 1
+        QTimer.singleShot(100, handle_dialog)
+        QTest.mouseClick(run.forwardbutton, Qt.LeftButton)
+        res_file = None
+        for file in os.listdir("./test/results/"):
+            if file.find("_backup_"):
+                res_file = "./test/results/{}".format(file)
+        results = []
+        with open(res_file, mode='r') as file:
+            csv_file = csv.reader(file, delimiter=';')
+
+            for lines in csv_file:
+                results = lines
+                if results[0].startswith('data'):
+                    assert lines[0] == 'data_row_number'  # participant number
+                    assert lines[1] == 'cb1_0'
+                    assert lines[2] == 'cb1_1'
+                    assert lines[3] == 'cb1_2'
+                    assert lines[4] == 'Start'
+                    assert lines[5] == 'End'
+        assert len(results) == 6
+        assert lines[0] == '-1'  # participant number unknown
+        assert lines[1] == 'False'  # first cb not checked
+        assert lines[2] == 'False'  # second cb not checked
+        assert lines[3] == 'False'  # third cb not checked
+        assert re.match(r'\d+-\d+-\d+ \d+:\d+:\d+.\d+', lines[4])  # timestamp
+        assert re.match(r'\d+-\d+-\d+ \d+:\d+:\d+.\d+', lines[5])  # timestamp
+        os.remove(res_file)
+
+
+# noinspection PyArgumentList
 def test_execute_questionnaire(run, qtbot):
     assert run.Stack.count() == 1
     cb_cnt = 1
@@ -244,3 +277,42 @@ def test_execute_questionnaire(run, qtbot):
     assert re.match(r'\d+-\d+-\d+ \d+:\d+:\d+.\d+', lines[4])  # timestamp
     assert re.match(r'\d+-\d+-\d+ \d+:\d+:\d+.\d+', lines[5])  # timestamp
     os.remove("./test/results/results_cb.csv")
+
+
+# noinspection PyArgumentList
+def test_execute_questionnaire_blocked(run, qtbot):
+    with mock_file(r'./test/results/results_cb.csv'):
+        assert run.Stack.count() == 1
+        cb_cnt = 1
+        for child in run.Stack.currentWidget().children():
+            if type(child) == QCheckBox:
+                for i in range(cb_cnt):
+                    child.click()
+                cb_cnt += 1
+        QTimer.singleShot(100, handle_dialog)
+        QTest.mouseClick(run.forwardbutton, Qt.LeftButton)
+        res_file = None
+        for file in os.listdir("./test/results/"):
+            if file.find("_backup_"):
+                res_file = "./test/results/{}".format(file)
+        results = []
+        with open(res_file, mode='r') as file:
+            csv_file = csv.reader(file, delimiter=';')
+
+            for lines in csv_file:
+                results = lines
+                if results[0].startswith('data'):
+                    assert lines[0] == 'data_row_number'  # participant number
+                    assert lines[1] == 'cb1_0'
+                    assert lines[2] == 'cb1_1'
+                    assert lines[3] == 'cb1_2'
+                    assert lines[4] == 'Start'
+                    assert lines[5] == 'End'
+        assert len(results) == 6
+        assert lines[0] == '-1'  # participant number unknown
+        assert lines[1] == 'True'  # first cb checked
+        assert lines[2] == 'False'  # second cb not checked
+        assert lines[3] == 'True'  # third cb checked
+        assert re.match(r'\d+-\d+-\d+ \d+:\d+:\d+.\d+', lines[4])  # timestamp
+        assert re.match(r'\d+-\d+-\d+ \d+:\d+:\d+.\d+', lines[5])  # timestamp
+        os.remove(res_file)

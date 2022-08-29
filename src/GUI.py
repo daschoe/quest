@@ -670,8 +670,11 @@ class StackedWindowGui(QWidget):
                 self.pupil_remote.recv_string()
             except zmq.ZMQError:
                 print("Couldn't connect with Pupil Capture!")
-            
-        fields = {"data_row_number": self.get_participant_number()}
+
+        try:
+            fields = {"data_row_number": self.get_participant_number()}
+        except PermissionError:  # file is open and can't be read
+            fields = {"data_row_number": -1}
         for s in range(0, self.Stack.count()):
             if self.Stack.widget(s).evaluationvars is not None:
                 for qid, ans in self.Stack.widget(s).evaluationvars.items():
@@ -749,18 +752,19 @@ class StackedWindowGui(QWidget):
                 writer.writerow(row)
         except (PermissionError, KeyError):
             print("Can not access results file, saving backup!")
-            participant_number = self.get_participant_number()
+            try:
+                participant_number = self.get_participant_number()
+            except PermissionError: # file can't be read
+                participant_number = "unknown"
             self.filepath_results = path[0]+"/"+str(participant_number)+"_backup_"+datetime.datetime.now().strftime("%Y-%m-%d_%H-%M-%S")+".csv"
             print("Backup file: {}".format(self.filepath_results))
             with open(self.filepath_results, "w+", newline='', encoding='utf_8') as csvfile:
                 writer = csv.writer(csvfile, delimiter=self.delimiter)
-                header = fields.keys()
+                header = list(fields.keys())
                 writer.writerow(header)
-            with open(self.filepath_results, "a", newline='', encoding='utf_8') as csvfile:
-                writer = csv.writer(csvfile, delimiter=self.delimiter)
                 row = []
-                for field in range(0, len(headers)):
-                    row.append(fields[headers[field]])
+                for field in range(0, len(header)):
+                    row.append(fields[header[field]])
                 writer.writerow(row)
 
         print("DONE")
