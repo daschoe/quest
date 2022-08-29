@@ -14,7 +14,7 @@ class Player(Thread):
         self._player = self._instance.media_player_new()
         self._player.audio_set_volume(0)
         self.finished = Event()
-        self.reaper_client = udp_client.SimpleUDPClient("172.23.170.2", 8000)
+        self.reaper_client = udp_client.SimpleUDPClient("127.0.0.1", 8000)
 
         em = self._player.event_manager()
         em.event_attach(vlc.EventType.MediaPlayerEndReached, self.end_reached)
