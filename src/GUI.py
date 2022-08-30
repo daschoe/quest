@@ -354,6 +354,8 @@ class StackedWindowGui(QWidget):
                     l_layout.addWidget(self.nav)
                     scroll.setWidget(layout)
 
+                    self.Stack.currentChanged[int].connect(lambda: scroll.verticalScrollBar().setValue(0))
+                    self.Stack.currentChanged[int].connect(lambda: scroll.horizontalScrollBar().setValue(0))
                     self.setLayout(outerlayout)
                     if self.popup and not self.preview:
                         self.showFullScreen()
