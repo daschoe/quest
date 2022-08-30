@@ -459,7 +459,7 @@ class EditGui(QWidget):
             self.pw_file.setText(dlg.selectedFiles()[0])
             page = self.treeview.selectedItems()[0].parent().text(0)
             question = self.treeview.selectedItems()[0].text(0)
-            if self.parent().structure[page][question]["password_file"] != self.pw_file.text():
+            if "password_file" not in self.parent().structure[page][question].keys() or self.parent().structure[page][question]["password_file"] != self.pw_file.text():
                 self.parent().undo_stack.append(copy.deepcopy(dict(self.parent().structure)))
                 self.parent().undoaction.setEnabled(True)
                 self.parent().redo_stack.clear()
