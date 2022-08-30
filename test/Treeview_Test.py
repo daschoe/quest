@@ -110,3 +110,25 @@ def test_add_question_after_load(gui_init, qtbot):
     assert tv.topLevelItem(0).child(0).child(0).childCount() == 0
     assert tv.topLevelItem(0).child(0).child(0).text(0) == "Question 1"
     assert len(gui_init.undo_stack) == 1
+
+
+# noinspection PyArgumentList
+def test_add_page_after_load(gui_init, qtbot):
+    QTimer.singleShot(150, lambda: open_config_file("./test/onepage.txt"))
+    gui_init.load_file()
+    tv = gui_init.gui.treeview
+    tv.setCurrentItem(tv.topLevelItem(0))
+    assert gui_init.gui.page_add.isEnabled() == True
+    QTest.qWait(500)
+
+    QTimer.singleShot(100, handle_dialog_p)
+    QTimer.singleShot(100, handle_dialog_sa)
+    QTest.mouseClick(gui_init.gui.page_add, Qt.LeftButton, delay=1)
+
+    assert tv.itemAt(0, 0).text(0) == "onepage.txt"
+    assert tv.topLevelItemCount() == 1
+    assert tv.topLevelItem(0).childCount() == 2
+    assert tv.topLevelItem(0).child(0).childCount() == 0
+    assert tv.topLevelItem(0).child(0).text(0) == "Section"
+    #print(gui_init.undo_stack)
+    assert len(gui_init.undo_stack) == 1

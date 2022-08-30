@@ -11,6 +11,13 @@ PUPIL_PATH = "C:\\Program Files (x86)\\Pupil-Labs\\Pupil v3.5.1\\Pupil Capture v
 
 
 # noinspection PyArgumentList
+def handle_dialog_sa():
+    """Click 'No' on change save_after dialog."""
+    dialog = QApplication.activeModalWidget()
+    QTest.mouseClick(dialog.buttons()[1], Qt.LeftButton)
+
+
+# noinspection PyArgumentList
 def handle_dialog_p():
     """Set page name in popup dialog."""
     dialog = QApplication.activeModalWidget()
