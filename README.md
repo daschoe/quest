@@ -113,7 +113,7 @@ The necessary python libraries are given in ```requirements.txt```.
 
 ### Installation
 
-1. Clone the repo or download the [latest stable release](https://gitlab.uni-hannover.de/da.schoessow/quest/-/releases#v1.0.4)
+1. Clone the repo or download the [latest stable release](https://gitlab.uni-hannover.de/da.schoessow/quest/-/releases#v1.0.5)
    ```sh
    git clone https://gitlab.uni-hannover.de/da.schoessow/quest.git
    ```
@@ -154,7 +154,7 @@ _For more examples and explanation, please refer to the [Documentation](https://
 - [ ] Automatic page generation/templates (e.g. pairwise comparison)
 - [ ] PyQt6 compatible release
 - [ ] Editor for *.qss
-- [ ] Usage of Mad Mapper as video tool (OSC support given)
+- [x] Usage of Mad Mapper as video tool (OSC support given)
 - [ ] Fix pdf export graphic glitches
 - [ ] svgs for CheckBox and RadioButton
 - [ ] automatic centering of SliderHeader/MatrixHeader
