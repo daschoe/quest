@@ -8,6 +8,7 @@ from PyQt5.QtCore import QTimer, QObject
 from PyQt5.QtWidgets import QWidget, QPushButton, QHBoxLayout, QStyle
 
 from src.PupilCoreButton import Button
+from src.Video import madmapper, vlc
 
 
 class Player(QWidget):
@@ -53,7 +54,7 @@ class Player(QWidget):
         track : int or list of int
             active tracks (e.g. in REAPER)
         video : str, optional
-            filename+path to the video which should be played.
+            filename+path / scene name to the video which should be played.
         qid : str
             id of the question
         parent : QObject, optional
@@ -79,6 +80,13 @@ class Player(QWidget):
         self.audio_client = self.parent().parent().audio_client
         self.audio_tracks = self.parent().parent().audio_tracks
         self.video_client = self.parent().parent().video_client
+        video_player = self.parent().parent().video_player
+        if video_player == "MadMapper":
+            self.video_player = madmapper
+        elif video_player == "VLC":
+            self.video_player = vlc
+        else:
+            self.video_player = None
         if pupil is not None and not self.parent().parent().preview:
             self.pupil_func = Button(None, "Annotate", parent, qid)
             self.pupil_message = pupil
@@ -160,7 +168,7 @@ class Player(QWidget):
             if player.playing and not player == self:
                 player.stop()
                 if (self.video is not None) and (self.video_client is not None):
-                    self.video_client.send_message("/vlc_stop", self.video)
+                    self.video_client.send_message(self.video_player["stop"][0], self.video_player["stop"][1])
         if "Stop" in self.buttons:
             self.stop_button.setEnabled(True)
         if "Pause" in self.buttons:
@@ -169,8 +177,8 @@ class Player(QWidget):
 
         if self.paused:
             self.audio_client.send_message("/pause", 1)
-            if (self.video is not None) and (self.video_client is not None):
-                self.video_client.send_message("/vlc_stop", self.video)  # unpauses
+            if (self.video is not None) and (self.video_client is not None): #TODO
+                self.video_client.send_message(self.video_player["play"][0], self.video_player["play"][1])  # unpauses TODO
             self.pause_button.setChecked(False)
             if str(type(self.parent())) == "<class 'src.Page.Page'>":
                 self.parent().page_log += "\n\t{} - Unpaused Player {} ".format(datetime.datetime.now().replace(microsecond=0).__str__(), self.id)
@@ -191,7 +199,13 @@ class Player(QWidget):
             self.audio_client.send_message("/stop", 1)
             self.audio_client.send_message("/play", 1)
             if (self.video is not None) and (self.video_client is not None):
-                self.video_client.send_message("/vlc_start", self.video)
+                if "select" in self.video_player.keys():
+                    self.video_client.send_message(self.video_player["reset"][0], self.video_player["reset"][1])
+                    self.video_client.send_message(self.video_player["select"][0].format(self.video), self.video_player["select"][1])
+                    self.video_client.send_message(self.video_player["play"][0], self.video_player["play"][1])
+                else:
+                    self.video_client.send_message(self.video_player["play"][0], self.video_player["play"][1].format(self.video))
+
             if str(type(self.parent())) == "<class 'src.Page.Page'>":
                 self.parent().page_log += "\n\t{} - (Re-)Started Player {} ".format(datetime.datetime.now().replace(microsecond=0).__str__(), self.id)
             else:
@@ -242,7 +256,7 @@ class Player(QWidget):
             self.playing = False
             self.audio_client.send_message("/pause", 1)
             if (self.video is not None) and (self.video_client is not None):
-                self.video_client.send_message("/vlc_stop", self.video)
+                self.video_client.send_message(self.video_player["pause"][0], self.video_player["pause"][1])
             self.pause_button.setChecked(True)
             if str(type(self.parent())) == "<class 'src.Page.Page'>":
                 self.parent().page_log += "\n\t{} - Paused Player {} ".format(datetime.datetime.now().replace(microsecond=0).__str__(), self.id)
@@ -258,7 +272,7 @@ class Player(QWidget):
             self.playing = True
             self.audio_client.send_message("/pause", 1)
             if (self.video is not None) and (self.video_client is not None):
-                self.video_client.send_message("/vlc_stop", self.video)
+                self.video_client.send_message(self.video_player["play"][0], self.video_player["play"][1])
             self.pause_button.setChecked(False)
             if str(type(self.parent())) == "<class 'src.Page.Page'>":
                 self.parent().page_log += "\n\t{} - Unpaused Player {} ".format(datetime.datetime.now().replace(microsecond=0).__str__(), self.id)
@@ -274,7 +288,7 @@ class Player(QWidget):
         """Stop the playback."""
         self.audio_client.send_message("/stop", 1)
         if (self.video is not None) and (self.video_client is not None) and not self.paused:
-            self.video_client.send_message("/vlc_stop", "stop")
+            self.video_client.send_message(self.video_player["stop"][0], self.video_player["stop"][1])
         self.end = time()
         self.duration.append(self.end - self.start)
         self.start = 0

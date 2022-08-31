@@ -666,6 +666,12 @@ class EditGui(QWidget):
                                 self.rand_filechooser.setEnabled(True)
                             else:
                                 self.rand_filechooser.setEnabled(False)
+                        elif field == "video_player":
+                            val_field = QComboBox()
+                            val_field.addItems(video_player)
+                            print(self.parent().structure[field])
+                            val_field.setCurrentIndex(video_player.index(self.parent().structure[field]))
+                            val_field.activated.connect(self.update_val)
                         else:
                             val_field = QLineEdit("")
                             if field in self.parent().structure.keys():
@@ -1019,6 +1025,8 @@ class EditGui(QWidget):
                         self.rand_filechooser.setEnabled(True)
                     else:
                         self.rand_filechooser.setEnabled(False)
+                elif lbl == "video_player":
+                    new_val = self.sender().currentText()
                 elif lbl == "save_after":
                     new_val = self.sender().currentText()
                 elif lbl == "image_position":

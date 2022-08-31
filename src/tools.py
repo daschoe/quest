@@ -13,7 +13,7 @@ tooltips = {
     "start_cue": "The cue/marker in the audio software to start playing at.",
     "end_cue": "The cue/marker in the audio software to stop playing at. (optional)",
     "track": "The tack(s) that should be unmuted for playback.",
-    "video": "Path to the video file. (optional)",
+    "video": "Path to the video file (VLC) or name of the scene (MadMapper). (optional)",
     "start_cues": "List of starting points for MUSHRA playback. [Ref, Cue1, Cue2,...]",
     "end_cues": "List of ending points for MUSHRA playback. [Ref, Cue1, Cue2,...] (optional)",
     "text": "The text of the question.",
@@ -80,7 +80,8 @@ tooltips = {
     "address": "The OSC address to send to, should start with '/'.",
     "value": "The value to send over OSC, use 'id:' to refer to a preceding field.",
     "receiver": "IP and port of the OSC receiver to send to.",
-    "step": "Difference of two successive values."
+    "step": "Difference of two successive values.",
+    "video_player": "Choose the video player that will be used."
 }
 
 # question types and their fields
@@ -129,6 +130,8 @@ randomize_options = ["None", "balanced latin square", "from file"]
 
 image_positions = ["here", "top", "bottom", "left", "right", "free"]
 
+video_player = ["None", "MadMapper", "VLC"]
+
 # page fields
 page_fields = ["title", "description", "randomgroup", "pupil_on_next"]
 
@@ -142,6 +145,7 @@ general_fields = [
     "audio_tracks",
     "video_ip",
     "video_port",
+    "video_player",
     "pupil_ip",
     "pupil_port",
     "go_back",
@@ -218,6 +222,7 @@ default_values = {
     "height": "",
     "image_position": "here",
     "receiver": [],
-    "address": ""
+    "address": "",
+    "video_player": video_player[0]
     #"pupil_on_next": ''
 }
