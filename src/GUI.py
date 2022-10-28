@@ -239,7 +239,7 @@ class StackedWindowGui(QWidget):
                         self.audio_client.send_message("/action", 40297)  # unselect all
                     else:
                         self.audio_client = None
-                    self.filepath_log = './results/log_{}_{}.txt'.format(self.get_participant_number(), datetime.datetime.now().strftime("%Y-%m-%d_%H-%M-%S"))
+                    self.filepath_log = '{}/log_{}_{}.txt'.format(self.filepath_results, self.get_participant_number(), datetime.datetime.now().strftime("%Y-%m-%d_%H-%M-%S"))
 
                     if not os.path.isfile(stylesheet):
                         raise FileNotFoundError("File {} does not exist.".format(stylesheet))
@@ -727,7 +727,10 @@ class StackedWindowGui(QWidget):
         if self.rand == "balanced latin square":
             fields["Order"] = []
             for rg in self.random_groups:
-                fields["Order"].append(balanced_latin_squares(rg)[self.get_participant_number()-1])
+                if not fields["data_row_number"] == -1:
+                    fields["Order"].append(balanced_latin_squares(rg)[(self.get_participant_number()-1) % len(balanced_latin_squares(rg))])
+                else:
+                    fields["Order"] = "unknown"
         elif self.rand == "from file":
             fields["Order"] = order_from_file(self.rand_file)[self.get_participant_number()-1]
 
