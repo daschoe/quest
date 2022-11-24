@@ -1,3 +1,4 @@
+# Created with QUEST version 1.0.6
 audio_ip = 127.0.0.1
 audio_port = 8000
 video_ip = 127.0.0.1
@@ -16,6 +17,7 @@ delimiter = ;
 stylesheet = ./src/stylesheets/minimal.qss
 button_fade = 100
 randomization = None
+video_player = VLC
 [Page 1]
 title = ""
 [[Question 1]]

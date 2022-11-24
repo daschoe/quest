@@ -141,31 +141,36 @@ def test_global_settings(gui_init):
     err, warn, det = validate_questionnaire(structure, True)
     assert err == False
     assert warn == False
-    structure.pop("audio_ip")
-    structure.pop("audio_port")
-    structure["audio_tracks"] = "10"
+
+    structure["audio_recv_port"] = "abcd"
+    QTimer.singleShot(150, handle_dialog_error)
+    err, warn, det = validate_questionnaire(structure, True)
+    assert err == True
+    assert warn == False
+    assert -1 <= text.find("Invalid audio receive port, couldn't be converted to a number 0-65535.\n") > -1
+    structure["audio_recv_port"] = -1
+    QTimer.singleShot(150, handle_dialog_error)
+    err, warn, det = validate_questionnaire(structure, True)
+    assert err == True
+    assert warn == False
+    assert -1 <= text.find("Invalid audio receive port, couldn't be converted to a number 0-65535.\n") > -1
+    structure["audio_recv_port"] = 65536
+    QTimer.singleShot(150, handle_dialog_error)
+    err, warn, det = validate_questionnaire(structure, True)
+    assert err == True
+    assert warn == False
+    assert -1 <= text.find("Invalid audio receive port, couldn't be converted to a number 0-65535.\n") > -1
+    structure["audio_recv_port"] = 3500
     err, warn, det = validate_questionnaire(structure, True)
     assert err == False
-    assert warn == True
-    assert det[0] == "No audio connection given, but tracks. Audio will be disabled.\n"
-    structure["audio_tracks"] = 0
-    QTimer.singleShot(150, handle_dialog_error)
-    err, warn, det = validate_questionnaire(structure, True)
-    assert err == True
-    assert warn == True
-    assert -1 <= text.find("Invalid audio track number, couldn't be converted to a number greater than 0.\n") > -1
-    assert det[0] == "No audio connection given, but tracks. Audio will be disabled.\n"
-    structure["audio_tracks"] = "ten"
-    QTimer.singleShot(150, handle_dialog_error)
-    err, warn, det = validate_questionnaire(structure, True)
-    assert err == True
-    assert warn == True
-    assert -1 <= text.find("Invalid audio track number, couldn't be converted to a number greater than 0.\n") > -1
-    assert det[0] == "No audio connection given, but tracks. Audio will be disabled.\n"
-    structure.pop("audio_tracks")
+    assert warn == False
+    structure.pop("audio_ip")
+    structure.pop("audio_port")
+    structure.pop("audio_recv_port")
     # -------video-------
     structure["video_ip"] = "address"
     structure["video_port"] = "2000"
+    structure["video_player"] = "VLC"
     QTimer.singleShot(150, handle_dialog_error)
     err, warn, det = validate_questionnaire(structure, True)
     assert err == True
@@ -217,8 +222,29 @@ def test_global_settings(gui_init):
     err, warn, det = validate_questionnaire(structure, True)
     assert err == False
     assert warn == False
+    structure["video_player"] = "None"
+    err, warn, det = validate_questionnaire(structure, True)
+    assert err == False
+    assert warn == True
+    assert det[0] == "No video_player chosen, but IP and port. Video will be disabled.\n"
+    structure.pop("video_player")
+    err, warn, det = validate_questionnaire(structure, True)
+    assert err == False
+    assert warn == True
+    assert det[0] == "No video_player found, but IP and port. Video will be disabled.\n"
+    structure["video_player"] = "abc"
+    QTimer.singleShot(150, handle_dialog_error)
+    err, warn, det = validate_questionnaire(structure, True)
+    assert err == True
+    assert warn == False
+    assert -1 <= text.find("Invalid value for video_player.\n") > -1
+    structure["video_player"] = "MadMapper"
+    err, warn, det = validate_questionnaire(structure, True)
+    assert err == False
+    assert warn == False
     structure.pop("video_ip")
     structure.pop("video_port")
+    structure.pop("video_player")
     # -------pupil-------
     structure["pupil_ip"] = "address"
     structure["pupil_port"] = "2000"
@@ -662,7 +688,6 @@ def test_question_settings(gui_init):
     assert det[0] == "No answer possibilities were given for question 'Question' on page 'Page'.\n"
     structure["audio_ip"] = "127.0.0.1"
     structure["audio_port"] = 8000
-    structure["audio_tracks"] = 1
     structure["Page"]["Question"]["type"] = "ABX"
     structure["Page"]["Question"]["start_cues"] = [1, 2]
     structure["Page"]["Question"]["track"] = 1
@@ -692,8 +717,6 @@ def test_question_settings(gui_init):
     err, warn, det = validate_questionnaire(structure, True)
     assert err == False
     assert warn == False
-    # TODO AFC Tests
-    # structure["Page"]["Question"] = {'id': 'id', "type": "AFC", "answers": ""}
     structure["Page"]["Question"] = {'id': 'id', "type": "Radio", "text": "some text"}
     err, warn, det = validate_questionnaire(structure, True)
     assert err == False
@@ -919,7 +942,7 @@ def test_question_settings(gui_init):
     assert err == True
     assert warn == False
     assert -1 <= text.find("A label tick for the slider in question 'Question' on page 'Page' couldn't be interpreted as a number.\n")
-    structure["Page"]["Question"]["label"] = [[0,"negativ"], [10, "positiv"]]
+    structure["Page"]["Question"]["label"] = [[0, "negativ"], [10, "positiv"]]
     err, warn, det = validate_questionnaire(structure, True)
     assert err == False
     assert warn == False
@@ -1157,12 +1180,6 @@ def test_question_settings(gui_init):
     assert err == True
     assert warn == False
     assert -1 <= text.find("Track given for question 'Question' on page 'Page' needs to be greater than 0.\n")
-    structure["Page"]["Question"]["track"] = 3
-    QTimer.singleShot(150, handle_dialog_error)
-    err, warn, det = validate_questionnaire(structure, True)
-    assert err == True
-    assert warn == False
-    assert -1 <= text.find("Track given for question 'Question' on page 'Page' needs to be smaller than or equal to the number of total tracks.\n")
     structure["Page"]["Question"]["type"] = "Player"
     structure["Page"]["Question"].pop("track")
     structure["Page"]["Question"]["start_cue"] = 1
@@ -1190,16 +1207,6 @@ def test_question_settings(gui_init):
     assert err == False
     assert warn == False
     structure["Page"]["Question"]["track"] = [1]
-    err, warn, det = validate_questionnaire(structure, True)
-    assert err == False
-    assert warn == False
-    structure["Page"]["Question"]["track"] = [1, 2]
-    QTimer.singleShot(150, handle_dialog_error)
-    err, warn, det = validate_questionnaire(structure, True)
-    assert err == True
-    assert warn == False
-    assert -1 <= text.find("Track given for question 'Question' on page 'Page' needs to be smaller than or equal to the number of total tracks.\n")
-    structure["audio_tracks"] = 2
     err, warn, det = validate_questionnaire(structure, True)
     assert err == False
     assert warn == False
@@ -1242,19 +1249,28 @@ def test_question_settings(gui_init):
     err, warn, det = validate_questionnaire(structure, True)
     assert err == False
     assert warn == False
-    structure["Page"]["Question"]["track"] = [[1, 2], [1, 2, 3]]
-    QTimer.singleShot(150, handle_dialog_error)
-    err, warn, det = validate_questionnaire(structure, True)
-    assert err == True
-    assert warn == False
-    assert -1 <= text.find(
-        "Track given for question 'Question' on page 'Page' needs to be smaller than or equal to the number of total tracks.\n")
     structure["Page"]["Question"]["track"] = [[1, 2], [1, 2, -3]]
     QTimer.singleShot(150, handle_dialog_error)
     err, warn, det = validate_questionnaire(structure, True)
     assert err == True
     assert warn == False
     assert -1 <= text.find("Track given for question 'Question' on page 'Page' needs to be greater than 0.\n")
+    structure["Page"]["Question"] = {'id': 'id'}
+
+    # ------crossfade------
+    structure["Page"]["Question"]["crossfade"] = ""
+    QTimer.singleShot(150, handle_dialog_error)
+    err, warn, det = validate_questionnaire(structure, True)
+    assert err == True
+    assert warn == False
+    assert -1 <= text.find("No valid value found for 'crossfade' for question 'Question' on page 'Page'.\n")
+    structure["Page"]["Question"]["crossfade"] = True
+    err, warn, det = validate_questionnaire(structure, True)
+    assert err == False
+    assert warn == False
+    structure["Page"]["Question"]["crossfade"] = 0
+    assert err == False
+    assert warn == False
     structure["Page"]["Question"] = {'id': 'id'}
 
     # ------buttons------
@@ -1412,7 +1428,6 @@ def test_question_settings(gui_init):
     structure["Page"]["Question"]["end_cues"] = [2, 2, 2]
     structure["Page"]["Question"]["track"] = [1, 2, 3]
     structure["Page"]["Question"]["xfade"] = True
-    structure["audio_tracks"] = 3
     QTimer.singleShot(150, handle_dialog_error)
     err, warn, det = validate_questionnaire(structure, True)
     assert err == True
@@ -1756,7 +1771,7 @@ def test_question_settings(gui_init):
     err, warn, det = validate_questionnaire(structure, True)
     assert err == True
     assert warn == False
-    assert -1 <= text.find("No reveiver found for question 'Question' on page 'Page'.\n") > -1
+    assert -1 <= text.find("No receiver found for question 'Question' on page 'Page'.\n") > -1
     structure["Page"]["Question"] = {'id': 'id'}
 
     # ------address------
@@ -1798,6 +1813,5 @@ def test_question_settings(gui_init):
     assert warn == False
     assert -1 <= text.find("No value for question 'Question' on page 'Page' was given.\n") > -1
     structure["Page"]["Question"] = {'id': 'id'}
-
 
     gui_init.exit()

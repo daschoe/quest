@@ -5,7 +5,7 @@ import sys
 
 from PyQt5.QtWidgets import QApplication, QWidget, QPushButton, QHBoxLayout, QFileDialog, QMessageBox
 
-from src.GUI import StackedWindowGui
+from src.GUI import StackedWindowGui, VERSION
 from src.QEditGui import QEditGuiMain
 
 
@@ -30,7 +30,7 @@ class Launcher(QWidget):
         self.questionnaire_window = None
         self.setStyleSheet("QPushButton {padding: 7px; margin: 3px; }")
         self.setLayout(layout)
-        self.setWindowTitle("QUEST")
+        self.setWindowTitle("QUEST {}".format(VERSION))
         self.show()
 
     def run_questionnaire(self):

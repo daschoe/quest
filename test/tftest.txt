@@ -1,3 +1,4 @@
+# Created with QUEST version 1.0.6
 go_back = True
 back_text = Zurück
 forward_text = Weiter
@@ -11,6 +12,8 @@ filepath_results = ./test/results/results_tf.csv
 delimiter = ;
 stylesheet = ./src/stylesheets/minimal.qss
 button_fade = 100
+video_player = None
+randomization = None
 [Page 1]
 title = ""
 [[Question 1]]

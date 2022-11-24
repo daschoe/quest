@@ -15,7 +15,7 @@ from PyQt5.QtWidgets import QApplication, QTreeWidgetItem, QWidget, QHBoxLayout,
 from configobj import ConfigObj, ConfigObjError
 from fpdf import FPDF
 
-from src.GUI import StackedWindowGui
+from src.GUI import StackedWindowGui, VERSION
 from src.TextEdit import TextEdit
 from src.Tree import Tree
 from src.Validator import validate_questionnaire, listify
@@ -153,6 +153,7 @@ class QEditGuiMain(QMainWindow):
         if self.filename is None:
             self.structure.filename = "./tmp.txt"
             self.structure.encoding = "utf-8"
+            self.structure.initial_comment = ["Created with QUEST version {}".format(VERSION)]
             self.structure.write()
         self.status.showMessage("Exporting to pdf...", self.status_duration)
         exgui = StackedWindowGui(self.structure.filename, preview=True)
@@ -228,6 +229,8 @@ class QEditGuiMain(QMainWindow):
             try:
                 self.status.clearMessage()
                 self.structure = ConfigObj(file)
+                if len(self.structure.initial_comment) > 0:
+                    print(self.structure.initial_comment[0].rsplit(' ', 1)[1])
                 self.initial_structure = copy.deepcopy(dict(self.structure))
                 self.gui.create_tree(self.structure)
                 self.undoaction.setEnabled(False)
@@ -253,6 +256,7 @@ class QEditGuiMain(QMainWindow):
         else:
             self.structure.filename = self.filename
             self.structure.encoding = "utf-8"
+            self.structure.initial_comment = ["Created with QUEST version {}".format(VERSION)]
             self.structure.write()
             self.initial_structure = copy.deepcopy(dict(self.structure))
             self.status.clearMessage()
@@ -268,6 +272,7 @@ class QEditGuiMain(QMainWindow):
             self.filename = file
             self.structure.filename = file
             self.structure.encoding = "utf-8"
+            self.structure.initial_comment = ["Created with QUEST version {}".format(VERSION)]
             self.structure.write()
             self.initial_structure = copy.deepcopy(dict(self.structure))
             self.status.clearMessage()
@@ -515,6 +520,7 @@ class EditGui(QWidget):
                                  self.parent().structure.filename == "./tmp.txt"):
                     self.parent().structure.filename = "./tmp.txt"
                     self.parent().structure.encoding = "utf-8"
+                    self.parent().structure.initial_comment = ["Created with QUEST version {}".format(VERSION)]
                     self.parent().structure.write()
                     file = "./tmp.txt"
                 else:
@@ -951,25 +957,17 @@ class EditGui(QWidget):
                     self.sender().parent().layout().itemAt(1).widget().layout().itemAt(1).widget().setEnabled(False)
                     self.sender().parent().layout().itemAt(1).widget().layout().itemAt(3).widget().setEnabled(False)
                     if self.sender().currentText() == "<new>":
-                        #self.sender().parent().layout().findChild(QLineEdit, name="rec_ip").setText("")
-                        #self.sender().parent().layout().findChild(QLineEdit, name="rec_port").setText("")
                         self.sender().parent().layout().itemAt(1).widget().layout().itemAt(1).widget().setText("")
                         self.sender().parent().layout().itemAt(1).widget().layout().itemAt(3).widget().setText("")
                         self.sender().parent().layout().itemAt(1).widget().layout().itemAt(1).widget().setEnabled(True)
                         self.sender().parent().layout().itemAt(1).widget().layout().itemAt(3).widget().setEnabled(True)
                     elif self.sender().currentText() == "audio":
-                        #self.sender().parent().layout().findChild(QLineEdit, name="rec_ip").setText(self.parent().structure["audio_ip"])
-                        #self.sender().parent().layout().findChild(QLineEdit, name="rec_port").setText(self.parent().structure["audio_port"])
                         self.sender().parent().layout().itemAt(1).widget().layout().itemAt(1).widget().setText(self.parent().structure["audio_ip"])
                         self.sender().parent().layout().itemAt(1).widget().layout().itemAt(3).widget().setText(self.parent().structure["audio_port"])
                     elif self.sender().currentText() == "help":
-                        #self.sender().parent().layout().findChild(QLineEdit, name="rec_ip").setText(self.parent().structure["help_ip"])
-                        #self.sender().parent().layout().findChild(QLineEdit, name="rec_port").setText(self.parent().structure["help_port"])
                         self.sender().parent().layout().itemAt(1).widget().layout().itemAt(1).widget().setText(self.parent().structure["help_ip"])
                         self.sender().parent().layout().itemAt(1).widget().layout().itemAt(3).widget().setText(self.parent().structure["help_port"])
                     elif self.sender().currentText() == "video":
-                        #self.sender().parent().layout().findChild(QLineEdit, name="rec_ip").setText(self.parent().structure["video_ip"])
-                        #self.sender().parent().layout().findChild(QLineEdit, name="rec_port").setText(self.parent().structure["video_port"])
                         self.sender().parent().layout().itemAt(1).widget().layout().itemAt(1).widget().setText(self.parent().structure["video_ip"])
                         self.sender().parent().layout().itemAt(1).widget().layout().itemAt(3).widget().setText(self.parent().structure["video_port"])
                     lbl = "receiver"
@@ -1140,7 +1138,7 @@ class EditGui(QWidget):
                         self.treeview.currentItem().text(0)]["receiver"][1] = new_val
                 else:
                     self.parent().structure[self.treeview.currentItem().parent().text(0)][
-                        self.treeview.currentItem().text(0)]["receiver"] = ["",new_val]
+                        self.treeview.currentItem().text(0)]["receiver"] = ["", new_val]
         if self.automatic_refresh.isChecked():
             self.load_preview()
 
