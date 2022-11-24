@@ -133,7 +133,8 @@ class Page(QWidget):
                                 objectname=structure[quest]["objectName"] if "objectName" in structure[quest].keys() else None,
                                 timer=structure[quest]["timer"] if "timer" in structure[quest].keys() else None,
                                 play_once=structure[quest].as_bool("play_once") if "play_once" in structure[quest].keys() else False,
-                                play_button_text=structure[quest]["play_button_text"] if "play_button_text" in structure[quest].keys() else None)
+                                play_button_text=structure[quest]["play_button_text"] if "play_button_text" in structure[quest].keys() else None,
+                                crossfade=structure[quest].as_bool("crossfade") if "crossfade" in structure[quest].keys() else False)
                 layout.addRow(player)
                 self.evaluationvars[structure[quest]["id"]] = player.duration
                 self.players.append(player)

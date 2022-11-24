@@ -32,14 +32,10 @@ class MUSHRA(QWidget):
     unsolo_all : int
         REAPER command to remove any solo-states
     """
-    #loop_on_command = "_RSf3008b6984f2df0dd1c81f6930cd838ef4e2080a"  # lua version
-    #loop_off_command = "_RSe79841c3013c086c26cff932867f2527bbc0b3fb"  # lua version
-    #mushra_play_on_stopped = "_RSd77eaafbac3b026193581c7be7330973ef4f1d32"  # lua version
 
-    # IML-PC 172.23.170.2
-    loop_on_command = "_RSa8eee394f75b27ef6bb9f0e15b6bee26d9363990"
-    loop_off_command = "_RS1a294fa76c361055992ccea256af42946825c67d"
-    mushra_play_on_stopped = "_RS85691a3ff5f25c9f0c1efcce666cdf8b1387f9e2"
+    loop_on_command = "_RSa8eee394f75b27ef6bb9f0e15b6bee26d9363990"  # TODO this needs to be changed to your command
+    loop_off_command = "_RS1a294fa76c361055992ccea256af42946825c67d"  # TODO this needs to be changed to your command
+    mushra_play_on_stopped = "_RS85691a3ff5f25c9f0c1efcce666cdf8b1387f9e2"  # TODO this needs to be changed to your command
 
     set_loop_start = 40222
     set_loop_end = 40223

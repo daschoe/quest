@@ -32,7 +32,6 @@ tooltips = {
     "description": "Put further instructions/descriptions for the page here; is displayed at the top of the page, under the title. (optional)",
     "audio_ip": "The network-address of the audio software (REAPER) to use. Leave blank for none.",
     "audio_port": "The network-port of the audio software (REAPER) to use. Leave blank for none.",
-    "audio_tracks": "The number of total tracks in the (REAPER-) project used. Leave blank for none.",
     "video_ip": "The network-address of the video software to use. Leave blank for none.",
     "video_port": "The network-port of the video software to use. Leave blank for none.",
     "pupil_ip": "The network-address of Pupil Core. Leave blank if not used.",
@@ -81,7 +80,8 @@ tooltips = {
     "value": "The value to send over OSC, use 'id:' to refer to a preceding field.",
     "receiver": "IP and port of the OSC receiver to send to.",
     "step": "Difference of two successive values.",
-    "video_player": "Choose the video player that will be used."
+    "video_player": "Choose the video player that will be used.",
+    "audio_recv_port": "Port to receive messages from Reaper on."
 }
 
 # question types and their fields
@@ -106,18 +106,19 @@ fields_per_type = {
                 "inscription": "QLineEdit", "function": "QComboBox"}],
     "Plain Text": [{"type": "QComboBox", "objectName": "QLineEdit", "text": "QPlainTextEdit"}],
     "Password": [{"type": "QComboBox", "objectName": "QLineEdit", "id": "QLineEdit", "text": "QPlainTextEdit",
-                 "required": "QCheckBox", "password_file": "QPushButton", "policy": "QComboBox"}],
+                  "required": "QCheckBox", "password_file": "QPushButton", "policy": "QComboBox"}],
     "ABX": [{"type": "QComboBox", "objectName": "QLineEdit", "id": "QLineEdit", "required": "QCheckBox",
-            "start_cues": "QLineEdit", "track": "QLineEdit", "text": "QLineEdit",
+             "start_cues": "QLineEdit", "track": "QLineEdit", "text": "QLineEdit",
              "answers": "QLineEdit", "button_texts": "QLineEdit", "x": "QCheckBox"}],
     "Matrix": [{"type": "QComboBox", "objectName": "QLineEdit", "id": "QLineEdit", "questions": "QPlainTextEdit",
-               "required": "QCheckBox", "answers": "QPlainTextEdit", "start_answer_id": "QLineEdit",
+                "required": "QCheckBox", "answers": "QPlainTextEdit", "start_answer_id": "QLineEdit",
                 "randomize": "QCheckBox"}],
-    "Image": [{"type": "QComboBox", "objectName": "QLineEdit", "image_file": "QPushButton", "image_position": "QComboBox",
-               "width": "QLineEdit", "height": "QLineEdit"}],
+    "Image": [
+        {"type": "QComboBox", "objectName": "QLineEdit", "image_file": "QPushButton", "image_position": "QComboBox",
+         "width": "QLineEdit", "height": "QLineEdit"}],
     "OSCButton": [{"type": "QComboBox", "objectName": "QLineEdit", "id": "QLineEdit", "required": "QCheckBox",
-                    "inscription": "QLineEdit", "receiver": "QComboBox", "address": "QLineEdit", "value": "QLineEdit"}]
-        }
+                   "inscription": "QLineEdit", "receiver": "QComboBox", "address": "QLineEdit", "value": "QLineEdit"}]
+}
 types = list(fields_per_type.keys())
 
 policy_possibilities = ["None", "int", "double", "regex"]
@@ -142,7 +143,7 @@ general_fields = [
     "help_text",
     "audio_ip",
     "audio_port",
-    "audio_tracks",
+    "audio_recv_port",
     "video_ip",
     "video_port",
     "video_player",
@@ -166,6 +167,17 @@ general_fields = [
 ]
 
 default_values = {
+    "help_ip": "",
+    "help_port": "",
+    "help_text": "",
+    "audio_ip": "",
+    "audio_port": "",
+    "audio_tracks": "",
+    "video_ip": "",
+    "video_port": "",
+    "video_player": video_player[0],
+    "pupil_ip": "",
+    "pupil_port": "",
     "go_back": True,
     "back_text": "Zurück",
     "forward_text": "Weiter",
@@ -177,16 +189,6 @@ default_values = {
     "filepath_results": './results/results.csv',
     "delimiter": ';',
     "stylesheet": './stylesheets/minimal.qss',
-    "audio_ip": "",
-    "audio_port": "",
-    "audio_tracks": "",
-    "video_ip": "",
-    "video_port": "",
-    "pupil_ip": "",
-    "pupil_port": "",
-    "help_ip": "",
-    "help_port": "",
-    "help_text": "",
     "title": "",
     "id": "",
     "start_cue": "",
@@ -213,7 +215,6 @@ default_values = {
     "button_fade": 100,
     "randomize": False,
     "randomization": "None",
-    #"save_after": None
     "randomization_file": "",
     "x_pos": "",
     "y_pos": "",
@@ -222,7 +223,5 @@ default_values = {
     "height": "",
     "image_position": "here",
     "receiver": [],
-    "address": "",
-    "video_player": video_player[0]
-    #"pupil_on_next": ''
+    "address": ""
 }

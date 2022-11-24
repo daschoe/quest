@@ -1,6 +1,6 @@
 """Testing the behaviour of OSCButton.py + QEditGui.py"""
-# TODO how to test osc messages
 from context import *
+thread = None
 
 
 @pytest.fixture
@@ -18,9 +18,28 @@ def gui_load(gui_init):
     return gui_init
 
 
+def prepare_listeners(structure):
+    """Set up the listeners for audio & video."""
+    global thread
+    print("setting up thread....")
+    port = int(structure["Page 1"]["Question 1"]["receiver"][1])
+    thread = MockReceiver(port)
+    QTest.qWait(1000)
+    thread.start()
+    QTest.qWait(5000)
+
+
 @pytest.fixture
 def run():
     """Execute the questionnaire."""
+    global thread
+    structure = ConfigObj("./test/osctest.txt")
+    port = int(structure["Page 1"]["Question 1"]["receiver"][1])
+    print("setting up thread....")
+    thread = MockReceiver(port)
+    QTest.qWait(1000)
+    thread.start()
+    QTest.qWait(3000)
     return StackedWindowGui("./test/osctest.txt")
 
 
@@ -157,6 +176,7 @@ def test_inscription(gui_load, qtbot):
     assert warning_found == False
     gui_load.gui.refresh_button.click()
     QTest.keyClicks(gui_load, 's', modifier=Qt.ControlModifier)
+    prepare_listeners("./test/osctest.txt")
     test_gui = StackedWindowGui("./test/osctest.txt")
     assert test_gui.Stack.count() == 1
     for child in test_gui.Stack.currentWidget().children():
@@ -166,6 +186,8 @@ def test_inscription(gui_load, qtbot):
     QTimer.singleShot(100, handle_dialog)
     QTest.mouseClick(test_gui.forwardbutton, Qt.LeftButton, delay=1)
     test_gui.close()
+    thread.stop(0.1)
+    QTest.qWait(1000)
 
     #  empty inscription -> warning
     gui_load.gui.edit_layout.itemAt(ins_pos, 1).widget().clear()
@@ -182,6 +204,7 @@ def test_inscription(gui_load, qtbot):
     assert error_found == False
     assert warning_found == True
     QTest.keyClicks(gui_load, 's', modifier=Qt.ControlModifier)
+    prepare_listeners("./test/osctest.txt")
     QTimer.singleShot(500, handle_dialog_warning)
     test_gui = StackedWindowGui("./test/osctest.txt")
     assert test_gui.Stack.count() == 1
@@ -193,6 +216,8 @@ def test_inscription(gui_load, qtbot):
     QTimer.singleShot(1000, handle_dialog)
     QTest.mouseClick(test_gui.forwardbutton, Qt.LeftButton, delay=1)
     test_gui.close()
+    thread.stop(0.1)
+    QTest.qWait(1000)
 
     # predefined 'None'
     gui_load.gui.edit_layout.itemAt(ins_pos, 1).widget().clear()
@@ -209,6 +234,7 @@ def test_inscription(gui_load, qtbot):
     assert error_found == False
     assert warning_found == True
     QTest.keyClicks(gui_load, 's', modifier=Qt.ControlModifier)
+    prepare_listeners("./test/osctest.txt")
     QTimer.singleShot(150, handle_dialog_warning)
     test_gui = StackedWindowGui("./test/osctest.txt")
     assert test_gui.Stack.count() == 1
@@ -220,6 +246,8 @@ def test_inscription(gui_load, qtbot):
     QTimer.singleShot(100, handle_dialog)
     QTest.mouseClick(test_gui.forwardbutton, Qt.LeftButton, delay=1)
     test_gui.close()
+    thread.stop(0.1)
+    QTest.qWait(1000)
 
     # reset file
     gui_load.gui.edit_layout.itemAt(ins_pos, 1).widget().clear()
@@ -273,6 +301,7 @@ def test_address(gui_load, qtbot):
     assert warning_found == True
     gui_load.gui.refresh_button.click()
     QTest.keyClicks(gui_load, 's', modifier=Qt.ControlModifier)
+    prepare_listeners("./test/osctest.txt")
     QTimer.singleShot(150, handle_dialog_warning)
     test_gui = StackedWindowGui("./test/osctest.txt")
     assert test_gui.Stack.count() == 1
@@ -280,6 +309,8 @@ def test_address(gui_load, qtbot):
     QTimer.singleShot(100, handle_dialog)
     QTest.mouseClick(test_gui.forwardbutton, Qt.LeftButton, delay=1)
     test_gui.close()
+    thread.stop(0.1)
+    QTest.qWait(1000)
 
     #  empty address -> error
     gui_load.gui.edit_layout.itemAt(adr_pos, 1).widget().clear()
@@ -292,7 +323,7 @@ def test_address(gui_load, qtbot):
     QTimer.singleShot(150, handle_dialog_error)
     gui_load.gui.refresh_button.click()
     assert gui_load.gui.edit_layout.itemAt(adr_pos, 1).widget().text() == ""
-    #assert gui_load.structure["Page 1"]["Question 1"]["address"] == "" #TODO??
+    # assert gui_load.structure["Page 1"]["Question 1"]["address"] == "" #TODO??
     QTimer.singleShot(150, handle_dialog_error)
     error_found, warning_found, warning_details = validate_questionnaire(gui_load.structure)
     assert error_found == True
@@ -350,12 +381,15 @@ def test_value(gui_load, qtbot):
     assert warning_found == False
     gui_load.gui.refresh_button.click()
     QTest.keyClicks(gui_load, 's', modifier=Qt.ControlModifier)
+    prepare_listeners("./test/osctest.txt")
     test_gui = StackedWindowGui("./test/osctest.txt")
     assert test_gui.Stack.count() == 1
 
     QTimer.singleShot(100, handle_dialog)
     QTest.mouseClick(test_gui.forwardbutton, Qt.LeftButton, delay=1)
     test_gui.close()
+    thread.stop(0.1)
+    QTest.qWait(1000)
 
     #  empty value
     gui_load.gui.edit_layout.itemAt(val_pos, 1).widget().clear()
@@ -366,7 +400,7 @@ def test_value(gui_load, qtbot):
     QTimer.singleShot(150, handle_dialog_error)
     gui_load.gui.refresh_button.click()
     assert gui_load.gui.edit_layout.itemAt(val_pos, 1).widget().text() == ""
-    #assert gui_load.structure["Page 1"]["Question 1"]["address"] == "" #TODO??
+    # assert gui_load.structure["Page 1"]["Question 1"]["address"] == "" #TODO??
     QTimer.singleShot(150, handle_dialog_error)
     error_found, warning_found, warning_details = validate_questionnaire(gui_load.structure)
     assert error_found == True
@@ -456,7 +490,6 @@ def test_receiver(gui_load, qtbot):
     gui_load.gui.refresh_button.click()
     assert gui_load.structure["Page 1"]["Question 1"]["receiver"] == ["127.0.0.1", "5005"]
 
-    # TODO test actual sending
     # revert file
     QTest.mouseClick(rec_cb, Qt.LeftButton)
     QTest.keyClick(rec_cb, Qt.Key_Up)
@@ -514,6 +547,9 @@ def test_execute_questionnaire_no_interaction(run, qtbot):
     assert re.match(r'\d+-\d+-\d+ \d+:\d+:\d+.\d+', lines[2])  # timestamp
     assert re.match(r'\d+-\d+-\d+ \d+:\d+:\d+.\d+', lines[3])  # timestamp
     os.remove("./test/results/results_osc.csv")
+    assert thread.message_stack[-1] != ("/message", "Hello world!")
+    thread.stop(0.1)
+    QTest.qWait(1000)
 
 
 # noinspection PyArgumentList
@@ -543,6 +579,10 @@ def test_execute_questionnaire_no_interaction_blocked(run, qtbot):
         assert re.match(r'\d+-\d+-\d+ \d+:\d+:\d+.\d+', lines[2])  # timestamp
         assert re.match(r'\d+-\d+-\d+ \d+:\d+:\d+.\d+', lines[3])  # timestamp
         os.remove(res_file)
+    assert thread.message_stack[-1] != ("/message", "Hello world!")
+    print(thread.message_stack)
+    thread.stop(0.1)
+    QTest.qWait(1000)
 
 
 # noinspection PyArgumentList
@@ -574,6 +614,10 @@ def test_execute_questionnaire(run, qtbot):
     assert re.match(r'\d+-\d+-\d+ \d+:\d+:\d+.\d+', lines[2])  # timestamp
     assert re.match(r'\d+-\d+-\d+ \d+:\d+:\d+.\d+', lines[3])  # timestamp
     os.remove("./test/results/results_osc.csv")
+    assert thread.message_stack[-1] == ("/message", "Hello world!")
+    print(thread.message_stack)
+    thread.stop(0.1)
+    QTest.qWait(1000)
 
 
 # noinspection PyArgumentList
@@ -583,6 +627,7 @@ def test_execute_questionnaire_blocked(run, qtbot):
         for child in run.Stack.currentWidget().children():
             if type(child) is OSCButton:
                 child.button.click()
+                QTest.qWait(3000)
         QTimer.singleShot(100, handle_dialog)
         QTest.mouseClick(run.forwardbutton, Qt.LeftButton)
         res_file = None
@@ -606,3 +651,7 @@ def test_execute_questionnaire_blocked(run, qtbot):
         assert re.match(r'\d+-\d+-\d+ \d+:\d+:\d+.\d+', lines[2])  # timestamp
         assert re.match(r'\d+-\d+-\d+ \d+:\d+:\d+.\d+', lines[3])  # timestamp
         os.remove(res_file)
+        print(thread.message_stack)
+        assert thread.message_stack[-1] == ('/message', 'Hello world!')
+        thread.stop(0.1)
+        QTest.qWait(1000)

@@ -1,7 +1,8 @@
 """Testing the behaviour of Player.py + QEditGui.py"""
-# TODO how to test messages to REAPER + Video
 
 from context import *
+thread_audio = None
+thread_video = None
 
 
 @pytest.fixture
@@ -27,9 +28,25 @@ def gui_load2(gui_init):
     return gui_init
 
 
+def prepare_listeners(structure):
+    """Set up the listeners for audio & video."""
+    global thread_video
+    global thread_audio
+    print("setting up thread....")
+    thread_audio = MockReceiver(int(structure["audio_port"]))
+    if "video_port" in structure.keys() and structure["video_port"] != "":
+        thread_video = MockReceiver(int(structure["video_port"]))
+        QTest.qWait(1000)
+        thread_video.start()
+    QTest.qWait(1000)
+    thread_audio.start()
+    QTest.qWait(3000)
+
+
 @pytest.fixture
 def run():
     """Execute the questionnaire."""
+    prepare_listeners(ConfigObj("./test/pltest.txt"))
     return StackedWindowGui("./test/pltest.txt")
 
 
@@ -271,80 +288,6 @@ def test_end_cue(gui_load, qtbot):
     gui_load.close()
 
 
-def test_track(gui_load, qtbot):
-    QTimer.singleShot(150, handle_dialog_error)
-    error_found, warning_found, warning_details = validate_questionnaire(gui_load.structure)
-    assert error_found == False
-    assert warning_found == False
-    tv = gui_load.gui.treeview
-    tv.expandAll()
-    tv.setCurrentItem(tv.topLevelItem(0).child(0).child(0))  # should be 'Question 1'
-    assert len(tv.selectedItems()) == 1
-    assert tv.selectedItems()[0].text(0) == "Question 1"
-
-    rect = tv.visualItemRect(tv.currentItem())
-    QTest.mouseClick(tv.viewport(), Qt.LeftButton, Qt.NoModifier, rect.center())
-    track_pos = find_row_by_label(gui_load.gui.edit_layout, 'track')
-
-    # try to set it as string
-    gui_load.gui.edit_layout.itemAt(track_pos, 1).widget().clear()
-    gui_load.gui.edit_layout.itemAt(track_pos, 1).widget().setText("one")
-    assert gui_load.gui.edit_layout.itemAt(track_pos, 1).widget().text() == "one"
-    gui_load.gui.edit_layout.itemAt(track_pos, 1).widget().editingFinished.emit()
-    assert gui_load.structure["Page 1"]["Question 1"]["track"] == "one"
-    QTimer.singleShot(200, handle_dialog_error)
-    gui_load.gui.load_preview()
-    QTimer.singleShot(200, handle_dialog_error)
-    gui_load.gui.refresh_button.click()
-    assert gui_load.gui.edit_layout.itemAt(track_pos, 1).widget().text() == "one"
-    assert gui_load.structure["Page 1"]["Question 1"]["track"] == "one"
-    QTimer.singleShot(150, handle_dialog_error)
-    error_found, warning_found, warning_details = validate_questionnaire(gui_load.structure)
-    assert error_found == True
-    assert warning_found == False
-
-    # set it as list (shouldn't work as audio_tracks = 1 by default)
-    gui_load.gui.edit_layout.itemAt(track_pos, 1).widget().clear()
-    gui_load.gui.edit_layout.itemAt(track_pos, 1).widget().setText("1,2")
-    assert gui_load.gui.edit_layout.itemAt(track_pos, 1).widget().text() == "1,2"
-    gui_load.gui.edit_layout.itemAt(track_pos, 1).widget().editingFinished.emit()
-    assert gui_load.structure["Page 1"]["Question 1"]["track"] == "1,2"
-    QTimer.singleShot(200, handle_dialog_error)
-    gui_load.gui.load_preview()
-    QTimer.singleShot(200, handle_dialog_error)
-    gui_load.gui.refresh_button.click()
-    assert gui_load.gui.edit_layout.itemAt(track_pos, 1).widget().text() == "1,2"
-    assert gui_load.structure["Page 1"]["Question 1"]["track"] == [1, 2]
-    QTimer.singleShot(150, handle_dialog_error)
-    error_found, warning_found, warning_details = validate_questionnaire(gui_load.structure)
-    assert error_found == True
-    assert warning_found == False
-    # but it works when audio_tracks is >= max(track)
-    gui_load.structure["audio_tracks"] = 2
-    QTimer.singleShot(150, handle_dialog_error)
-    error_found, warning_found, warning_details = validate_questionnaire(gui_load.structure)
-    assert error_found == False
-    assert warning_found == False
-    gui_load.structure["audio_tracks"] = 1
-
-    # set it as any number <= audio_tracks
-    gui_load.gui.edit_layout.itemAt(track_pos, 1).widget().clear()
-    gui_load.gui.edit_layout.itemAt(track_pos, 1).widget().setText("1")
-    assert gui_load.gui.edit_layout.itemAt(track_pos, 1).widget().text() == "1"
-    gui_load.gui.edit_layout.itemAt(track_pos, 1).widget().editingFinished.emit()
-    assert gui_load.structure["Page 1"]["Question 1"]["track"] == "1"
-    gui_load.gui.load_preview()
-    gui_load.gui.refresh_button.click()
-    assert gui_load.gui.edit_layout.itemAt(track_pos, 1).widget().text() == "1"
-    assert gui_load.structure["Page 1"]["Question 1"]["track"] == '1'
-    QTimer.singleShot(150, handle_dialog_error)
-    error_found, warning_found, warning_details = validate_questionnaire(gui_load.structure)
-    assert error_found == False
-    assert warning_found == False
-    QTimer.singleShot(150, handle_dialog_no_save)
-    gui_load.close()
-
-
 # noinspection PyArgumentList
 def test_play_once(gui_load, qtbot):
     if os.path.exists("./test/results/results_pl.csv"):
@@ -375,30 +318,49 @@ def test_play_once(gui_load, qtbot):
     assert warning_found == False
     gui_load.gui.refresh_button.click()
     QTest.keyClicks(gui_load, 's', modifier=Qt.ControlModifier, delay=1)
+    prepare_listeners(ConfigObj("./test/pltest.txt"))
     test_gui = StackedWindowGui("./test/pltest.txt")
     assert test_gui.Stack.count() == 1
+    assert thread_audio.message_stack[-1] == ("/action", 40297)
     for child in test_gui.Stack.currentWidget().children():
         if type(child) == Player:
             assert child.play_button.isEnabled() == True
             assert child.pause_button.isEnabled() == False
             assert child.stop_button.isEnabled() == False
             child.play_button.click()
+            QTest.qWait(2000)
+            assert thread_audio.message_stack[-5] == ("/action", 40161)
+            assert thread_audio.message_stack[-1] == ("/play", 1.0)
+            assert thread_audio.message_stack[-2] == ("/stop", 0.0)
             assert child.play_button.isEnabled() == False
             assert child.pause_button.isEnabled() == True
             assert child.stop_button.isEnabled() == True
             child.pause_button.click()  # pause
+            QTest.qWait(2000)
+            assert thread_audio.message_stack[-1] == ("/play", 0.0)
+            assert thread_audio.message_stack[-2] == ("/pause", 1.0)
+            assert thread_audio.message_stack[-3] == ("/stop", 1.0)
             assert child.play_button.isEnabled() == False
             assert child.pause_button.isEnabled() == True
             assert child.stop_button.isEnabled() == True
             child.pause_button.click()  # unpause
+            QTest.qWait(2000)
+            assert thread_audio.message_stack[-1] == ("/play", 1.0)
+            assert thread_audio.message_stack[-2] == ("/pause", 0.0)
+            assert thread_audio.message_stack[-3] == ("/stop", 0.0)
             assert child.play_button.isEnabled() == False
             assert child.pause_button.isEnabled() == True
             assert child.stop_button.isEnabled() == True
             child.stop_button.click()  # stop
+            QTest.qWait(2000)
+            assert thread_audio.message_stack[-1] == ("/play", 0.0)
+            assert thread_audio.message_stack[-2] == ("/stop", 1.0)
             assert child.play_button.isEnabled() == False
             assert child.pause_button.isEnabled() == False
             assert child.stop_button.isEnabled() == False
     test_gui.close()
+    thread_audio.stop(0.1)
+    QTest.qWait(1000)
 
     # reset file
     assert gui_load.gui.edit_layout.itemAt(po_pos, 1).widget().isChecked() == True
@@ -411,6 +373,7 @@ def test_play_once(gui_load, qtbot):
     assert warning_found == False
     gui_load.gui.refresh_button.click()
     QTest.keyClicks(gui_load, 's', modifier=Qt.ControlModifier)
+    prepare_listeners(ConfigObj("./test/pltest.txt"))
     test_gui = StackedWindowGui("./test/pltest.txt")
     assert test_gui.Stack.count() == 1
     for child in test_gui.Stack.currentWidget().children():
@@ -420,25 +383,795 @@ def test_play_once(gui_load, qtbot):
             assert child.stop_button.isEnabled() == False
             child.play_button.click()
             QTest.qWait(100)
+            QTest.qWait(2000)
+            assert thread_audio.message_stack[-5] == ("/action", 40161)
+            assert thread_audio.message_stack[-1] == ("/play", 1.0)
+            assert thread_audio.message_stack[-2] == ("/stop", 0.0)
             assert child.play_button.isEnabled() == True
             assert child.pause_button.isEnabled() == True
             assert child.stop_button.isEnabled() == True
             child.pause_button.click()  # pause
+            QTest.qWait(2000)
+            assert thread_audio.message_stack[-1] == ("/play", 0.0)
+            assert thread_audio.message_stack[-2] == ("/pause", 1.0)
+            assert thread_audio.message_stack[-3] == ("/stop", 1.0)
             assert child.play_button.isEnabled() == True
             assert child.pause_button.isEnabled() == True
             assert child.stop_button.isEnabled() == True
             child.pause_button.click()  # unpause
+            QTest.qWait(2000)
+            assert thread_audio.message_stack[-1] == ("/play", 1.0)
+            assert thread_audio.message_stack[-2] == ("/pause", 0.0)
+            assert thread_audio.message_stack[-3] == ("/stop", 0.0)
             assert child.play_button.isEnabled() == True
             assert child.pause_button.isEnabled() == True
             assert child.stop_button.isEnabled() == True
             child.stop_button.click()  # stop
+            QTest.qWait(2000)
+            assert thread_audio.message_stack[-1] == ("/play", 0.0)
+            assert thread_audio.message_stack[-2] == ("/stop", 1.0)
             assert child.play_button.isEnabled() == True
             assert child.pause_button.isEnabled() == False
             assert child.stop_button.isEnabled() == False
     test_gui.close()
+    thread_audio.stop(0.1)
+    QTest.qWait(1000)
 
     os.remove("./test/results/results_pl.csv")
     gui_load.close()
+
+
+# noinspection PyArgumentList
+def test_timer_and_two_pages(gui_load2, qtbot):
+    QTimer.singleShot(150, handle_dialog_error)
+    error_found, warning_found, warning_details = validate_questionnaire(gui_load2.structure)
+    assert error_found == False
+    assert warning_found == False
+    tv = gui_load2.gui.treeview
+    tv.expandAll()
+    tv.setCurrentItem(tv.topLevelItem(0).child(0).child(0))  # should be 'Question 1'
+    assert len(tv.selectedItems()) == 1
+    assert tv.selectedItems()[0].text(0) == "Question 1"
+
+    rect = tv.visualItemRect(tv.currentItem())
+    QTest.mouseClick(tv.viewport(), Qt.LeftButton, Qt.NoModifier, rect.center(), delay=1)
+    time_pos = find_row_by_label(gui_load2.gui.edit_layout, 'timer')
+
+    # set timer value
+    assert gui_load2.gui.edit_layout.itemAt(time_pos, 1).widget().text() == ''
+    gui_load2.gui.edit_layout.itemAt(time_pos, 1).widget().setText("one")
+    gui_load2.gui.edit_layout.itemAt(time_pos, 1).widget().editingFinished.emit()
+    assert gui_load2.gui.edit_layout.itemAt(time_pos, 1).widget().text() == 'one'
+    assert gui_load2.structure["Page 1"]["Question 1"]["timer"] == 'one'
+    QTimer.singleShot(150, handle_dialog_error)
+    error_found, warning_found, warning_details = validate_questionnaire(gui_load2.structure)
+    assert error_found == True
+    assert warning_found == False
+    gui_load2.gui.edit_layout.itemAt(time_pos, 1).widget().clear()
+    assert gui_load2.gui.edit_layout.itemAt(time_pos, 1).widget().text() == ''
+    gui_load2.gui.edit_layout.itemAt(time_pos, 1).widget().setText("1000")
+    gui_load2.gui.edit_layout.itemAt(time_pos, 1).widget().editingFinished.emit()
+    assert gui_load2.gui.edit_layout.itemAt(time_pos, 1).widget().text() == '1000'
+    assert gui_load2.structure["Page 1"]["Question 1"]["timer"] == '1000'
+    QTimer.singleShot(150, handle_dialog_error)
+    error_found, warning_found, warning_details = validate_questionnaire(gui_load2.structure)
+    assert error_found == False
+    assert warning_found == False
+    gui_load2.gui.refresh_button.click()
+    QTest.keyClicks(gui_load2, 's', modifier=Qt.ControlModifier)
+    prepare_listeners(ConfigObj("./test/pltest2.txt"))
+    test_gui = StackedWindowGui("./test/pltest2.txt")
+    assert test_gui.Stack.count() == 2
+    hidden = None
+    print(thread_audio.message_stack)
+    for child in test_gui.Stack.currentWidget().children():
+        if type(child) == QLineEdit:
+            hidden = child
+    for child in test_gui.Stack.currentWidget().children():
+        if type(child) == Player:
+            assert child.play_button.isEnabled() == True
+            assert hidden.isHidden() == True
+            assert hidden.isVisible() == False
+            child.play_button.click()
+            QTest.qWait(2000)
+            print(thread_audio.message_stack)
+            assert thread_audio.message_stack[-5] == ("/action", 40161)
+            assert thread_audio.message_stack[-1] == ("/play", 1.0)
+            assert thread_audio.message_stack[-2] == ("/stop", 0.0)
+            assert child.play_button.isEnabled() == True
+            assert child.timer.remainingTime() <= 0
+            assert hidden.isHidden() == False
+            assert hidden.isVisible() == True
+
+    QTest.qWait(3000)
+    test_gui.close()
+    thread_audio.stop(0.1)
+    QTest.qWait(5000)
+
+    # stop during playback
+    prepare_listeners(ConfigObj("./test/pltest2.txt"))
+    test_gui = StackedWindowGui("./test/pltest2.txt")
+    assert test_gui.Stack.count() == 2
+    hidden = None
+    for child in test_gui.Stack.currentWidget().children():
+        if type(child) == QLineEdit:
+            hidden = child
+    for child in test_gui.Stack.currentWidget().children():
+        if type(child) == Player:
+            assert child.play_button.isEnabled() == True
+            assert hidden.isHidden() == True
+            assert hidden.isVisible() == False
+            child.play_button.click()
+            QTest.qWait(500)
+            child.stop_button.click()
+            assert hidden.isHidden() == True
+            assert hidden.isVisible() == False
+            QTest.qWait(1000)
+            print(thread_audio.message_stack)
+            assert thread_audio.message_stack[-7] == ("/action", 40161)
+            assert thread_audio.message_stack[-3] == ("/play", 1.0)
+            assert thread_audio.message_stack[-4] == ("/stop", 0.0)
+            assert thread_audio.message_stack[-1] == ("/play", 0.0)
+            assert thread_audio.message_stack[-2] == ("/stop", 1.0)
+            QTest.qWait(700)
+            assert hidden.isHidden() == True
+            assert hidden.isVisible() == False
+            # assert child.timer.remainingTime() <= 500
+            assert child.countdown > 0
+            assert child.countdown == 1000
+            child.play_button.click()
+            assert child.timer.remainingTime() >= 900  # timer is restarted
+            QTest.qWait(500)
+            assert hidden.isHidden() == True
+            assert hidden.isVisible() == False
+            QTest.qWait(700)
+            assert child.timer.remainingTime() <= 0
+            assert hidden.isHidden() == False
+            assert hidden.isVisible() == True
+            QTest.qWait(2000)
+            print(thread_audio.message_stack)
+            assert thread_audio.message_stack[-1] == ("/play", 1.0)
+            assert thread_audio.message_stack[-2] == ("/stop", 0.0)
+            # TODO in reality REAPER should ping back stop, but this doesn't work with the MockReceiver
+    test_gui.close()
+    thread_audio.stop(0.1)
+    QTest.qWait(1000)
+
+    # pause and resume during playback
+    prepare_listeners(ConfigObj("./test/pltest2.txt"))
+    test_gui = StackedWindowGui("./test/pltest2.txt")
+    assert test_gui.Stack.count() == 2
+    hidden = None
+    for child in test_gui.Stack.currentWidget().children():
+        if type(child) == QLineEdit:
+            hidden = child
+    for child in test_gui.Stack.currentWidget().children():
+        if type(child) == Player:
+            assert child.play_button.isEnabled() == True
+            assert hidden.isHidden() == True
+            assert hidden.isVisible() == False
+            child.play_button.click()
+            QTest.qWait(500)
+            child.pause_button.click()
+            assert hidden.isHidden() == True
+            assert hidden.isVisible() == False
+            QTest.qWait(700)
+            assert hidden.isHidden() == True
+            assert hidden.isVisible() == False
+            QTest.qWait(2000)
+            print(thread_audio.message_stack)
+            assert thread_audio.message_stack[-8] == ("/action", 40161)
+            assert thread_audio.message_stack[-4] == ("/play", 1.0)
+            assert thread_audio.message_stack[-5] == ("/stop", 0.0)
+            assert thread_audio.message_stack[-1] == ("/play", 0.0)
+            assert thread_audio.message_stack[-2] == ("/pause", 1.0)
+            assert thread_audio.message_stack[-3] == ("/stop", 1.0)
+            # assert child.timer.remainingTime() <= 500
+            # assert child.timer.remainingTime() > 0
+            assert child.countdown > 0
+            assert child.countdown <= 500
+            child.play_button.click()
+            assert child.timer.remainingTime() <= 500  # timer is not restarted
+            assert child.timer.remainingTime() > 0
+            QTest.qWait(700)
+            assert child.timer.remainingTime() <= 0
+            assert hidden.isHidden() == False
+            assert hidden.isVisible() == True
+            assert thread_audio.message_stack[-1] == ("/play", 1.0)
+            assert thread_audio.message_stack[-2] == ("/pause", 0.0)
+            assert thread_audio.message_stack[-3] == ("/stop", 0.0)
+    test_gui.close()
+    thread_audio.stop(0.1)
+    QTest.qWait(1000)
+
+    # reset file
+    os.remove("./test/results/results_pl.csv")
+    gui_load2.gui.edit_layout.itemAt(time_pos, 1).widget().clear()
+    gui_load2.gui.edit_layout.itemAt(time_pos, 1).widget().editingFinished.emit()
+    assert gui_load2.structure["Page 1"]["Question 1"]["timer"] == ''
+    QTimer.singleShot(150, handle_dialog_error)
+    error_found, warning_found, warning_details = validate_questionnaire(gui_load2.structure)
+    assert error_found == False
+    assert warning_found == False
+    gui_load2.gui.refresh_button.click()
+    assert "timer" not in gui_load2.structure["Page 1"]["Question 1"].keys()
+    QTest.keyClicks(gui_load2, 's', modifier=Qt.ControlModifier)
+    prepare_listeners(ConfigObj("./test/pltest2.txt"))
+    test_gui = StackedWindowGui("./test/pltest2.txt")
+    assert test_gui.Stack.count() == 2
+    hidden = None
+    for child in test_gui.Stack.currentWidget().children():
+        if type(child) == QLineEdit:
+            hidden = child
+    for child in test_gui.Stack.currentWidget().children():
+        if type(child) == Player:
+            assert child.play_button.isEnabled() == True
+            assert hidden.isHidden() == False
+            assert hidden.isVisible() == True
+            child.play_button.click()
+            QTest.qWait(2000)
+            assert thread_audio.message_stack[-5] == ("/action", 40161)
+            assert thread_audio.message_stack[-1] == ("/play", 1.0)
+            assert thread_audio.message_stack[-2] == ("/stop", 0.0)
+    QTest.mouseClick(test_gui.forwardbutton, Qt.LeftButton, delay=1)
+    QTimer.singleShot(200, handle_dialog)
+    QTest.mouseClick(test_gui.forwardbutton, Qt.LeftButton, delay=1)
+    test_gui.close()
+    results = []
+    with open('./test/results/results_pl.csv', mode='r') as file:
+        csv_file = csv.reader(file, delimiter=';')
+        for lines in csv_file:
+            results = lines
+    assert len(results) == 5
+    assert lines[0] == '1'  # participant number
+    assert re.match(r'\[\d.\d+]', lines[1])  # list of duration
+    assert lines[2] == ''  # text field
+    assert re.match(r'\d+-\d+-\d+ \d+:\d+:\d+.\d+', lines[3])  # timestamp
+    assert re.match(r'\d+-\d+-\d+ \d+:\d+:\d+.\d+', lines[4])  # timestamp
+    os.remove("./test/results/results_pl.csv")
+    thread_audio.stop(0.1)
+    QTest.qWait(1000)
+    gui_load2.close()
+
+
+# noinspection PyArgumentList
+def test_play_button_text(gui_load, qtbot):
+    QTimer.singleShot(150, handle_dialog_error)
+    error_found, warning_found, warning_details = validate_questionnaire(gui_load.structure)
+    assert error_found == False
+    assert warning_found == False
+    tv = gui_load.gui.treeview
+    tv.expandAll()
+    tv.setCurrentItem(tv.topLevelItem(0).child(0).child(0))  # should be 'Question 1'
+    assert len(tv.selectedItems()) == 1
+    assert tv.selectedItems()[0].text(0) == "Question 1"
+
+    rect = tv.visualItemRect(tv.currentItem())
+    QTest.mouseClick(tv.viewport(), Qt.LeftButton, Qt.NoModifier, rect.center())
+
+    # change text
+    gui_load.structure["Page 1"]["Question 1"]["play_button_text"] = "Click me"
+    gui_load.gui.load_preview()
+    gui_load.gui.refresh_button.click()
+    assert gui_load.structure["Page 1"]["Question 1"]["play_button_text"] == "Click me"
+    QTimer.singleShot(150, handle_dialog_error)
+    error_found, warning_found, warning_details = validate_questionnaire(gui_load.structure)
+    assert error_found == False
+    assert warning_found == False
+    gui_load.gui.refresh_button.click()
+    QTest.keyClicks(gui_load, 's', modifier=Qt.ControlModifier)
+    prepare_listeners(ConfigObj("./test/pltest.txt"))
+    test_gui = StackedWindowGui("./test/pltest.txt")
+    assert test_gui.Stack.count() == 1
+    for child in test_gui.Stack.currentWidget().children():
+        if type(child) == Player:
+            assert child.play_button.text() == "Click me"
+    QTest.qWait(2000)
+    assert thread_audio.message_stack[-1] == ("/action", 40297)
+    QTimer.singleShot(200, handle_dialog)
+    QTest.mouseClick(test_gui.forwardbutton, Qt.LeftButton, delay=1)
+    test_gui.close()
+    thread_audio.stop(0.1)
+    QTest.qWait(1000)
+
+    # reset file
+    gui_load.structure["Page 1"]["Question 1"].pop("play_button_text")
+    assert "play_button_text" not in gui_load.structure["Page 1"]["Question 1"].keys()
+    QTimer.singleShot(150, handle_dialog_error)
+    error_found, warning_found, warning_details = validate_questionnaire(gui_load.structure)
+    assert error_found == False
+    assert warning_found == False
+    QTest.keyClicks(gui_load, 's', modifier=Qt.ControlModifier)
+
+    os.remove("./test/results/results_pl.csv")
+    gui_load.close()
+
+
+# noinspection PyArgumentList
+def test_execute_questionnaire_no_interaction(run, qtbot):
+    assert run.Stack.count() == 1
+
+    QTimer.singleShot(200, handle_dialog)
+    QTest.mouseClick(run.forwardbutton, Qt.LeftButton)
+
+    results = []
+    with open('./test/results/results_pl.csv', mode='r') as file:
+        csv_file = csv.reader(file, delimiter=';')
+
+        for lines in csv_file:
+            results = lines
+            if results[0].startswith('data'):
+                assert lines[0] == 'data_row_number'  # participant number
+                assert lines[1] == 'pl'
+                assert lines[2] == 'Start'
+                assert lines[3] == 'End'
+    assert len(results) == 4
+    assert lines[0] == '1'  # participant number
+    assert lines[1] == '[]'  # not played yet
+    assert re.match(r'\d+-\d+-\d+ \d+:\d+:\d+.\d+', lines[2])  # timestamp
+    assert re.match(r'\d+-\d+-\d+ \d+:\d+:\d+.\d+', lines[3])  # timestamp
+    assert thread_audio.message_stack[-1] == ("/action", 40297)
+    os.remove("./test/results/results_pl.csv")
+    thread_audio.stop(0.1)
+    QTest.qWait(1000)
+
+
+# noinspection PyArgumentList
+def test_execute_questionnaire_no_interaction_blocked(run, qtbot):
+    with mock_file(r'./test/results/results_pl.csv'):
+        assert run.Stack.count() == 1
+        QTimer.singleShot(100, handle_dialog)
+        QTest.mouseClick(run.forwardbutton, Qt.LeftButton)
+        res_file = None
+        for file in os.listdir("./test/results/"):
+            if file.find("_backup_"):
+                res_file = "./test/results/{}".format(file)
+        results = []
+        with open(res_file, mode='r') as file:
+            csv_file = csv.reader(file, delimiter=';')
+
+            for lines in csv_file:
+                results = lines
+                if results[0].startswith('data'):
+                    assert lines[0] == 'data_row_number'  # participant number
+                    assert lines[1] == 'pl'
+                    assert lines[2] == 'Start'
+                    assert lines[3] == 'End'
+        assert len(results) == 4
+        assert lines[0] == '-1'  # participant number unknown
+        assert lines[1] == '[]'  # not played yet
+        assert re.match(r'\d+-\d+-\d+ \d+:\d+:\d+.\d+', lines[2])  # timestamp
+        assert re.match(r'\d+-\d+-\d+ \d+:\d+:\d+.\d+', lines[3])  # timestamp
+        assert thread_audio.message_stack[-1] == ("/action", 40297)
+        os.remove(res_file)
+        thread_audio.stop(0.1)
+        QTest.qWait(1000)
+
+
+# noinspection PyArgumentList
+def test_execute_questionnaire(run, qtbot):
+    if os.path.exists("./test/results/results_pl.csv"):
+        os.remove("./test/results/results_pl.csv")
+    assert run.Stack.count() == 1
+    for child in run.Stack.currentWidget().children():
+        if type(child) == Player:
+            child.playing = False
+            child.play_button.click()
+            QTest.qWait(2000)
+
+            assert thread_audio.message_stack[-5] == ("/action", 40161)
+            assert thread_audio.message_stack[-1] == ("/play", 1.0)
+            assert thread_audio.message_stack[-2] == ("/stop", 0.0)
+
+    QTimer.singleShot(200, handle_dialog)
+    QTest.mouseClick(run.forwardbutton, Qt.LeftButton, delay=1)
+
+    results = []
+    with open('./test/results/results_pl.csv', mode='r') as file:
+        csv_file = csv.reader(file, delimiter=';')
+
+        for lines in csv_file:
+            results = lines
+    assert len(results) == 4
+    assert lines[0] == '1'  # participant number
+    assert re.match(r'\[\d.\d+]', lines[1])  # list of duration
+    assert re.match(r'\d+-\d+-\d+ \d+:\d+:\d+.\d+', lines[2])  # timestamp
+    assert re.match(r'\d+-\d+-\d+ \d+:\d+:\d+.\d+', lines[3])  # timestamp
+    os.remove("./test/results/results_pl.csv")
+    thread_audio.stop(0.1)
+    QTest.qWait(1000)
+
+
+# noinspection PyArgumentList
+def test_execute_questionnaire_blocked(run, qtbot):
+    with mock_file(r'./test/results/results_pl.csv'):
+        assert run.Stack.count() == 1
+        for child in run.Stack.currentWidget().children():
+            if type(child) == Player:
+                child.playing = False
+                child.play_button.click()
+                QTest.qWait(5000)
+                assert thread_audio.message_stack[-5] == ("/action", 40161)
+                assert thread_audio.message_stack[-1] == ("/play", 1.0)
+                assert thread_audio.message_stack[-2] == ("/stop", 0.0)
+        QTimer.singleShot(100, handle_dialog)
+        QTest.mouseClick(run.forwardbutton, Qt.LeftButton)
+        res_file = None
+        for file in os.listdir("./test/results/"):
+            if file.find("_backup_"):
+                res_file = "./test/results/{}".format(file)
+        results = []
+        with open(res_file, mode='r') as file:
+            csv_file = csv.reader(file, delimiter=';')
+
+            for lines in csv_file:
+                results = lines
+                if results[0].startswith('data'):
+                    assert lines[0] == 'data_row_number'  # participant number
+                    assert lines[1] == 'pl'
+                    assert lines[2] == 'Start'
+                    assert lines[3] == 'End'
+        assert len(results) == 4
+        assert lines[0] == '-1'  # participant number unknown
+        assert re.match(r'\[\d.\d+]', lines[1])
+        assert re.match(r'\d+-\d+-\d+ \d+:\d+:\d+.\d+', lines[2])  # timestamp
+        assert re.match(r'\d+-\d+-\d+ \d+:\d+:\d+.\d+', lines[3])  # timestamp
+        os.remove(res_file)
+        thread_audio.stop(0.1)
+        QTest.qWait(1000)
+
+
+# noinspection PyArgumentList
+def test_buttons(gui_load, qtbot):
+    QTimer.singleShot(150, handle_dialog_error)
+    error_found, warning_found, warning_details = validate_questionnaire(gui_load.structure)
+    assert error_found == False
+    assert warning_found == False
+    tv = gui_load.gui.treeview
+    tv.expandAll()
+    tv.setCurrentItem(tv.topLevelItem(0).child(0).child(0))  # should be 'Question 1'
+    assert len(tv.selectedItems()) == 1
+    assert tv.selectedItems()[0].text(0) == "Question 1"
+
+    rect = tv.visualItemRect(tv.currentItem())
+    QTest.mouseClick(tv.viewport(), Qt.LeftButton, Qt.NoModifier, rect.center())
+    btn_pos = find_row_by_label(gui_load.gui.edit_layout, 'buttons')
+
+    for btn in range(gui_load.gui.edit_layout.itemAt(btn_pos, 1).count()):
+        assert gui_load.gui.edit_layout.itemAt(btn_pos, 1).itemAt(btn).widget().isChecked() == True
+    assert gui_load.structure["Page 1"]["Question 1"]["buttons"] == player_buttons
+
+    # try to add a non-defined button
+    gui_load.structure["Page 1"]["Question 1"]["buttons"].append("Record")
+    QTimer.singleShot(150, handle_dialog_error)
+    error_found, warning_found, warning_details = validate_questionnaire(gui_load.structure)
+    assert error_found == True
+    assert warning_found == False
+
+    # no button chosen -> warning plus autoplay on load
+    for btn in range(gui_load.gui.edit_layout.itemAt(btn_pos, 1).count()):
+        gui_load.gui.edit_layout.itemAt(btn_pos, 1).itemAt(btn).widget().click()
+        assert gui_load.gui.edit_layout.itemAt(btn_pos, 1).itemAt(btn).widget().isChecked() == False
+    assert gui_load.structure["Page 1"]["Question 1"]["buttons"] == []
+    QTimer.singleShot(150, handle_dialog_error)
+    error_found, warning_found, warning_details = validate_questionnaire(gui_load.structure)
+    assert error_found == False
+    assert warning_found == True
+    QTest.keyClicks(gui_load, 's', modifier=Qt.ControlModifier)
+    prepare_listeners(ConfigObj("./test/pltest.txt"))
+    QTest.qWait(2000)
+    QTimer.singleShot(150, handle_dialog_warning)
+    test_gui = StackedWindowGui("./test/pltest.txt")
+    assert test_gui.Stack.count() == 1
+    for child in test_gui.Stack.currentWidget().children():
+        if type(child) == Player:
+            assert child.buttons == []
+            assert child.playing == True
+    QTest.qWait(5000)
+    print(thread_audio.message_stack)
+    assert thread_audio.message_stack[-5] == ("/action", 40161)
+    assert thread_audio.message_stack[-1] == ("/play", 1.0)
+    assert thread_audio.message_stack[-2] == ("/stop", 0.0)
+    QTimer.singleShot(200, handle_dialog)
+    QTest.mouseClick(test_gui.forwardbutton, Qt.LeftButton, delay=1)
+    test_gui.close()
+    thread_audio.stop(0.1)
+    QTest.qWait(1000)
+    results = []
+    with open('./test/results/results_pl.csv', mode='r') as file:
+        csv_file = csv.reader(file, delimiter=';')
+
+        for lines in csv_file:
+            results = lines
+    assert len(results) == 4
+    assert lines[0] == '1'  # participant number
+    assert re.match(r'\[\d.\d+]', lines[1])  # list of duration
+    assert re.match(r'\d+-\d+-\d+ \d+:\d+:\d+.\d+', lines[2])  # timestamp
+    assert re.match(r'\d+-\d+-\d+ \d+:\d+:\d+.\d+', lines[3])  # timestamp
+    os.remove("./test/results/results_pl.csv")
+
+    # just stop button
+    gui_load.gui.edit_layout.itemAt(btn_pos, 1).itemAt(2).widget().click()
+    assert gui_load.gui.edit_layout.itemAt(btn_pos, 1).itemAt(2).widget().isChecked() == True
+    assert gui_load.structure["Page 1"]["Question 1"]["buttons"] == ["Stop"]
+    QTimer.singleShot(150, handle_dialog_error)
+    error_found, warning_found, warning_details = validate_questionnaire(gui_load.structure)
+    assert error_found == False
+    assert warning_found == True
+    QTest.keyClicks(gui_load, 's', modifier=Qt.ControlModifier)
+    prepare_listeners(ConfigObj("./test/pltest.txt"))
+    QTest.qWait(3000)
+    QTimer.singleShot(150, handle_dialog_warning)
+    test_gui = StackedWindowGui("./test/pltest.txt")
+    assert test_gui.Stack.count() == 1
+    QTest.qWait(3000)
+    assert thread_audio.message_stack[-5] == ("/action", 40161)
+    assert thread_audio.message_stack[-1] == ("/play", 1.0)
+    assert thread_audio.message_stack[-2] == ("/stop", 0.0)
+    for child in test_gui.Stack.currentWidget().children():
+        if type(child) == Player:
+            assert child.buttons == ["Stop"]
+            assert child.playing == True
+            assert child.stop_button.isEnabled() == True
+            assert child.stop_button is not None
+            child.stop_button.click()
+            QTest.qWait(2000)
+            assert thread_audio.message_stack[-1] == ("/play", 0.0)
+            assert thread_audio.message_stack[-2] == ("/stop", 1.0)
+            assert child.playing == False
+            assert child.stop_button.isEnabled() == False
+    QTimer.singleShot(200, handle_dialog)
+    QTest.mouseClick(test_gui.forwardbutton, Qt.LeftButton, delay=1)
+    test_gui.close()
+    thread_audio.stop(0.1)
+    QTest.qWait(1000)
+    results = []
+    with open('./test/results/results_pl.csv', mode='r') as file:
+        csv_file = csv.reader(file, delimiter=';')
+        for lines in csv_file:
+            results = lines
+    assert len(results) == 4
+    assert lines[0] == '1'  # participant number
+    assert re.match(r'\[\d.\d+]', lines[1])  # list of duration
+    assert re.match(r'\d+-\d+-\d+ \d+:\d+:\d+.\d+', lines[2])  # timestamp
+    assert re.match(r'\d+-\d+-\d+ \d+:\d+:\d+.\d+', lines[3])  # timestamp
+    os.remove("./test/results/results_pl.csv")
+
+    # stop and pause
+    gui_load.gui.edit_layout.itemAt(btn_pos, 1).itemAt(1).widget().click()
+    assert gui_load.gui.edit_layout.itemAt(btn_pos, 1).itemAt(1).widget().isChecked() == True
+    assert gui_load.structure["Page 1"]["Question 1"]["buttons"] == ["Pause", "Stop"]
+    QTimer.singleShot(150, handle_dialog_error)
+    error_found, warning_found, warning_details = validate_questionnaire(gui_load.structure)
+    assert error_found == False
+    assert warning_found == True
+    QTest.keyClicks(gui_load, 's', modifier=Qt.ControlModifier)
+    prepare_listeners(ConfigObj("./test/pltest.txt"))
+    QTimer.singleShot(150, handle_dialog_warning)
+    test_gui = StackedWindowGui("./test/pltest.txt")
+    QTest.qWait(5000)
+    assert thread_audio.message_stack[-5] == ("/action", 40161)
+    assert thread_audio.message_stack[-1] == ("/play", 1.0)
+    assert thread_audio.message_stack[-2] == ("/stop", 0.0)
+    assert test_gui.Stack.count() == 1
+    for child in test_gui.Stack.currentWidget().children():
+        if type(child) == Player:
+            assert child.buttons == ["Pause", "Stop"]
+            assert child.playing == True
+            assert child.pause_button.isEnabled() == True
+            assert child.pause_button.isChecked() == False
+            assert child.pause_button is not None
+            assert child.stop_button.isEnabled() == True
+            assert child.stop_button is not None
+            child.pause_button.click()
+            QTest.qWait(2000)
+            assert thread_audio.message_stack[-1] == ("/play", 0.0)
+            assert thread_audio.message_stack[-2] == ("/pause", 1.0)
+            assert thread_audio.message_stack[-3] == ("/stop", 1.0)
+            assert child.playing == False
+            assert child.pause_button.isEnabled() == True
+            assert child.pause_button.isChecked() == True
+            assert child.pause_button is not None
+            assert child.stop_button.isEnabled() == True
+            assert child.stop_button is not None
+            child.pause_button.click()
+            QTest.qWait(2000)
+            assert thread_audio.message_stack[-1] == ("/play", 1.0)
+            assert thread_audio.message_stack[-2] == ("/pause", 0.0)
+            assert thread_audio.message_stack[-3] == ("/stop", 0.0)
+            assert child.playing == True
+            assert child.pause_button.isEnabled() == True
+            assert child.pause_button.isChecked() == False
+            assert child.pause_button is not None
+            assert child.stop_button.isEnabled() == True
+            assert child.stop_button is not None
+            child.stop_button.click()
+            QTest.qWait(2000)
+            assert thread_audio.message_stack[-1] == ("/play", 0.0)
+            assert thread_audio.message_stack[-2] == ("/stop", 1.0)
+            assert child.playing == False
+            assert child.pause_button.isEnabled() == False
+            assert child.stop_button.isEnabled() == False
+    QTimer.singleShot(200, handle_dialog)
+    QTest.mouseClick(test_gui.forwardbutton, Qt.LeftButton, delay=1)
+    test_gui.close()
+    thread_audio.stop(0.1)
+    QTest.qWait(1000)
+    results = []
+    with open('./test/results/results_pl.csv', mode='r') as file:
+        csv_file = csv.reader(file, delimiter=';')
+        for lines in csv_file:
+            results = lines
+    assert len(results) == 4
+    assert lines[0] == '1'  # participant number
+    assert re.match(r'\[\d.\d+, \d.\d+]', lines[1])  # list of duration
+    assert re.match(r'\d+-\d+-\d+ \d+:\d+:\d+.\d+', lines[2])  # timestamp
+    assert re.match(r'\d+-\d+-\d+ \d+:\d+:\d+.\d+', lines[3])  # timestamp
+    os.remove("./test/results/results_pl.csv")
+
+    # just play button
+    gui_load.gui.edit_layout.itemAt(btn_pos, 1).itemAt(2).widget().click()
+    assert gui_load.gui.edit_layout.itemAt(btn_pos, 1).itemAt(2).widget().isChecked() == False
+    gui_load.gui.edit_layout.itemAt(btn_pos, 1).itemAt(1).widget().click()
+    assert gui_load.gui.edit_layout.itemAt(btn_pos, 1).itemAt(1).widget().isChecked() == False
+    gui_load.gui.edit_layout.itemAt(btn_pos, 1).itemAt(0).widget().click()
+    assert gui_load.gui.edit_layout.itemAt(btn_pos, 1).itemAt(0).widget().isChecked() == True
+    assert gui_load.structure["Page 1"]["Question 1"]["buttons"] == ["Play"]
+    QTimer.singleShot(150, handle_dialog_error)
+    error_found, warning_found, warning_details = validate_questionnaire(gui_load.structure)
+    assert error_found == False
+    assert warning_found == False
+    QTest.keyClicks(gui_load, 's', modifier=Qt.ControlModifier)
+    prepare_listeners(ConfigObj("./test/pltest.txt"))
+    test_gui = StackedWindowGui("./test/pltest.txt")
+    assert test_gui.Stack.count() == 1
+    for child in test_gui.Stack.currentWidget().children():
+        if type(child) == Player:
+            assert child.buttons == ["Play"]
+            assert child.playing == False
+            assert child.play_button is not None
+            child.play_button.click()
+            QTest.qWait(2000)
+            assert thread_audio.message_stack[-5] == ("/action", 40161)
+            assert thread_audio.message_stack[-1] == ("/play", 1.0)
+            assert thread_audio.message_stack[-2] == ("/stop", 0.0)
+            assert child.playing == True
+            child.play_button.click()
+            QTest.qWait(2000)
+            assert thread_audio.message_stack[-5] == ("/action", 40161)
+            assert thread_audio.message_stack[-1] == ("/play", 1.0)
+            assert thread_audio.message_stack[-2] == ("/stop", 0.0)
+    QTimer.singleShot(200, handle_dialog)
+    QTest.mouseClick(test_gui.forwardbutton, Qt.LeftButton, delay=1)
+    test_gui.close()
+    thread_audio.stop(0.1)
+    QTest.qWait(1000)
+    results = []
+    with open('./test/results/results_pl.csv', mode='r') as file:
+        csv_file = csv.reader(file, delimiter=';')
+        for lines in csv_file:
+            results = lines
+    assert len(results) == 4
+    assert lines[0] == '1'  # participant number
+    assert re.match(r'\[\d.\d+, \d.\d+]', lines[1])  # list of duration
+    assert re.match(r'\d+-\d+-\d+ \d+:\d+:\d+.\d+', lines[2])  # timestamp
+    assert re.match(r'\d+-\d+-\d+ \d+:\d+:\d+.\d+', lines[3])  # timestamp
+    os.remove("./test/results/results_pl.csv")
+
+    # reset file
+    for btn in range(gui_load.gui.edit_layout.itemAt(btn_pos, 1).count()):
+        if not gui_load.gui.edit_layout.itemAt(btn_pos, 1).itemAt(btn).widget().isChecked():
+            gui_load.gui.edit_layout.itemAt(btn_pos, 1).itemAt(btn).widget().click()
+        assert gui_load.gui.edit_layout.itemAt(btn_pos, 1).itemAt(btn).widget().isChecked() == True
+    assert gui_load.structure["Page 1"]["Question 1"]["buttons"] == player_buttons
+    QTimer.singleShot(150, handle_dialog_error)
+    error_found, warning_found, warning_details = validate_questionnaire(gui_load.structure)
+    assert error_found == False
+    assert warning_found == False
+    QTest.keyClicks(gui_load, 's', modifier=Qt.ControlModifier)
+    gui_load.close()
+
+
+def test_video(gui_load2, qtbot):
+    QTimer.singleShot(150, handle_dialog_error)
+    error_found, warning_found, warning_details = validate_questionnaire(gui_load2.structure)
+    assert error_found == False
+    assert warning_found == False
+    tv = gui_load2.gui.treeview
+    tv.expandAll()
+    tv.setCurrentItem(tv.topLevelItem(0).child(0).child(0))  # should be 'Question 1'
+    assert len(tv.selectedItems()) == 1
+    assert tv.selectedItems()[0].text(0) == "Question 1"
+
+    rect = tv.visualItemRect(tv.currentItem())
+    QTest.mouseClick(tv.viewport(), Qt.LeftButton, Qt.NoModifier, rect.center())
+    vid_pos = find_row_by_label(gui_load2.gui.edit_layout, 'video')
+
+    assert gui_load2.gui.edit_layout.itemAt(vid_pos, 1).widget().text() == ''
+    vid_path = "./some_video.mp4"
+    gui_load2.gui.edit_layout.itemAt(vid_pos, 1).widget().setText(vid_path)
+    gui_load2.gui.edit_layout.itemAt(vid_pos, 1).widget().editingFinished.emit()
+    assert gui_load2.gui.edit_layout.itemAt(vid_pos, 1).widget().text() == vid_path
+    QTimer.singleShot(150, handle_dialog_error)
+    error_found, warning_found, warning_details = validate_questionnaire(gui_load2.structure)
+    assert error_found == False
+    assert warning_found == True
+
+    # set video ip/port
+    gui_load2.structure["video_ip"] = "127.0.0.1"
+    gui_load2.structure["video_port"] = 5005
+    gui_load2.structure["video_player"] = "VLC"
+    QTimer.singleShot(150, handle_dialog_error)
+    error_found, warning_found, warning_details = validate_questionnaire(gui_load2.structure)
+    assert error_found == False
+    assert warning_found == False
+
+    gui_load2.gui.refresh_button.click()
+    QTest.keyClicks(gui_load2, 's', modifier=Qt.ControlModifier)
+    prepare_listeners(ConfigObj("./test/pltest2.txt"))
+    test_gui = StackedWindowGui("./test/pltest2.txt")
+    assert test_gui.Stack.count() == 2
+    for child in test_gui.Stack.currentWidget().children():
+        if type(child) == Player:
+            child.play_button.click()
+            QTest.qWait(500)
+            child.pause_button.click()
+            QTest.qWait(500)
+            child.play_button.click()
+    QTest.qWait(2000)
+    QTest.mouseClick(test_gui.forwardbutton, Qt.LeftButton, delay=1)
+    QTimer.singleShot(200, handle_dialog)
+    QTest.mouseClick(test_gui.forwardbutton, Qt.LeftButton, delay=1)
+    test_gui.close()
+    assert thread_video.message_stack[-6] == ("/vlc_start", './some_video.mp4')
+    assert thread_video.message_stack[-5] == ("/vlc_pause", 1)
+    assert thread_video.message_stack[-4] == ("/vlc_play", 1)
+    assert thread_video.message_stack[-3] == ("/vlc_stop", 1)
+    assert thread_video.message_stack[-2] == ("/vlc_still", 1)
+    assert thread_video.message_stack[-1] == ("/vlc_finish", 1)
+    print(thread_video.message_stack)
+    thread_audio.stop(0.1)
+    thread_video.stop(0.1)
+    QTest.qWait(1000)
+    os.remove("./test/results/results_pl.csv")
+
+    # MadMapper
+    gui_load2.structure["video_player"] = "MadMapper"
+    gui_load2.gui.refresh_button.click()
+    QTest.keyClicks(gui_load2, 's', modifier=Qt.ControlModifier)
+    prepare_listeners(ConfigObj("./test/pltest2.txt"))
+    test_gui = StackedWindowGui("./test/pltest2.txt")
+    assert test_gui.Stack.count() == 2
+    for child in test_gui.Stack.currentWidget().children():
+        if type(child) == Player:
+            child.play_button.click()
+            QTest.qWait(500)
+            child.pause_button.click()
+            QTest.qWait(500)
+            child.play_button.click()
+    QTest.qWait(2000)
+    QTest.mouseClick(test_gui.forwardbutton, Qt.LeftButton, delay=1)
+    QTimer.singleShot(200, handle_dialog)
+    QTest.mouseClick(test_gui.forwardbutton, Qt.LeftButton, delay=1)
+    test_gui.close()
+    print(thread_video.message_stack)  # the reply is a bis fucked up since it is configured for Reaper
+    assert thread_video.message_stack[0] == ("/medias/selected/position_sec", 0.0)
+    assert thread_video.message_stack[1] == ('/cues/Bank-1/scenes/by_name/./some_video.mp4', 1)
+    assert thread_video.message_stack[3] == ("/play", 1)
+    assert thread_video.message_stack[5] == ("/pause", 1)
+    assert thread_video.message_stack[8] == ("/play", 1)
+    assert thread_video.message_stack[13] == ("/pause", 1)  # equals stop
+    thread_audio.stop(0.1)
+    thread_video.stop(0.1)
+    QTest.qWait(1000)
+    os.remove("./test/results/results_pl.csv")
+
+    gui_load2.structure.pop("video_ip")
+    gui_load2.structure.pop("video_port")
+    gui_load2.structure.pop("video_player")
+    gui_load2.structure["Page 1"]["Question 1"].pop("video")
+    QTest.keyClicks(gui_load2, 's', modifier=Qt.ControlModifier)
+    gui_load2.close()
 
 
 # noinspection PyArgumentList
@@ -484,11 +1217,16 @@ def test_pupil(gui_load, qtbot, capfd):
     assert error_found == False
     assert warning_found == False
     QTest.keyClicks(gui_load, 's', modifier=Qt.ControlModifier, delay=1)
+    prepare_listeners(ConfigObj("./test/pltest.txt"))
     test_gui = StackedWindowGui("./test/pltest.txt")
     assert test_gui.Stack.count() == 1
     for child in test_gui.Stack.currentWidget().children():
         if type(child) == Player:
             child.play_button.click()
+            QTest.qWait(2000)
+            assert thread_audio.message_stack[-5] == ("/action", 40161)
+            assert thread_audio.message_stack[-1] == ("/play", 1.0)
+            assert thread_audio.message_stack[-2] == ("/stop", 0.0)
             QTest.qWait(1000)
             assert child.playing == True
             out, err = capfd.readouterr()
@@ -501,6 +1239,8 @@ def test_pupil(gui_load, qtbot, capfd):
     QTest.mouseClick(test_gui.forwardbutton, Qt.LeftButton, delay=150)
     QTest.qWait(3000)
     test_gui.close()
+    thread_audio.stop(0.1)
+    QTest.qWait(1000)
     os.remove("./test/results/results_pl.csv")
 
     # reset file
@@ -515,577 +1255,7 @@ def test_pupil(gui_load, qtbot, capfd):
     error_found, warning_found, warning_details = validate_questionnaire(gui_load.structure)
     assert error_found == False
     assert warning_found == False
-    QTest.keyClicks(gui_load, 's', modifier=Qt.ControlModifier, delay=1)
+    QTest.qWait(2000)
+    QTest.keyClicks(gui_load, 's', modifier=Qt.ControlModifier)
+    QTest.qWait(1000)
     gui_load.close()
-
-
-# noinspection PyArgumentList
-def test_timer_and_two_pages(gui_load2, qtbot):
-    QTimer.singleShot(150, handle_dialog_error)
-    error_found, warning_found, warning_details = validate_questionnaire(gui_load2.structure)
-    assert error_found == False
-    assert warning_found == False
-    tv = gui_load2.gui.treeview
-    tv.expandAll()
-    tv.setCurrentItem(tv.topLevelItem(0).child(0).child(0))  # should be 'Question 1'
-    assert len(tv.selectedItems()) == 1
-    assert tv.selectedItems()[0].text(0) == "Question 1"
-
-    rect = tv.visualItemRect(tv.currentItem())
-    QTest.mouseClick(tv.viewport(), Qt.LeftButton, Qt.NoModifier, rect.center(), delay=1)
-    time_pos = find_row_by_label(gui_load2.gui.edit_layout, 'timer')
-
-    # set timer value
-    assert gui_load2.gui.edit_layout.itemAt(time_pos, 1).widget().text() == ''
-    gui_load2.gui.edit_layout.itemAt(time_pos, 1).widget().setText("one")
-    gui_load2.gui.edit_layout.itemAt(time_pos, 1).widget().editingFinished.emit()
-    assert gui_load2.gui.edit_layout.itemAt(time_pos, 1).widget().text() == 'one'
-    assert gui_load2.structure["Page 1"]["Question 1"]["timer"] == 'one'
-    QTimer.singleShot(150, handle_dialog_error)
-    error_found, warning_found, warning_details = validate_questionnaire(gui_load2.structure)
-    assert error_found == True
-    assert warning_found == False
-    gui_load2.gui.edit_layout.itemAt(time_pos, 1).widget().clear()
-    assert gui_load2.gui.edit_layout.itemAt(time_pos, 1).widget().text() == ''
-    gui_load2.gui.edit_layout.itemAt(time_pos, 1).widget().setText("1000")
-    gui_load2.gui.edit_layout.itemAt(time_pos, 1).widget().editingFinished.emit()
-    assert gui_load2.gui.edit_layout.itemAt(time_pos, 1).widget().text() == '1000'
-    assert gui_load2.structure["Page 1"]["Question 1"]["timer"] == '1000'
-    QTimer.singleShot(150, handle_dialog_error)
-    error_found, warning_found, warning_details = validate_questionnaire(gui_load2.structure)
-    assert error_found == False
-    assert warning_found == False
-    gui_load2.gui.refresh_button.click()
-    QTest.keyClicks(gui_load2, 's', modifier=Qt.ControlModifier)
-    test_gui = StackedWindowGui("./test/pltest2.txt")
-    assert test_gui.Stack.count() == 2
-    hidden = None
-    for child in test_gui.Stack.currentWidget().children():
-        if type(child) == QLineEdit:
-            hidden = child
-    for child in test_gui.Stack.currentWidget().children():
-        if type(child) == Player:
-            assert child.play_button.isEnabled() == True
-            assert hidden.isHidden() == True
-            assert hidden.isVisible() == False
-            child.play_button.click()
-            QTest.qWait(1111)
-            assert child.play_button.isEnabled() == True
-            assert child.timer.remainingTime() <= 0
-            assert hidden.isHidden() == False
-            assert hidden.isVisible() == True
-
-    test_gui.close()
-
-    # stop during playback
-    test_gui = StackedWindowGui("./test/pltest2.txt")
-    assert test_gui.Stack.count() == 2
-    hidden = None
-    for child in test_gui.Stack.currentWidget().children():
-        if type(child) == QLineEdit:
-            hidden = child
-    for child in test_gui.Stack.currentWidget().children():
-        if type(child) == Player:
-            assert child.play_button.isEnabled() == True
-            assert hidden.isHidden() == True
-            assert hidden.isVisible() == False
-            child.play_button.click()
-            QTest.qWait(500)
-            child.stop_button.click()
-            assert hidden.isHidden() == True
-            assert hidden.isVisible() == False
-            QTest.qWait(700)
-            assert hidden.isHidden() == True
-            assert hidden.isVisible() == False
-            # assert child.timer.remainingTime() <= 500
-            assert child.countdown > 0
-            assert child.countdown == 1000
-            child.play_button.click()
-            assert child.timer.remainingTime() >= 900  # timer is restarted
-            QTest.qWait(500)
-            assert hidden.isHidden() == True
-            assert hidden.isVisible() == False
-            QTest.qWait(700)
-            assert child.timer.remainingTime() <= 0
-            assert hidden.isHidden() == False
-            assert hidden.isVisible() == True
-    test_gui.close()
-
-    # pause and resume during playback
-    test_gui = StackedWindowGui("./test/pltest2.txt")
-    assert test_gui.Stack.count() == 2
-    hidden = None
-    for child in test_gui.Stack.currentWidget().children():
-        if type(child) == QLineEdit:
-            hidden = child
-    for child in test_gui.Stack.currentWidget().children():
-        if type(child) == Player:
-            assert child.play_button.isEnabled() == True
-            assert hidden.isHidden() == True
-            assert hidden.isVisible() == False
-            child.play_button.click()
-            QTest.qWait(500)
-            child.pause_button.click()
-            assert hidden.isHidden() == True
-            assert hidden.isVisible() == False
-            QTest.qWait(700)
-            assert hidden.isHidden() == True
-            assert hidden.isVisible() == False
-            # assert child.timer.remainingTime() <= 500
-            # assert child.timer.remainingTime() > 0
-            assert child.countdown > 0
-            assert child.countdown <= 500
-            child.play_button.click()
-            assert child.timer.remainingTime() <= 500  # timer is not restarted
-            assert child.timer.remainingTime() > 0
-            QTest.qWait(700)
-            assert child.timer.remainingTime() <= 0
-            assert hidden.isHidden() == False
-            assert hidden.isVisible() == True
-    test_gui.close()
-
-    # reset file
-    os.remove("./test/results/results_pl.csv")
-    gui_load2.gui.edit_layout.itemAt(time_pos, 1).widget().clear()
-    gui_load2.gui.edit_layout.itemAt(time_pos, 1).widget().editingFinished.emit()
-    assert gui_load2.structure["Page 1"]["Question 1"]["timer"] == ''
-    QTimer.singleShot(150, handle_dialog_error)
-    error_found, warning_found, warning_details = validate_questionnaire(gui_load2.structure)
-    assert error_found == False
-    assert warning_found == False
-    gui_load2.gui.refresh_button.click()
-    assert "timer" not in gui_load2.structure["Page 1"]["Question 1"].keys()
-    QTest.keyClicks(gui_load2, 's', modifier=Qt.ControlModifier)
-    test_gui = StackedWindowGui("./test/pltest2.txt")
-    assert test_gui.Stack.count() == 2
-    hidden = None
-    for child in test_gui.Stack.currentWidget().children():
-        if type(child) == QLineEdit:
-            hidden = child
-    for child in test_gui.Stack.currentWidget().children():
-        if type(child) == Player:
-            assert child.play_button.isEnabled() == True
-            assert hidden.isHidden() == False
-            assert hidden.isVisible() == True
-            child.play_button.click()
-    QTest.mouseClick(test_gui.forwardbutton, Qt.LeftButton, delay=1)
-    QTimer.singleShot(200, handle_dialog)
-    QTest.mouseClick(test_gui.forwardbutton, Qt.LeftButton, delay=1)
-    test_gui.close()
-    results = []
-    with open('./test/results/results_pl.csv', mode='r') as file:
-        csv_file = csv.reader(file, delimiter=';')
-        for lines in csv_file:
-            results = lines
-    assert len(results) == 5
-    assert lines[0] == '1'  # participant number
-    assert re.match(r'\[\d.\d+]', lines[1])  # list of duration
-    assert lines[2] == ''  # text field
-    assert re.match(r'\d+-\d+-\d+ \d+:\d+:\d+.\d+', lines[3])  # timestamp
-    assert re.match(r'\d+-\d+-\d+ \d+:\d+:\d+.\d+', lines[4])  # timestamp
-    os.remove("./test/results/results_pl.csv")
-    gui_load2.close()
-
-
-# noinspection PyArgumentList
-def test_play_button_text(gui_load, qtbot):
-    QTimer.singleShot(150, handle_dialog_error)
-    error_found, warning_found, warning_details = validate_questionnaire(gui_load.structure)
-    assert error_found == False
-    assert warning_found == False
-    tv = gui_load.gui.treeview
-    tv.expandAll()
-    tv.setCurrentItem(tv.topLevelItem(0).child(0).child(0))  # should be 'Question 1'
-    assert len(tv.selectedItems()) == 1
-    assert tv.selectedItems()[0].text(0) == "Question 1"
-
-    rect = tv.visualItemRect(tv.currentItem())
-    QTest.mouseClick(tv.viewport(), Qt.LeftButton, Qt.NoModifier, rect.center())
-
-    # change text
-    gui_load.structure["Page 1"]["Question 1"]["play_button_text"] = "Click me"
-    gui_load.gui.load_preview()
-    gui_load.gui.refresh_button.click()
-    assert gui_load.structure["Page 1"]["Question 1"]["play_button_text"] == "Click me"
-    QTimer.singleShot(150, handle_dialog_error)
-    error_found, warning_found, warning_details = validate_questionnaire(gui_load.structure)
-    assert error_found == False
-    assert warning_found == False
-    gui_load.gui.refresh_button.click()
-    QTest.keyClicks(gui_load, 's', modifier=Qt.ControlModifier)
-    test_gui = StackedWindowGui("./test/pltest.txt")
-    assert test_gui.Stack.count() == 1
-    for child in test_gui.Stack.currentWidget().children():
-        if type(child) == Player:
-            assert child.play_button.text() == "Click me"
-
-    QTimer.singleShot(200, handle_dialog)
-    QTest.mouseClick(test_gui.forwardbutton, Qt.LeftButton, delay=1)
-    test_gui.close()
-
-    # reset file
-    gui_load.structure["Page 1"]["Question 1"].pop("play_button_text")
-    assert "play_button_text" not in gui_load.structure["Page 1"]["Question 1"].keys()
-    QTimer.singleShot(150, handle_dialog_error)
-    error_found, warning_found, warning_details = validate_questionnaire(gui_load.structure)
-    assert error_found == False
-    assert warning_found == False
-    QTest.keyClicks(gui_load, 's', modifier=Qt.ControlModifier)
-
-    os.remove("./test/results/results_pl.csv")
-    gui_load.close()
-
-
-# noinspection PyArgumentList
-def test_execute_questionnaire_no_interaction(run, qtbot):
-    assert run.Stack.count() == 1
-
-    QTimer.singleShot(200, handle_dialog)
-    QTest.mouseClick(run.forwardbutton, Qt.LeftButton)
-
-    results = []
-    with open('./test/results/results_pl.csv', mode='r') as file:
-        csv_file = csv.reader(file, delimiter=';')
-
-        for lines in csv_file:
-            results = lines
-            if results[0].startswith('data'):
-                assert lines[0] == 'data_row_number'  # participant number
-                assert lines[1] == 'pl'
-                assert lines[2] == 'Start'
-                assert lines[3] == 'End'
-    assert len(results) == 4
-    assert lines[0] == '1'  # participant number
-    assert lines[1] == '[]'  # not played yet
-    assert re.match(r'\d+-\d+-\d+ \d+:\d+:\d+.\d+', lines[2])  # timestamp
-    assert re.match(r'\d+-\d+-\d+ \d+:\d+:\d+.\d+', lines[3])  # timestamp
-    os.remove("./test/results/results_pl.csv")
-
-
-# noinspection PyArgumentList
-def test_execute_questionnaire_no_interaction_blocked(run, qtbot):
-    with mock_file(r'./test/results/results_pl.csv'):
-        assert run.Stack.count() == 1
-        QTimer.singleShot(100, handle_dialog)
-        QTest.mouseClick(run.forwardbutton, Qt.LeftButton)
-        res_file = None
-        for file in os.listdir("./test/results/"):
-            if file.find("_backup_"):
-                res_file = "./test/results/{}".format(file)
-        results = []
-        with open(res_file, mode='r') as file:
-            csv_file = csv.reader(file, delimiter=';')
-
-            for lines in csv_file:
-                results = lines
-                if results[0].startswith('data'):
-                    assert lines[0] == 'data_row_number'  # participant number
-                    assert lines[1] == 'pl'
-                    assert lines[2] == 'Start'
-                    assert lines[3] == 'End'
-        assert len(results) == 4
-        assert lines[0] == '-1'  # participant number unknown
-        assert lines[1] == '[]'  # not played yet
-        assert re.match(r'\d+-\d+-\d+ \d+:\d+:\d+.\d+', lines[2])  # timestamp
-        assert re.match(r'\d+-\d+-\d+ \d+:\d+:\d+.\d+', lines[3])  # timestamp
-        os.remove(res_file)
-
-
-# noinspection PyArgumentList
-def test_execute_questionnaire(run, qtbot):
-    if os.path.exists("./test/results/results_pl.csv"):
-        os.remove("./test/results/results_pl.csv")
-    assert run.Stack.count() == 1
-    for child in run.Stack.currentWidget().children():
-        if type(child) == Player:
-            child.playing = False
-            child.play_button.click()
-
-    QTimer.singleShot(200, handle_dialog)
-    QTest.mouseClick(run.forwardbutton, Qt.LeftButton, delay=1)
-
-    results = []
-    with open('./test/results/results_pl.csv', mode='r') as file:
-        csv_file = csv.reader(file, delimiter=';')
-
-        for lines in csv_file:
-            results = lines
-    assert len(results) == 4
-    assert lines[0] == '1'  # participant number
-    assert re.match(r'\[\d.\d+]', lines[1])  # list of duration
-    assert re.match(r'\d+-\d+-\d+ \d+:\d+:\d+.\d+', lines[2])  # timestamp
-    assert re.match(r'\d+-\d+-\d+ \d+:\d+:\d+.\d+', lines[3])  # timestamp
-    os.remove("./test/results/results_pl.csv")
-
-
-# noinspection PyArgumentList
-def test_execute_questionnaire_blocked(run, qtbot):
-    with mock_file(r'./test/results/results_pl.csv'):
-        assert run.Stack.count() == 1
-        for child in run.Stack.currentWidget().children():
-            if type(child) == Player:
-                child.playing = False
-                child.play_button.click()
-        QTimer.singleShot(100, handle_dialog)
-        QTest.mouseClick(run.forwardbutton, Qt.LeftButton)
-        res_file = None
-        for file in os.listdir("./test/results/"):
-            if file.find("_backup_"):
-                res_file = "./test/results/{}".format(file)
-        results = []
-        with open(res_file, mode='r') as file:
-            csv_file = csv.reader(file, delimiter=';')
-
-            for lines in csv_file:
-                results = lines
-                if results[0].startswith('data'):
-                    assert lines[0] == 'data_row_number'  # participant number
-                    assert lines[1] == 'pl'
-                    assert lines[2] == 'Start'
-                    assert lines[3] == 'End'
-        assert len(results) == 4
-        assert lines[0] == '-1'  # participant number unknown
-        assert re.match(r'\[\d.\d+]', lines[1])
-        assert re.match(r'\d+-\d+-\d+ \d+:\d+:\d+.\d+', lines[2])  # timestamp
-        assert re.match(r'\d+-\d+-\d+ \d+:\d+:\d+.\d+', lines[3])  # timestamp
-        os.remove(res_file)
-
-
-# noinspection PyArgumentList
-def test_buttons(gui_load, qtbot):
-    QTimer.singleShot(150, handle_dialog_error)
-    error_found, warning_found, warning_details = validate_questionnaire(gui_load.structure)
-    assert error_found == False
-    assert warning_found == False
-    tv = gui_load.gui.treeview
-    tv.expandAll()
-    tv.setCurrentItem(tv.topLevelItem(0).child(0).child(0))  # should be 'Question 1'
-    assert len(tv.selectedItems()) == 1
-    assert tv.selectedItems()[0].text(0) == "Question 1"
-
-    rect = tv.visualItemRect(tv.currentItem())
-    QTest.mouseClick(tv.viewport(), Qt.LeftButton, Qt.NoModifier, rect.center())
-    btn_pos = find_row_by_label(gui_load.gui.edit_layout, 'buttons')
-
-    for btn in range(gui_load.gui.edit_layout.itemAt(btn_pos, 1).count()):
-        assert gui_load.gui.edit_layout.itemAt(btn_pos, 1).itemAt(btn).widget().isChecked() == True
-    assert gui_load.structure["Page 1"]["Question 1"]["buttons"] == player_buttons
-
-    # try to add a non-defined button
-    gui_load.structure["Page 1"]["Question 1"]["buttons"].append("Record")
-    QTimer.singleShot(150, handle_dialog_error)
-    error_found, warning_found, warning_details = validate_questionnaire(gui_load.structure)
-    assert error_found == True
-    assert warning_found == False
-
-    # no button chosen -> warning plus autoplay on load
-    for btn in range(gui_load.gui.edit_layout.itemAt(btn_pos, 1).count()):
-        gui_load.gui.edit_layout.itemAt(btn_pos, 1).itemAt(btn).widget().click()
-        assert gui_load.gui.edit_layout.itemAt(btn_pos, 1).itemAt(btn).widget().isChecked() == False
-    assert gui_load.structure["Page 1"]["Question 1"]["buttons"] == []
-    QTimer.singleShot(150, handle_dialog_error)
-    error_found, warning_found, warning_details = validate_questionnaire(gui_load.structure)
-    assert error_found == False
-    assert warning_found == True
-    QTest.keyClicks(gui_load, 's', modifier=Qt.ControlModifier)
-    QTimer.singleShot(150, handle_dialog_warning)
-    test_gui = StackedWindowGui("./test/pltest.txt")
-    assert test_gui.Stack.count() == 1
-    for child in test_gui.Stack.currentWidget().children():
-        if type(child) == Player:
-            assert child.buttons == []
-            assert child.playing == True
-
-    QTimer.singleShot(200, handle_dialog)
-    QTest.mouseClick(test_gui.forwardbutton, Qt.LeftButton, delay=1)
-    test_gui.close()
-    results = []
-    with open('./test/results/results_pl.csv', mode='r') as file:
-        csv_file = csv.reader(file, delimiter=';')
-
-        for lines in csv_file:
-            results = lines
-    assert len(results) == 4
-    assert lines[0] == '1'  # participant number
-    assert re.match(r'\[\d.\d+]', lines[1])  # list of duration
-    assert re.match(r'\d+-\d+-\d+ \d+:\d+:\d+.\d+', lines[2])  # timestamp
-    assert re.match(r'\d+-\d+-\d+ \d+:\d+:\d+.\d+', lines[3])  # timestamp
-    os.remove("./test/results/results_pl.csv")
-
-    # just stop button
-    gui_load.gui.edit_layout.itemAt(btn_pos, 1).itemAt(2).widget().click()
-    assert gui_load.gui.edit_layout.itemAt(btn_pos, 1).itemAt(2).widget().isChecked() == True
-    assert gui_load.structure["Page 1"]["Question 1"]["buttons"] == ["Stop"]
-    QTimer.singleShot(150, handle_dialog_error)
-    error_found, warning_found, warning_details = validate_questionnaire(gui_load.structure)
-    assert error_found == False
-    assert warning_found == True
-    QTest.keyClicks(gui_load, 's', modifier=Qt.ControlModifier)
-    QTimer.singleShot(150, handle_dialog_warning)
-    test_gui = StackedWindowGui("./test/pltest.txt")
-    assert test_gui.Stack.count() == 1
-    for child in test_gui.Stack.currentWidget().children():
-        if type(child) == Player:
-            assert child.buttons == ["Stop"]
-            assert child.playing == True
-            assert child.stop_button.isEnabled() == True
-            assert child.stop_button is not None
-            child.stop_button.click()
-            assert child.playing == False
-            assert child.stop_button.isEnabled() == False
-    QTimer.singleShot(200, handle_dialog)
-    QTest.mouseClick(test_gui.forwardbutton, Qt.LeftButton, delay=1)
-    test_gui.close()
-    results = []
-    with open('./test/results/results_pl.csv', mode='r') as file:
-        csv_file = csv.reader(file, delimiter=';')
-        for lines in csv_file:
-            results = lines
-    assert len(results) == 4
-    assert lines[0] == '1'  # participant number
-    assert re.match(r'\[\d.\d+]', lines[1])  # list of duration
-    assert re.match(r'\d+-\d+-\d+ \d+:\d+:\d+.\d+', lines[2])  # timestamp
-    assert re.match(r'\d+-\d+-\d+ \d+:\d+:\d+.\d+', lines[3])  # timestamp
-    os.remove("./test/results/results_pl.csv")
-
-    # stop and pause
-    gui_load.gui.edit_layout.itemAt(btn_pos, 1).itemAt(1).widget().click()
-    assert gui_load.gui.edit_layout.itemAt(btn_pos, 1).itemAt(1).widget().isChecked() == True
-    assert gui_load.structure["Page 1"]["Question 1"]["buttons"] == ["Pause", "Stop"]
-    QTimer.singleShot(150, handle_dialog_error)
-    error_found, warning_found, warning_details = validate_questionnaire(gui_load.structure)
-    assert error_found == False
-    assert warning_found == True
-    QTest.keyClicks(gui_load, 's', modifier=Qt.ControlModifier)
-    QTimer.singleShot(150, handle_dialog_warning)
-    test_gui = StackedWindowGui("./test/pltest.txt")
-    assert test_gui.Stack.count() == 1
-    for child in test_gui.Stack.currentWidget().children():
-        if type(child) == Player:
-            assert child.buttons == ["Pause", "Stop"]
-            assert child.playing == True
-            assert child.pause_button.isEnabled() == True
-            assert child.pause_button.isChecked() == False
-            assert child.pause_button is not None
-            assert child.stop_button.isEnabled() == True
-            assert child.stop_button is not None
-            child.pause_button.click()
-            assert child.playing == False
-            assert child.pause_button.isEnabled() == True
-            assert child.pause_button.isChecked() == True
-            assert child.pause_button is not None
-            assert child.stop_button.isEnabled() == True
-            assert child.stop_button is not None
-            child.pause_button.click()
-            assert child.playing == True
-            assert child.pause_button.isEnabled() == True
-            assert child.pause_button.isChecked() == False
-            assert child.pause_button is not None
-            assert child.stop_button.isEnabled() == True
-            assert child.stop_button is not None
-            child.stop_button.click()
-            assert child.playing == False
-            assert child.pause_button.isEnabled() == False
-            assert child.stop_button.isEnabled() == False
-    QTimer.singleShot(200, handle_dialog)
-    QTest.mouseClick(test_gui.forwardbutton, Qt.LeftButton, delay=1)
-    test_gui.close()
-    results = []
-    with open('./test/results/results_pl.csv', mode='r') as file:
-        csv_file = csv.reader(file, delimiter=';')
-        for lines in csv_file:
-            results = lines
-    assert len(results) == 4
-    assert lines[0] == '1'  # participant number
-    assert re.match(r'\[\d.\d+, \d.\d+]', lines[1])  # list of duration
-    assert re.match(r'\d+-\d+-\d+ \d+:\d+:\d+.\d+', lines[2])  # timestamp
-    assert re.match(r'\d+-\d+-\d+ \d+:\d+:\d+.\d+', lines[3])  # timestamp
-    os.remove("./test/results/results_pl.csv")
-
-    # just play button
-    gui_load.gui.edit_layout.itemAt(btn_pos, 1).itemAt(2).widget().click()
-    assert gui_load.gui.edit_layout.itemAt(btn_pos, 1).itemAt(2).widget().isChecked() == False
-    gui_load.gui.edit_layout.itemAt(btn_pos, 1).itemAt(1).widget().click()
-    assert gui_load.gui.edit_layout.itemAt(btn_pos, 1).itemAt(1).widget().isChecked() == False
-    gui_load.gui.edit_layout.itemAt(btn_pos, 1).itemAt(0).widget().click()
-    assert gui_load.gui.edit_layout.itemAt(btn_pos, 1).itemAt(0).widget().isChecked() == True
-    assert gui_load.structure["Page 1"]["Question 1"]["buttons"] == ["Play"]
-    QTimer.singleShot(150, handle_dialog_error)
-    error_found, warning_found, warning_details = validate_questionnaire(gui_load.structure)
-    assert error_found == False
-    assert warning_found == False
-    QTest.keyClicks(gui_load, 's', modifier=Qt.ControlModifier)
-    test_gui = StackedWindowGui("./test/pltest.txt")
-    assert test_gui.Stack.count() == 1
-    for child in test_gui.Stack.currentWidget().children():
-        if type(child) == Player:
-            assert child.buttons == ["Play"]
-            assert child.playing == False
-            assert child.play_button is not None
-            child.play_button.click()
-            assert child.playing == True
-            child.play_button.click()
-    QTimer.singleShot(200, handle_dialog)
-    QTest.mouseClick(test_gui.forwardbutton, Qt.LeftButton, delay=1)
-    test_gui.close()
-    results = []
-    with open('./test/results/results_pl.csv', mode='r') as file:
-        csv_file = csv.reader(file, delimiter=';')
-        for lines in csv_file:
-            results = lines
-    assert len(results) == 4
-    assert lines[0] == '1'  # participant number
-    assert re.match(r'\[\d.\d+, \d.\d+]', lines[1])  # list of duration
-    assert re.match(r'\d+-\d+-\d+ \d+:\d+:\d+.\d+', lines[2])  # timestamp
-    assert re.match(r'\d+-\d+-\d+ \d+:\d+:\d+.\d+', lines[3])  # timestamp
-    os.remove("./test/results/results_pl.csv")
-
-    # reset file
-    for btn in range(gui_load.gui.edit_layout.itemAt(btn_pos, 1).count()):
-        if not gui_load.gui.edit_layout.itemAt(btn_pos, 1).itemAt(btn).widget().isChecked():
-            gui_load.gui.edit_layout.itemAt(btn_pos, 1).itemAt(btn).widget().click()
-        assert gui_load.gui.edit_layout.itemAt(btn_pos, 1).itemAt(btn).widget().isChecked() == True
-    assert gui_load.structure["Page 1"]["Question 1"]["buttons"] == player_buttons
-    QTimer.singleShot(150, handle_dialog_error)
-    error_found, warning_found, warning_details = validate_questionnaire(gui_load.structure)
-    assert error_found == False
-    assert warning_found == False
-    QTest.keyClicks(gui_load, 's', modifier=Qt.ControlModifier)
-    gui_load.close()
-
-
-def test_video(gui_load, qtbot):
-    QTimer.singleShot(150, handle_dialog_error)
-    error_found, warning_found, warning_details = validate_questionnaire(gui_load.structure)
-    assert error_found == False
-    assert warning_found == False
-    tv = gui_load.gui.treeview
-    tv.expandAll()
-    tv.setCurrentItem(tv.topLevelItem(0).child(0).child(0))  # should be 'Question 1'
-    assert len(tv.selectedItems()) == 1
-    assert tv.selectedItems()[0].text(0) == "Question 1"
-
-    rect = tv.visualItemRect(tv.currentItem())
-    QTest.mouseClick(tv.viewport(), Qt.LeftButton, Qt.NoModifier, rect.center())
-    vid_pos = find_row_by_label(gui_load.gui.edit_layout, 'video')
-
-    assert gui_load.gui.edit_layout.itemAt(vid_pos, 1).widget().text() == ''
-    vid_path = "./some_video.mp4"
-    gui_load.gui.edit_layout.itemAt(vid_pos, 1).widget().setText(vid_path)
-    gui_load.gui.edit_layout.itemAt(vid_pos, 1).widget().editingFinished.emit()
-    assert gui_load.gui.edit_layout.itemAt(vid_pos, 1).widget().text() == vid_path
-    QTimer.singleShot(150, handle_dialog_error)
-    error_found, warning_found, warning_details = validate_questionnaire(gui_load.structure)
-    assert error_found == False
-    assert warning_found == True
-
-    # set video ip/port
-    gui_load.structure["video_ip"] = "127.0.0.1"
-    gui_load.structure["video_port"] = 5005
-    QTimer.singleShot(150, handle_dialog_error)
-    error_found, warning_found, warning_details = validate_questionnaire(gui_load.structure)
-    assert error_found == False
-    assert warning_found == False
-    QTimer.singleShot(150, handle_dialog_no_save)
-    gui_load.close()
-    # TODO

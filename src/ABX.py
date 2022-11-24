@@ -53,15 +53,16 @@ class ABX(QWidget):
         for cue_no in range(len(start_cues)):
             stimuli.append((int(start_cues[cue_no]), tracks[cue_no]))
         shuffle(stimuli)
+        self.page = parent
 
-        self.a_button = Player(stimuli[0][0], [stimuli[0][1]], parent=self.parent(), qid=qid + "_A", displayed_buttons=["Play"],
+        self.a_button = Player(stimuli[0][0], [stimuli[0][1]], parent=self.page, qid=qid + "_A", displayed_buttons=["Play"],
                                objectname=objectname, play_button_text=button_texts[0])
         player_layout.addWidget(self.a_button)
-        self.b_button = Player(stimuli[1][0], [stimuli[1][1]], parent=self.parent(), qid=qid + "_B", displayed_buttons=["Play"],
+        self.b_button = Player(stimuli[1][0], [stimuli[1][1]], parent=self.page, qid=qid + "_B", displayed_buttons=["Play"],
                                objectname=objectname, play_button_text=button_texts[1])
         player_layout.addWidget(self.b_button)
         if x:
-            self.x_button = Player(int(start_cues[0]), [tracks[0]], parent=self.parent(), qid=qid + "_X", displayed_buttons=["Play"],
+            self.x_button = Player(int(start_cues[0]), [tracks[0]], parent=self.page, qid=qid + "_X", displayed_buttons=["Play"],
                                    objectname=objectname, play_button_text=button_texts[2])
             player_layout.addWidget(self.x_button)
         else:
@@ -69,7 +70,7 @@ class ABX(QWidget):
 
         question_layout.addItem(player_layout)
         answer_layout = QFormLayout()
-        radio_layout, self.answer = radio(answers, self.parent(), qid, objectname)
+        radio_layout, self.answer = radio(answers, self.page, qid, objectname)
         self.label = QLabel(text)
         answer_layout.addRow(self.label, radio_layout)
         question_layout.addItem(answer_layout)

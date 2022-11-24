@@ -1,7 +1,7 @@
 """Testing the behaviour of MUSHRA.py + QEditGui.py"""
-# TODO how to test messages to REAPER
 
 from context import *
+thread = None
 
 
 @pytest.fixture
@@ -19,9 +19,31 @@ def gui_load(gui_init):
     return gui_init
 
 
+def prepare_listeners(structure):
+    """Set up the listeners for Reaper"""
+    global thread
+    print("setting up thread....")
+    thread = MockReceiver(int(structure["audio_port"]))
+    QTest.qWait(1000)
+    thread.start()
+    QTest.qWait(3000)
+
+
 @pytest.fixture
 def run():
     """Execute the questionnaire."""
+    global thread
+    structure = ConfigObj("./test/osctest.txt")
+    port = int(structure["Page 1"]["Question 1"]["receiver"][1])
+    print("setting up thread....")
+    # if thread is None or (thread is not None and thread.port != port):
+    thread = MockReceiver(port)
+    QTest.qWait(1000)
+    thread.start()
+    QTest.qWait(1000)
+    # elif thread is not None and not thread.is_alive():
+    #    thread.start()
+    # start_server(port)
     return StackedWindowGui("./test/mrtest.txt")
 
 
@@ -291,8 +313,23 @@ def test_track(gui_load, qtbot):
     assert error_found == True
     assert warning_found == False
 
-    # set it as list (shouldn't work as audio_tracks = 1 by default)
+    # set it as list (shouldn't work as audio_tracks = 4 by default)
     gui_load.gui.edit_layout.itemAt(track_pos, 1).widget().clear()
+    gui_load.gui.edit_layout.itemAt(track_pos, 1).widget().setText("1,2,3,4,5")
+    assert gui_load.gui.edit_layout.itemAt(track_pos, 1).widget().text() == "1,2,3,4,5"
+    gui_load.gui.edit_layout.itemAt(track_pos, 1).widget().editingFinished.emit()
+    assert gui_load.structure["Page 1"]["Question 1"]["track"] == "1,2,3,4,5"
+    QTimer.singleShot(200, handle_dialog_error)
+    gui_load.gui.load_preview()
+    QTimer.singleShot(200, handle_dialog_error)
+    gui_load.gui.refresh_button.click()
+    assert gui_load.gui.edit_layout.itemAt(track_pos, 1).widget().text() == "1,2,3,4,5"
+    assert gui_load.structure["Page 1"]["Question 1"]["track"] == [1, 2, 3, 4, 5]
+    QTimer.singleShot(150, handle_dialog_error)
+    error_found, warning_found, warning_details = validate_questionnaire(gui_load.structure)
+    assert error_found == True
+    assert warning_found == False
+    # but it works when audio_tracks is >= max(track)
     gui_load.gui.edit_layout.itemAt(track_pos, 1).widget().setText("1,2,3")
     assert gui_load.gui.edit_layout.itemAt(track_pos, 1).widget().text() == "1,2,3"
     gui_load.gui.edit_layout.itemAt(track_pos, 1).widget().editingFinished.emit()
@@ -303,17 +340,9 @@ def test_track(gui_load, qtbot):
     gui_load.gui.refresh_button.click()
     assert gui_load.gui.edit_layout.itemAt(track_pos, 1).widget().text() == "1,2,3"
     assert gui_load.structure["Page 1"]["Question 1"]["track"] == [1, 2, 3]
-    QTimer.singleShot(150, handle_dialog_error)
-    error_found, warning_found, warning_details = validate_questionnaire(gui_load.structure)
-    assert error_found == True
-    assert warning_found == False
-    # but it works when audio_tracks is >= max(track)
-    gui_load.structure["audio_tracks"] = 3
-    QTimer.singleShot(150, handle_dialog_error)
     error_found, warning_found, warning_details = validate_questionnaire(gui_load.structure)
     assert error_found == False
     assert warning_found == False
-    gui_load.structure["audio_tracks"] = 1
 
     # only one -> all the same track
     gui_load.gui.edit_layout.itemAt(track_pos, 1).widget().clear()
@@ -325,7 +354,6 @@ def test_track(gui_load, qtbot):
     gui_load.gui.refresh_button.click()
     assert gui_load.gui.edit_layout.itemAt(track_pos, 1).widget().text() == "1"
     assert gui_load.structure["Page 1"]["Question 1"]["track"] == '1'
-    QTimer.singleShot(150, handle_dialog_error)
     error_found, warning_found, warning_details = validate_questionnaire(gui_load.structure)
     assert error_found == False
     assert warning_found == False
@@ -402,15 +430,16 @@ def test_xfade(gui_load, qtbot):
     assert gui_load.gui.edit_layout.itemAt(track_pos, 1).widget().text() == "1,1,2"
     gui_load.gui.edit_layout.itemAt(track_pos, 1).widget().editingFinished.emit()
     assert gui_load.structure["Page 1"]["Question 1"]["track"] == "1,1,2"
-    gui_load.structure["audio_tracks"] = 2
     gui_load.gui.refresh_button.click()
     QTimer.singleShot(150, handle_dialog_error)
     error_found, warning_found, warning_details = validate_questionnaire(gui_load.structure)
     assert error_found == False
     assert warning_found == False
     QTest.keyClicks(gui_load, 's', modifier=Qt.ControlModifier, delay=1)
+    prepare_listeners(ConfigObj("./test/mrtest.txt"))
     test_gui = StackedWindowGui("./test/mrtest.txt")
     assert test_gui.Stack.count() == 1
+    assert thread.message_stack[-1] == ("/action", MUSHRA.loop_off_command)
     for child in test_gui.Stack.currentWidget().children():
         if type(child) == MUSHRA:
             assert child.loop_button.isEnabled() == True
@@ -420,20 +449,38 @@ def test_xfade(gui_load, qtbot):
             assert child.pause_button.isEnabled() == False
             assert child.stop_button.isEnabled() == False
             child.refbutton.click()
-            QTest.qWait(500)
+            QTest.qWait(2000)
+            print(thread.message_stack)
+            assert thread.message_stack[-6] == ('/track/1/mute', 0.0)
+            assert thread.message_stack[-3] == ("/action", 40161)
+            assert thread.message_stack[-1] == ("/play", 1.0)
+            assert thread.message_stack[-2] == ("/stop", 0.0)
             assert child.loop_button.isEnabled() == False
             assert child.loop_button.isChecked() == False
             child.stop_button.click()
+            QTest.qWait(2000)
+            assert thread.message_stack[-1] == ("/play", 0.0)
+            assert thread.message_stack[-2] == ("/stop", 1.0)
             assert child.loop_button.isEnabled() == True
             assert child.loop_button.isChecked() == False
             child.loop_button.click()
+            QTest.qWait(2000)
+            assert thread.message_stack[-1] == ('/action', '_RSa8eee394f75b27ef6bb9f0e15b6bee26d9363990')
             assert child.loop_button.isEnabled() == True
             assert child.loop_button.isChecked() == True
             for sl in range(len(child.buttons)):
                 child.buttons[sl].click()  # starts each stimulus
                 assert child.loop_button.isEnabled() == False
                 assert child.loop_button.isChecked() == True
-                QTest.qWait(500)
+                QTest.qWait(2000)
+                print(thread.message_stack)
+                assert thread.message_stack[-9] == ('/track/{}/mute'.format(sl+1), 0.0)
+                assert thread.message_stack[-6] == ("/action", 40162)
+                assert thread.message_stack[-5] == ("/action", 40223)
+                assert thread.message_stack[-4] == ("/action", 40161)
+                assert thread.message_stack[-3] == ("/action", 40222)
+                assert thread.message_stack[-1] == ("/play", 1.0)
+                assert thread.message_stack[-2] == ("/stop", 0.0)
                 bb = child.sliders[sl].rect()
                 QTest.mouseClick(child.sliders[sl], Qt.LeftButton, pos=QPoint(bb.center().x(), int(
                             bb.bottom() - 0.1 * (sl + 1) * bb.bottom())))
@@ -443,7 +490,10 @@ def test_xfade(gui_load, qtbot):
             child.loop_button.click()
             assert child.loop_button.isEnabled() == True
             assert child.loop_button.isChecked() == False
+            print(thread.message_stack)
     test_gui.close()
+    thread.stop(0.1)
+    QTest.qWait(1000)
 
     # reset file
     assert gui_load.gui.edit_layout.itemAt(x_pos, 1).widget().isChecked() == True
@@ -465,7 +515,6 @@ def test_xfade(gui_load, qtbot):
     assert gui_load.gui.edit_layout.itemAt(track_pos, 1).widget().text() == "1,1,1"
     gui_load.gui.edit_layout.itemAt(track_pos, 1).widget().editingFinished.emit()
     assert gui_load.structure["Page 1"]["Question 1"]["track"] == "1,1,1"
-    gui_load.structure["audio_tracks"] = 1
     gui_load.gui.refresh_button.click()
     QTimer.singleShot(150, handle_dialog_error)
     error_found, warning_found, warning_details = validate_questionnaire(gui_load.structure)
@@ -480,6 +529,7 @@ def test_xfade(gui_load, qtbot):
 # noinspection PyArgumentList
 def test_execute_questionnaire_no_interaction(run, qtbot):
     assert run.Stack.count() == 1
+    assert thread.message_stack[-1] == ("/action", MUSHRA.loop_off_command)
 
     QTimer.singleShot(200, handle_dialog)
     QTest.mouseClick(run.forwardbutton, Qt.LeftButton)
@@ -505,12 +555,15 @@ def test_execute_questionnaire_no_interaction(run, qtbot):
     assert re.match(r'\d+-\d+-\d+ \d+:\d+:\d+.\d+', lines[4])  # timestamp
     assert re.match(r'\d+-\d+-\d+ \d+:\d+:\d+.\d+', lines[5])  # timestamp
     os.remove("./test/results/results_mr.csv")
+    thread.stop(0.1)
+    QTest.qWait(1000)
 
 
 # noinspection PyArgumentList
 def test_execute_questionnaire_no_interaction_blocked(run, qtbot):
     with mock_file(r'./test/results/results_mr.csv'):
         assert run.Stack.count() == 1
+        assert thread.message_stack[-1] == ("/action", MUSHRA.loop_off_command)
         QTimer.singleShot(100, handle_dialog)
         QTest.mouseClick(run.forwardbutton, Qt.LeftButton)
         res_file = None
@@ -531,13 +584,15 @@ def test_execute_questionnaire_no_interaction_blocked(run, qtbot):
                     assert lines[4] == 'Start'
                     assert lines[5] == 'End'
         assert len(results) == 6
-        assert lines[0] == '-1'  # participant number unknow
+        assert lines[0] == '-1'  # participant number unknown
         assert lines[1] == '[[], [], []]'  # no stimulus played yet
         assert lines[2] == '100'  # default slider value
         assert lines[3] == '100'  # default slider value
         assert re.match(r'\d+-\d+-\d+ \d+:\d+:\d+.\d+', lines[4])  # timestamp
         assert re.match(r'\d+-\d+-\d+ \d+:\d+:\d+.\d+', lines[5])  # timestamp
         os.remove(res_file)
+        thread.stop(0.1)
+        QTest.qWait(1000)
 
 
 # noinspection PyArgumentList
@@ -545,6 +600,7 @@ def test_execute_questionnaire(run, qtbot):
     if os.path.exists("./test/results/results_mr.csv"):
         os.remove("./test/results/results_mr.csv")
     assert run.Stack.count() == 1
+    assert thread.message_stack[-1] == ("/action", MUSHRA.loop_off_command)
     for child in run.Stack.currentWidget().children():
         if type(child) == MUSHRA:
             assert child.conditionsUseSameMarker == False
@@ -575,12 +631,15 @@ def test_execute_questionnaire(run, qtbot):
     assert re.match(r'\d+-\d+-\d+ \d+:\d+:\d+.\d+', lines[4])  # timestamp
     assert re.match(r'\d+-\d+-\d+ \d+:\d+:\d+.\d+', lines[5])  # timestamp
     os.remove("./test/results/results_mr.csv")
+    thread.stop(0.1)
+    QTest.qWait(1000)
 
 
 # noinspection PyArgumentList
 def test_execute_questionnaire_blocked(run, qtbot):
     with mock_file(r'./test/results/results_mr.csv'):
         assert run.Stack.count() == 1
+        assert thread.message_stack[-1] == ("/action", MUSHRA.loop_off_command)
         for child in run.Stack.currentWidget().children():
             if type(child) == MUSHRA:
                 assert child.conditionsUseSameMarker == False
@@ -615,9 +674,11 @@ def test_execute_questionnaire_blocked(run, qtbot):
                     assert lines[4] == 'Start'
                     assert lines[5] == 'End'
         assert len(results) == 6
-        assert lines[0] == '-1'  # participant number unknow
+        assert lines[0] == '-1'  # participant number unknown
         assert re.match(r'\[\[\d.\d+], \[\d.\d+], \[\d.\d+]]', lines[1])  # list of durations
         assert int(lines[2]) < int(lines[3])
         assert re.match(r'\d+-\d+-\d+ \d+:\d+:\d+.\d+', lines[4])  # timestamp
         assert re.match(r'\d+-\d+-\d+ \d+:\d+:\d+.\d+', lines[5])  # timestamp
         os.remove(res_file)
+        thread.stop(0.1)
+        QTest.qWait(1000)

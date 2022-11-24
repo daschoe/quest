@@ -332,7 +332,7 @@ def validate_questionnaire(structure, suppress=False) -> (bool, bool, str):
         error_found : bool
             Whether errors were found.
         warning_found : bool
-            Wherer warnings were found.
+            Whether warnings were found.
         warning_details : str
             The text of warnings.
 
@@ -377,18 +377,15 @@ def validate_questionnaire(structure, suppress=False) -> (bool, bool, str):
         warning_found = True
         warning_details.append("No audio_port found, but IP. Audio will be disabled.\n")
 
-    if "audio_tracks" in structure.keys():
-        if structure["audio_tracks"] != "":
+    if "audio_recv_port" in structure.keys():
+        if structure["audio_recv_port"] != "":
             try:
-                int(structure["audio_tracks"])
-                if int(structure["audio_tracks"]) <= 0:
+                int(structure["audio_recv_port"])
+                if int(structure["audio_recv_port"]) < 0 or int(structure["audio_recv_port"]) > 65535:
                     raise ValueError
             except ValueError:
                 error_found = True
-                error_details.append("Invalid audio track number, couldn't be converted to a number greater than 0.\n")
-        if "audio_ip" not in structure.keys() and "audio_port" not in structure.keys():
-            warning_found = True
-            warning_details.append("No audio connection given, but tracks. Audio will be disabled.\n")
+                error_details.append("Invalid audio receive port, couldn't be converted to a number 0-65535.\n")
 
     if "video_ip" in structure.keys():
         if structure["video_ip"] != "":
@@ -423,9 +420,6 @@ def validate_questionnaire(structure, suppress=False) -> (bool, bool, str):
         if structure["video_player"] not in video_player:
             error_found = True
             error_details.append("Invalid value for video_player.\n")
-        #elif structure["video_player"] in video_player and ("video_ip" not in structure.keys() or structure["video_ip"] == "" or "video_port" not in structure.keys() or structure["video_port"] == ""):
-        #    warning_found = True
-        #    warning_details.append("Incomplete information for video player.\n")
         elif "video_ip" in structure.keys() and "video_ip" in structure.keys() and structure["video_player"] == "None":
             warning_found = True
             warning_details.append("No video_player chosen, but IP and port. Video will be disabled.\n")
@@ -545,7 +539,7 @@ def validate_questionnaire(structure, suppress=False) -> (bool, bool, str):
         if not path.exists(structure["stylesheet"]):
             error_found = True
             error_details.append("Invalid stylesheet path.\n")
-        elif not structure["stylesheet"].endswith(".qss"): # path.splitext(structure["stylesheet"]) != ".qss":
+        elif not structure["stylesheet"].endswith(".qss"):
             error_found = True
             error_details.append("Invalid file for stylesheet, it has to be *.qss.\n")
 
@@ -875,7 +869,7 @@ def validate_questionnaire(structure, suppress=False) -> (bool, bool, str):
                 elif len(structure[page][quest]["label"][0]) != 2:
                     error_found = True
                     error_details.append("No valid format for labels for question '{}' on page '{}'.\n".format(quest, page))
-                else: # list / tuple of single pairs
+                else:  # list / tuple of single pairs
                     tick = []
                     try:
                         for pair in structure[page][quest]["label"]:
@@ -1044,13 +1038,6 @@ def validate_questionnaire(structure, suppress=False) -> (bool, bool, str):
                                         error_details.append(
                                             "Tracks given for question '{}' on page '{}' needs to be greater than 0.\n".format(
                                                 quest, page))
-                                    elif "audio_tracks" in structure.keys() and \
-                                            int(structure[page][quest]["track"][entry]) > int(
-                                        structure["audio_tracks"]):
-                                        error_found = True
-                                        error_details.append(
-                                            "Tracks given for question '{}' on page '{}' needs to be smaller than or equal to the number of total tracks.\n".format(
-                                                quest, page))
                                 elif type(structure[page][quest]["track"][entry]) == list:
                                     if "type" in structure[page][quest].keys() and structure[page][quest]["type"] != "MUSHRA":
                                         error_found = True
@@ -1066,24 +1053,11 @@ def validate_questionnaire(structure, suppress=False) -> (bool, bool, str):
                                             error_details.append(
                                                 "Tracks given for question '{}' on page '{}' needs to be greater than 0.\n".format(
                                                     quest, page))
-                                        elif "audio_tracks" in structure.keys() and \
-                                                int(structure[page][quest]["track"][entry][entry2]) > int(
-                                            structure["audio_tracks"]):
-                                            error_found = True
-                                            error_details.append(
-                                                "Tracks given for question '{}' on page '{}' needs to be smaller than or equal to the number of total tracks.\n".format(
-                                                    quest, page))
                                 else:  # int
                                     if structure[page][quest]["track"][entry] < 1:
                                         error_found = True
                                         error_details.append(
                                             "Track given for question '{}' on page '{}' needs to be greater than 0.\n".format(
-                                                quest, page))
-                                    elif "audio_tracks" in structure.keys() and \
-                                            structure[page][quest]["track"][entry] > int(structure["audio_tracks"]):
-                                        error_found = True
-                                        error_details.append(
-                                            "Track given for question '{}' on page '{}' needs to be smaller than or equal to the number of total tracks.\n".format(
                                                 quest, page))
                         else:
                             int(structure[page][quest]["track"])
@@ -1092,12 +1066,6 @@ def validate_questionnaire(structure, suppress=False) -> (bool, bool, str):
                                 error_found = True
                                 error_details.append(
                                     "Track given for question '{}' on page '{}' needs to be greater than 0.\n".format(
-                                        quest, page))
-                            elif "audio_tracks" in structure.keys() and \
-                                    int(structure[page][quest]["track"]) > int(structure["audio_tracks"]):
-                                error_found = True
-                                error_details.append(
-                                    "Track given for question '{}' on page '{}' needs to be smaller than or equal to the number of total tracks.\n".format(
                                         quest, page))
                             if "type" in structure[page][quest].keys() and structure[page][quest]["type"] == "ABX":
                                 structure[page][quest]["track"] = [structure[page][quest]["track"],
@@ -1272,6 +1240,15 @@ def validate_questionnaire(structure, suppress=False) -> (bool, bool, str):
                     structure[page][quest][
                         "xfade"] = False  # This happens so the rest of the routine where xfade is referenced doesn't have to catch errors
 
+            if "crossfade" in structure[page][quest].keys():
+                try:
+                    structure[page][quest].as_bool("crossfade")
+                except ValueError:
+                    error_found = True
+                    error_details.append(
+                        "No valid value found for 'crossfade' for question '{}' on page '{}'.\n".format(quest, page))
+                    structure[page][quest]["crossfade"] = False  # This happens so the rest of the routine where crossfade is referenced doesn't have to catch errors
+
             if "inscription" in structure[page][quest].keys():
                 if structure[page][quest]["inscription"] == "":
                     warning_found = True
@@ -1297,21 +1274,18 @@ def validate_questionnaire(structure, suppress=False) -> (bool, bool, str):
                     warning_details.append("This questionnaire uses Pupil Core, but no valid address is set.\n")
                 if structure[page][quest]["type"] == "MUSHRA" and ("audio_ip" not in structure.keys() or
                                                                    "audio_port" not in structure.keys() or
-                                                                   "audio_tracks" not in structure.keys() or
                                                                    structure["audio_ip"] == "" or
-                                                                   structure["audio_port"] == "" or
-                                                                   structure["audio_tracks"] == ""):
+                                                                   structure["audio_port"] == ""):
                     warning_found = True
                     warning_details.append(
-                        "This questionnaire uses MUSHRA, but no valid address for an audio-application is set or no number of total tracks is given.\n")
+                        "This questionnaire uses MUSHRA, but no valid address for an audio-application is set.\n")
                 if (structure[page][quest]["type"] == "Player" or structure[page][quest]["type"] == "ABX" or
                     structure[page][quest]["type"] == "AFC") and \
                         ("audio_ip" not in structure.keys() or "audio_port" not in structure.keys() or
-                         "audio_tracks" not in structure.keys() or structure["audio_ip"] == "" or
-                         structure["audio_port"] == "" or structure["audio_tracks"] == ""):
+                         structure["audio_ip"] == "" or structure["audio_port"] == ""):
                     warning_found = True
                     warning_details.append(
-                        "This questionnaire uses an audio player, but no valid address for an audio-application is set or no number of total tracks is given.\n")
+                        "This questionnaire uses an audio player, but no valid address for an audio-application is set.\n")
                 if structure[page][quest]["type"] == "Player" and "video" in structure[page][quest].keys() \
                         and ("video_ip" not in structure.keys() or "video_port" not in structure.keys() or
                              structure["video_ip"] == "" or structure["video_port"] == ""):
@@ -1521,7 +1495,7 @@ def validate_questionnaire(structure, suppress=False) -> (bool, bool, str):
             elif "type" in structure[page][quest].keys() and structure[page][quest]["type"] == "OSCButton" and \
                     "receiver" not in structure[page][quest].keys():
                 error_found = True
-                error_details.append("No reveiver found for question '{}' on page '{}'.\n".format(quest, page))
+                error_details.append("No receiver found for question '{}' on page '{}'.\n".format(quest, page))
 
     # remove duplicate errors/warnings
     warning_details = list(dict.fromkeys(warning_details))

@@ -6,7 +6,10 @@ import argparse
 import csv
 import datetime
 import os
+import socket
 import sys
+import threading
+import time
 
 import zmq
 from PyQt5.QtCore import Qt, QTimer
@@ -15,7 +18,8 @@ from PyQt5.QtWidgets import QWidget, QPushButton, QLabel, QHBoxLayout, QVBoxLayo
     QMessageBox, QScrollArea, QButtonGroup, QCheckBox, QLineEdit, QPlainTextEdit, QSlider, QDesktopWidget, QSizePolicy
 from configobj import ConfigObj
 from ping3 import ping
-from pythonosc import udp_client
+from pythonosc import udp_client, osc_server
+from pythonosc.dispatcher import Dispatcher
 
 from src.LabeledSlider import LabeledSlider
 from src.MUSHRA import MUSHRA
@@ -33,6 +37,7 @@ from src.OSCButton import OSCButton
 from src.randomization import *
 
 TIMEOUT = 0.5  # TODO change this to your liking
+VERSION = "1.0.6"
 
 
 class StackedWindowGui(QWidget):
@@ -74,6 +79,7 @@ class StackedWindowGui(QWidget):
         self.delimiter = ';'
         self.audio_ip = None
         self.audio_port = None
+        self.audio_recv_port = None
         self.audio_tracks = 0
         self.video_ip = None
         self.video_port = None
@@ -90,6 +96,8 @@ class StackedWindowGui(QWidget):
         self.tooltip_not_all_answered = 'Bitte beantworten Sie alle Fragen.'
         self.connection_lost_title = "Internet Verbindung verloren"
         self.connection_lost_text = "Bitte melden Sie sich beim betreuenden Mitarbeiter."
+        self.global_play_state = None
+        self.stop_initiated = False
 
         if not os.path.isfile(file):
             raise FileNotFoundError("File {} does not exist.".format(file))
@@ -147,12 +155,12 @@ class StackedWindowGui(QWidget):
                     elif key == "delimiter":
                         self.delimiter = structure[key]
                     #  audio, video, biofeedback
-                    elif key == "audio_tracks" and structure[key] != "":
-                        self.audio_tracks = structure.as_int(key)
                     elif key == "audio_ip" and structure[key] != "":
                         self.audio_ip = structure[key]
                     elif key == "audio_port" and structure[key] != "":
                         self.audio_port = structure.as_int(key)
+                    elif key == "audio_recv_port" and structure[key] != "":
+                        self.audio_recv_port = structure.as_int(key)
                     elif key == "video_ip" and structure[key] != "":
                         self.video_ip = structure[key]
                     elif key == "video_port" and structure[key] != "":
@@ -237,9 +245,17 @@ class StackedWindowGui(QWidget):
                         self.audio_client.send_message("/action", MUSHRA.loop_off_command)
                         self.audio_client.send_message("/action", 40341)  # mute all
                         self.audio_client.send_message("/action", 40297)  # unselect all
+                        if self.audio_recv_port is not None:
+                            self.audio_server = threading.Thread(target=self.osc_listener, args=[self.audio_recv_port])
+                            self.audio_server.daemon = True
+                            self.audio_server.start()
+                        else:
+                            self.audio_server = None
                     else:
                         self.audio_client = None
-                    self.filepath_log = '{}/log_{}_{}.txt'.format(self.filepath_results, self.get_participant_number(), datetime.datetime.now().strftime("%Y-%m-%d_%H-%M-%S"))
+                        self.audio_server = None
+                    self.filepath_log = '{}/log_{}_{}.txt'.format(self.filepath_results.rsplit("/", 1)[0], self.get_participant_number(), datetime.datetime.now().strftime("%Y-%m-%d_%H-%M-%S"))
+                    print(self.filepath_log)
 
                     if not os.path.isfile(stylesheet):
                         raise FileNotFoundError("File {} does not exist.".format(stylesheet))
@@ -389,6 +405,50 @@ class StackedWindowGui(QWidget):
                             if self.height() <= QDesktopWidget().availableGeometry().height():
                                 scroll.setVerticalScrollBarPolicy(Qt.ScrollBarAlwaysOff)
                             self.show()
+
+    def osc_listener(self, port):
+        """ Handle the listening of messages from Reaper.
+
+            Parameters
+            ----------
+            port : int
+                the port to listen on
+        """
+        ip = socket.gethostbyname(socket.gethostname())
+        print("Listening on {}:{}".format(ip, port))
+        dispatcher = Dispatcher()
+        dispatcher.set_default_handler(self.play_state)
+        server = osc_server.OSCUDPServer((ip, port), dispatcher)
+        server.serve_forever()
+
+    def play_state(self, address, args):
+        """ Monitor the play state given by Reaper.
+            Reaper will ping back any of the commands with either 0.0 or 1.0.
+
+            Parameters
+            ----------
+            address : string
+                OSC address of the message
+            args : tuple
+                value(s) of the message
+        """
+        if address in ["/play", "/pause", "/stop"]:
+            if address == "/play" and args[0] == 1.0:
+                self.global_play_state = "PLAY"
+            elif address == "/pause" and args[0] == 1.0:
+                self.global_play_state = "PAUSE"
+            elif address == "/stop" and args[0] == 1.0:
+                self.global_play_state = "STOP"
+                if not self.stop_initiated:
+                    for player in self.Stack.currentWidget().players:
+                        if player.playing and ((type(player) is Player and (player.timer is None or player.timer.remainingTime() == 0)) or type(player) is MUSHRA):
+                            player.stop_button.setEnabled(False)
+                            player.playing = False
+                else:
+                    self.stop_initiated = False
+        elif address.find("/track/") > -1 and int(address.split("/")[2]) > self.audio_tracks:
+            self.audio_tracks = address.split("/")[2]
+            print("Changed audio_tracks to", self.audio_tracks)
 
     def disconnect_all(self, layout):
         """ Disconnect all widgets from their function for preview.
@@ -566,7 +626,7 @@ class StackedWindowGui(QWidget):
             if i == self.sections.index(self.save_after)+1:
                 answer = self.continue_message()
                 if answer == QMessageBox.AcceptRole:
-                    if self.video_player is not None:
+                    if self.video_client is not None:
                         self.video_client.send_message(self.video_player_commands['blue_screen'][0] if 'blue_screen' in self.video_player_commands.keys() else self.video_player_commands["stop"][0],
                                                        self.video_player_commands['blue_screen'][1] if 'blue_screen' in self.video_player_commands.keys() else self.video_player_commands["stop"][1])
                     if not self.preview:
@@ -761,10 +821,12 @@ class StackedWindowGui(QWidget):
             with open(self.filepath_results, 'r', newline='', encoding='utf_8') as f:
                 d_reader = csv.DictReader(f, delimiter=self.delimiter)
                 headers = d_reader.fieldnames
-            
+                print(headers)
+            time.sleep(2)
             with open(self.filepath_results, "a", newline='', encoding='utf_8') as csvfile:
                 writer = csv.writer(csvfile, delimiter=self.delimiter)
                 row = []
+                print(headers)
                 for field in range(0, len(headers)):
                     row.append(fields[headers[field]])
                 writer.writerow(row)
@@ -772,7 +834,7 @@ class StackedWindowGui(QWidget):
             print("Can not access results file, saving backup!")
             try:
                 participant_number = self.get_participant_number()
-            except PermissionError: # file can't be read
+            except PermissionError:  # file can't be read
                 participant_number = "unknown"
             self.filepath_results = path[0]+"/"+str(participant_number)+"_backup_"+datetime.datetime.now().strftime("%Y-%m-%d_%H-%M-%S")+".csv"
             print("Backup file: {}".format(self.filepath_results))
@@ -809,7 +871,6 @@ class StackedWindowGui(QWidget):
 
     def is_connected(self):
         """Check the internet connection."""
-        host = "0.0.0.0"
         if self.audio_ip is not None:
             host = self.audio_ip
             response = ping(host, timeout=TIMEOUT)

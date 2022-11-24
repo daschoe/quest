@@ -44,7 +44,7 @@ class Player(QWidget):
 
     def __init__(self, start_cue, track, qid, video=None, parent=None, end_cue=None,
                  displayed_buttons=["Play", "Pause", "Stop"], icons=False, pupil=None, objectname=None, timer=None,
-                 play_button_text=None, play_once=False):
+                 play_button_text=None, play_once=False, crossfade=False):
         """Create the layout of the player.
 
         Parameters
@@ -74,27 +74,31 @@ class Player(QWidget):
         play_button_text : str, optional
             alternate text for the play button
         play_once : bool, default=False
-            if True makes it possible to play the stimuli only one tme
+            if True makes it possible to play the stimuli only one time
+        crossfade : bool, default=False
+            if True successively started players with the same start_cue will crossfade and not restart
         """
         QWidget.__init__(self, parent=parent)
-        self.audio_client = self.parent().parent().audio_client
-        self.audio_tracks = self.parent().parent().audio_tracks
-        self.video_client = self.parent().parent().video_client
-        video_player = self.parent().parent().video_player
+        self.page = parent
+        self.gui = self.page.parent()  # self.parent??
+        self.audio_client = self.gui.audio_client
+        self.audio_tracks = self.gui.audio_tracks
+        self.video_client = self.gui.video_client
+        video_player = self.gui.video_player
         if video_player == "MadMapper":
             self.video_player = madmapper
         elif video_player == "VLC":
             self.video_player = vlc
         else:
             self.video_player = None
-        if pupil is not None and not self.parent().parent().preview:
+        if pupil is not None and not self.gui.preview:
             self.pupil_func = Button(None, "Annotate", parent, qid)
             self.pupil_message = pupil
         else:
             self.pupil_func = None
 
-        self.button_fade = self.parent().parent().button_fade
-
+        self.button_fade = self.gui.button_fade
+        self.crossfade = crossfade
         self.play_once = play_once
 
         if objectname is not None:
@@ -164,11 +168,22 @@ class Player(QWidget):
 
     def play(self):
         """Start the playback of audio (and video) of the stimulus."""
-        for player in (self.parent().players if str(type(self.parent())) == "<class 'src.Page.Page'>" else self.parent().parent().players):
+        previous_start = None
+        for player in (self.page.players if str(type(self.page)) == "<class 'src.Page.Page'>" else self.gui.players):
             if player.playing and not player == self:
-                player.stop()
-                if (self.video is not None) and (self.video_client is not None):
-                    self.video_client.send_message(self.video_player["stop"][0], self.video_player["stop"][1])
+                if self.crossfade and player.crossfade:
+                    previous_start = player.start_cue
+                    self.start = player.start
+                    player.stop_button.setEnabled(False)
+                    player.playing = False
+                    if self.video != player.video:
+                        # TODO how to handle video during crossfade
+                        if (self.video is not None) and (self.video_client is not None):
+                            self.video_client.send_message(self.video_player["stop"][0], self.video_player["stop"][1])
+                else:
+                    player.stop()
+                    if (self.video is not None) and (self.video_client is not None):
+                        self.video_client.send_message(self.video_player["stop"][0], self.video_player["stop"][1])
         if "Stop" in self.buttons:
             self.stop_button.setEnabled(True)
         if "Pause" in self.buttons:
@@ -177,27 +192,31 @@ class Player(QWidget):
 
         if self.paused:
             self.audio_client.send_message("/pause", 1)
-            if (self.video is not None) and (self.video_client is not None): #TODO
-                self.video_client.send_message(self.video_player["play"][0], self.video_player["play"][1])  # unpauses TODO
+            if (self.video is not None) and (self.video_client is not None):
+                self.video_client.send_message(self.video_player["unpause"][0], self.video_player["unpause"][1])
             self.pause_button.setChecked(False)
-            if str(type(self.parent())) == "<class 'src.Page.Page'>":
-                self.parent().page_log += "\n\t{} - Unpaused Player {} ".format(datetime.datetime.now().replace(microsecond=0).__str__(), self.id)
+            if str(type(self.page)) == "<class 'src.Page.Page'>":
+                self.page.page_log += "\n\t{} - Unpaused Player {} ".format(datetime.datetime.now().replace(microsecond=0).__str__(), self.id)
             else:
-                self.parent().parent().page_log += "\n\t{} - Unpaused Player {} ".format(datetime.datetime.now().replace(microsecond=0).__str__(), self.id)
+                self.gui.page_log += "\n\t{} - Unpaused Player {} ".format(datetime.datetime.now().replace(microsecond=0).__str__(), self.id)
         else:
             for i in range(1, self.audio_tracks + 1):
                 if i in self.track:
                     self.audio_client.send_message("/track/{}/mute".format(i), 0)
                 else:
                     self.audio_client.send_message("/track/{}/mute".format(i), 1)
-            if int(self.start_cue) < 10:
-                self.audio_client.send_message("/action", 40160 + int(self.start_cue))  # goto cue
-            elif int(self.start_cue) == 10:
-                self.audio_client.send_message("/action", 40160)  # goto cue
-            else:
-                self.audio_client.send_message("/action", 41240 + int(self.start_cue))  # goto cue
-            self.audio_client.send_message("/stop", 1)
-            self.audio_client.send_message("/play", 1)
+            if not self.crossfade or (self.crossfade and self.start_cue != previous_start):
+                if int(self.start_cue) < 10:
+                    self.audio_client.send_message("/action", 40160 + int(self.start_cue))  # goto cue
+                elif int(self.start_cue) == 10:
+                    self.audio_client.send_message("/action", 40160)  # goto cue
+                else:
+                    self.audio_client.send_message("/action", 41240 + int(self.start_cue))  # goto cue
+                self.gui.stop_initiated = True
+                self.audio_client.send_message("/stop", 1)
+                self.audio_client.send_message("/play", 1)
+            elif self.crossfade and self.start_cue == previous_start and self.gui.global_play_state == "STOP":
+                self.audio_client.send_message("/play", 1)
             if (self.video is not None) and (self.video_client is not None):
                 if "select" in self.video_player.keys():
                     self.video_client.send_message(self.video_player["reset"][0], self.video_player["reset"][1])
@@ -206,10 +225,10 @@ class Player(QWidget):
                 else:
                     self.video_client.send_message(self.video_player["play"][0], self.video_player["play"][1].format(self.video))
 
-            if str(type(self.parent())) == "<class 'src.Page.Page'>":
-                self.parent().page_log += "\n\t{} - (Re-)Started Player {} ".format(datetime.datetime.now().replace(microsecond=0).__str__(), self.id)
+            if str(type(self.page)) == "<class 'src.Page.Page'>":
+                self.page.page_log += "\n\t{} - (Re-)Started Player {} ".format(datetime.datetime.now().replace(microsecond=0).__str__(), self.id)
             else:
-                self.parent().parent().page_log += "\n\t{} - (Re-)Started Player {} ".format(
+                self.gui.page_log += "\n\t{} - (Re-)Started Player {} ".format(
                     datetime.datetime.now().replace(microsecond=0).__str__(), self.id)
         if (self.start != 0) and self.playing:
             self.end = time()
@@ -233,22 +252,22 @@ class Player(QWidget):
         self.timer.stop()
         self.countdown = 0
         player_found = False
-        for item in range(self.parent().layout().rowCount()):
-            if player_found and self.parent().layout().itemAt(item, 1).widget() is None:
-                if type(self.parent().layout().itemAt(item, 1)) is QHBoxLayout:
-                    for box in range(self.parent().layout().itemAt(item, 1).count()):
-                        self.parent().layout().itemAt(item, 1).itemAt(box).widget().show()
-                if self.parent().layout().itemAt(item, 0) is not None:
-                    self.parent().layout().itemAt(item, 0).widget().show()
-            if player_found and self.parent().layout().itemAt(item, 1).widget() is not None:
-                if self.parent().layout().itemAt(item, 0) is not None:
-                    self.parent().layout().itemAt(item, 0).widget().show()
-                self.parent().layout().itemAt(item, 1).widget().show()
-                if type(self.parent().layout().itemAt(item, 1).widget()) == Player and self.parent().layout().itemAt(item, 1).widget() != self:
+        for item in range(self.page.layout().rowCount()):
+            if player_found and self.page.layout().itemAt(item, 1).widget() is None:
+                if type(self.page.layout().itemAt(item, 1)) is QHBoxLayout:
+                    for box in range(self.page.layout().itemAt(item, 1).count()):
+                        self.page.layout().itemAt(item, 1).itemAt(box).widget().show()
+                if self.page.layout().itemAt(item, 0) is not None:
+                    self.page.layout().itemAt(item, 0).widget().show()
+            if player_found and self.page.layout().itemAt(item, 1).widget() is not None:
+                if self.page.layout().itemAt(item, 0) is not None:
+                    self.page.layout().itemAt(item, 0).widget().show()
+                self.page.layout().itemAt(item, 1).widget().show()
+                if type(self.page.layout().itemAt(item, 1).widget()) == Player and self.page.layout().itemAt(item, 1).widget() != self:
                     player_found = False
-            if self.parent().layout().itemAt(item, 1).widget() == self:
+            if self.page.layout().itemAt(item, 1).widget() == self:
                 player_found = True
-        self.stop()
+        # self.stop() # not needed anymore
 
     def pause(self):
         """Pause the current playback and resume at that position."""
@@ -258,10 +277,10 @@ class Player(QWidget):
             if (self.video is not None) and (self.video_client is not None):
                 self.video_client.send_message(self.video_player["pause"][0], self.video_player["pause"][1])
             self.pause_button.setChecked(True)
-            if str(type(self.parent())) == "<class 'src.Page.Page'>":
-                self.parent().page_log += "\n\t{} - Paused Player {} ".format(datetime.datetime.now().replace(microsecond=0).__str__(), self.id)
+            if str(type(self.page)) == "<class 'src.Page.Page'>":
+                self.page.page_log += "\n\t{} - Paused Player {} ".format(datetime.datetime.now().replace(microsecond=0).__str__(), self.id)
             else:
-                self.parent().parent().page_log += "\n\t{} - Paused Player {} ".format(datetime.datetime.now().replace(microsecond=0).__str__(), self.id)
+                self.gui.page_log += "\n\t{} - Paused Player {} ".format(datetime.datetime.now().replace(microsecond=0).__str__(), self.id)
             self.end = time()
             self.duration.append(self.end - self.start)
             self.paused = True
@@ -272,12 +291,12 @@ class Player(QWidget):
             self.playing = True
             self.audio_client.send_message("/pause", 1)
             if (self.video is not None) and (self.video_client is not None):
-                self.video_client.send_message(self.video_player["play"][0], self.video_player["play"][1])
+                self.video_client.send_message(self.video_player["unpause"][0], self.video_player["unpause"][1])
             self.pause_button.setChecked(False)
-            if str(type(self.parent())) == "<class 'src.Page.Page'>":
-                self.parent().page_log += "\n\t{} - Unpaused Player {} ".format(datetime.datetime.now().replace(microsecond=0).__str__(), self.id)
+            if str(type(self.page)) == "<class 'src.Page.Page'>":
+                self.page.page_log += "\n\t{} - Unpaused Player {} ".format(datetime.datetime.now().replace(microsecond=0).__str__(), self.id)
             else:
-                self.parent().parent().page_log += "\n\t{} - Unpaused Player {} ".format(datetime.datetime.now().replace(microsecond=0).__str__(), self.id)
+                self.gui.page_log += "\n\t{} - Unpaused Player {} ".format(datetime.datetime.now().replace(microsecond=0).__str__(), self.id)
             self.start = time()
             self.end = 0
             self.paused = False
@@ -292,8 +311,7 @@ class Player(QWidget):
         self.end = time()
         self.duration.append(self.end - self.start)
         self.start = 0
-        self.playing = False
-        self.paused = False
+
         if "Stop" in self.buttons:
             self.stop_button.setEnabled(False)
         if "Play" in self.buttons:
@@ -304,9 +322,12 @@ class Player(QWidget):
         if "Pause" in self.buttons:
             self.pause_button.setEnabled(False)
             self.pause_button.setChecked(False)
-        if str(type(self.parent())) == "<class 'src.Page.Page'>":
-            self.parent().page_log += "\n\t{} - Stopped Player {} ".format(datetime.datetime.now().replace(microsecond=0).__str__(), self.id)
+        if str(type(self.page)) == "<class 'src.Page.Page'>":
+            self.page.page_log += "\n\t{} - Stopped Player {} ".format(datetime.datetime.now().replace(microsecond=0).__str__(), self.id)
         else:
-            self.parent().parent().page_log += "\n\t{} - Stopped Player {} ".format(datetime.datetime.now().replace(microsecond=0).__str__(), self.id)
+            self.gui.page_log += "\n\t{} - Stopped Player {} ".format(datetime.datetime.now().replace(microsecond=0).__str__(), self.id)
         if self.timer is not None and self.timer.remainingTime() > 0 and self.countdown > 0:
             self.timer.stop()
+        self.playing = False
+        self.paused = False
+        self.gui.stop_initiated = True
