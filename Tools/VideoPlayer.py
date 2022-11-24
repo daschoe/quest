@@ -72,6 +72,6 @@ class Player(Thread):
         """
         if event.type.value == vlc.EventType.MediaPlayerEndReached.value:
             self.finished.set()
-            if not self.reaper_client is None:
+            if self.reaper_client is not None:
                 self.reaper_client.send_message("/stop", 1)
             print("finished")

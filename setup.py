@@ -22,14 +22,14 @@ setup(
        "Intended Audience :: Developers",
        "Intended Audience :: Education",
        "Intended Audience :: End Users/Desktop",
-       "Programming Language :: Python :: 3",],
+       "Programming Language :: Python :: 3", ],
 
     extras_require={
        'dev': ['pytest', 'pytest-cov', 'pytest-qt', 'keyboard', 'psutil'],
        'build': ['numpy', 'SoundFile']
     },
 
-    #install_requires=[
+    # install_requires=[
     #   'ping3',
     #   'python_osc',
     #   'configobj',
@@ -38,7 +38,7 @@ setup(
     #   'PyQt5',
     #   'pyzmq',
     #   'timeloop',
-    #],
+    # ],
 
     python_requires='>=3.8'
 )

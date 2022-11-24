@@ -116,7 +116,7 @@ def test_list_as_list_of_strings():
     assert structure['Page 1']['Question 1']['answers'] == ['answer1', 'answer2']
     assert structure['Page 1']['Question 1']['button_texts'] == ['button1', 'button2']
     assert structure['Page 1']['Question 1']['header'] == ['head1', 'head2']
-    assert structure['Page 1']['Question 1']['label'] == [[1.0, 'label2']] # sublist pairs with number as 0 entry
+    assert structure['Page 1']['Question 1']['label'] == [[1.0, 'label2']]  # sublist pairs with number as 0st entry
     assert structure['Page 1']['Question 1']['questions'] == ['quest1', 'quest2']
 
 

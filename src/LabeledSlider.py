@@ -66,7 +66,7 @@ class LabeledSlider(QtWidgets.QWidget):
                 self.levels = list(zip(levels, new_labels))
         else:
             labels = self.create_range(minimum, maximum, step)
-            #levels = range(minimum, maximum + step, step) if minimum < maximum \
+            # levels = range(minimum, maximum + step, step) if minimum < maximum \
             #    else range(minimum, maximum + step * -1, step * -1)
             self.levels = list(zip(levels, map(str, labels)))
 
@@ -150,7 +150,7 @@ class LabeledSlider(QtWidgets.QWidget):
                     self.layout.setContentsMargins(self.left_margin, self.top_margin, self.right_margin, self.bottom_margin)
 
             else:
-                y_loc = QStyle.sliderPositionFromValue(self.sl.minimum(), self.sl.maximum(), v, available, upsideDown=True) # , self.sl.invertedAppearance() todo
+                y_loc = QStyle.sliderPositionFromValue(self.sl.minimum(), self.sl.maximum(), v, available, upsideDown=True)  # , self.sl.invertedAppearance() todo
 
                 bottom = y_loc + length // 2 + rect.height() // 2 + self.top_margin - 3
                 # there is a 3 px offset that I can't attribute to any metric
@@ -163,16 +163,16 @@ class LabeledSlider(QtWidgets.QWidget):
             pos = QPoint(left, bottom)
             painter.drawText(pos, str(v_str))
 
-    def create_range(self, min, max, step):
+    def create_range(self, minimum, maximum, step):
         """
         Create a range with floats.
 
         Parameters
         ----------
-        min : int
+        minimum : int
             minimum value
-        max : int
-            maxmimum value
+        maximum : int
+            maximum value
         step : float
             stepwidth
 
@@ -182,24 +182,24 @@ class LabeledSlider(QtWidgets.QWidget):
             created range
         """
         vals = []
-        if int(step) == float(step) and int(min) == float(min) and int(max) == float(max):
+        if int(step) == float(step) and int(minimum) == float(minimum) and int(maximum) == float(maximum):
             step = int(step)
-            min = int(min)
-            max = int(max)
-            vals = range(min, max+step, step) if min < max else range(min, max-step, -1*step)
+            minimum = int(minimum)
+            maximum = int(maximum)
+            vals = range(minimum, maximum + step, step) if minimum < maximum else range(minimum, maximum - step, -1 * step)
         else:
             tmp = None
-            min = float(min)
-            if min > max:
-                tmp = min
-                min = max
-                max = tmp
-            while min <= max:
-                if int(min) == float(min):
-                    vals.append(int(min))
+            minimum = float(minimum)
+            if minimum > maximum:
+                tmp = minimum
+                minimum = maximum
+                maximum = tmp
+            while minimum <= maximum:
+                if int(minimum) == float(minimum):
+                    vals.append(int(minimum))
                 else:
-                    vals.append(round(min, str(step)[::-1].find('.')) if round(min, str(step)[::-1].find('.')) != -0.0 else 0.0)
-                min += step
+                    vals.append(round(minimum, str(step)[::-1].find('.')) if round(minimum, str(step)[::-1].find('.')) != -0.0 else 0.0)
+                minimum += step
             if tmp is not None:
                 vals.reverse()
         return vals

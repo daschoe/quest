@@ -16,7 +16,7 @@ def make_answers(size, qid, policy=None, parent=None, objectname=None):
             1 is a single line text field, >1 a multiline text field
         qid : str
             id of the question
-        policy : list[str], oprional
+        policy : list[str], optional
             restriction what can be entered, e.g. int, double, regex, with according parameters
         parent : QObject, optional
             widget/layout this widget is embedded in

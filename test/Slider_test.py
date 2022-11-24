@@ -576,7 +576,6 @@ def test_step(gui_load, qtbot):
     for child in test_gui.Stack.currentWidget().children():
         if type(child) == Slider.Slider:
             print(child.tickInterval())  # TODO is it possible to count the displayed ticks/steps?
-            #assert child.value() == int(gui_load.structure["Page 1"]["Question 1"]["max"])
 
     QTimer.singleShot(100, handle_dialog)
     QTest.mouseClick(test_gui.forwardbutton, Qt.LeftButton, delay=1)
@@ -616,7 +615,6 @@ def test_step(gui_load, qtbot):
     for child in test_gui.Stack.currentWidget().children():
         if type(child) == Slider.Slider:
             print(child.tickInterval())  # TODO is it possible to count the displayed ticks/steps?
-            #assert child.value() == int(gui_load.structure["Page 1"]["Question 1"]["min"])
 
     QTimer.singleShot(100, handle_dialog)
     QTest.mouseClick(test_gui.forwardbutton, Qt.LeftButton, delay=1)

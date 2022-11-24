@@ -895,10 +895,10 @@ def test_execute_questionnaire_abx(run2, qtbot):
                 assert lines[1] == '1_order'
                 assert lines[2] == '1_answer'
                 assert lines[3] == '1_duration_A'
-                assert lines[3] == '1_duration_B'
-                assert lines[3] == '1_duration_X'
-                assert lines[4] == 'Start'
-                assert lines[5] == 'End'
+                assert lines[4] == '1_duration_B'
+                assert lines[5] == '1_duration_X'
+                assert lines[6] == 'Start'
+                assert lines[7] == 'End'
     assert len(results) == 8
     assert lines[0] == '1'  # participant number
     assert lines[2] == '0'  # first answer given in button group

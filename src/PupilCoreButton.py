@@ -198,8 +198,8 @@ class Button(QWidget):
             self.pupil_remote.send_string("PUB_PORT")
             pub_port = self.pupil_remote.recv_string()
             self.pub_socket = zmq.Socket(self.ctx, zmq.PUB)
-            #self.pub_socket.setsockopt(zmq.LINGER, 0)  # ____POLICY: set upon instantiations
-            #self.pub_socket.setsockopt(zmq.RCVTIMEO, 2000)
+            # self.pub_socket.setsockopt(zmq.LINGER, 0)  # ____POLICY: set upon instantiations
+            # self.pub_socket.setsockopt(zmq.RCVTIMEO, 2000)
             self.pub_socket.connect("tcp://{}:{}".format(self.ip, pub_port))
             # In order for the annotations to be correlated correctly with the rest of
             # the data it is required to change Pupil Capture's time base to this scripts

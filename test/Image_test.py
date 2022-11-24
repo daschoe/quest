@@ -145,6 +145,7 @@ def test_file(gui_load, qtbot):
     QTest.mouseClick(tv.viewport(), Qt.LeftButton, Qt.NoModifier, rect.center())
     img_str = find_row_by_label(gui_load.gui.edit_layout, 'image_file')
     imgfile = gui_load.gui.edit_layout.itemAt(img_str[0], 1).itemAt(img_str[1]).widget().text()
+    assert imgfile == './src/Configs/Logo.png'
 
     def handle_file_chooser():
         """Type filename."""

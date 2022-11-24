@@ -18,7 +18,7 @@ class Slider(QSlider):
     ----------
     strokewidth : int, default=1
         width of the tickmark strokes
-    strokecolor: QColor, defualt=QColor("black")
+    strokecolor: QColor, default=QColor("black")
         color of the tickmark strokes
     strokewidth_disabled : int, default=None
         width of the tickmark strokes when the slider is disabled
@@ -69,8 +69,8 @@ class Slider(QSlider):
 
         interval = self.tickInterval()
         if self.tickPosition() != QSlider.NoTicks:
-            min_value = 0 #self.minimum()
-            max_value = int((self._max-self._min)/self.step) if self._max > self._min else - 1 * int((self._max-self._min)/self.step)  #self.maximum()
+            min_value = 0
+            max_value = int((self._max-self._min)/self.step) if self._max > self._min else - 1 * int((self._max-self._min)/self.step)
             for i in range(0, max_value - min_value + 1, interval):
                 h = 10
                 magic_height = 4
@@ -206,7 +206,13 @@ class Slider(QSlider):
                     self.blockSignals(True)
 
     def value(self):
-        value = round(self._min + super(Slider, self).value() * (self.step if self._min<self._max else -1*self.step) , str(self.step)[::-1].find('.'))
+        """ Return the current value of the handle.
+
+        Returns
+        -------
+        int or float : current handle position in the range
+        """
+        value = round(self._min + super(Slider, self).value() * (self.step if self._min < self._max else -1*self.step), str(self.step)[::-1].find('.'))
         return value if int(self.step) != float(self.step) else int(value)
     '''
     def setValue(self, value):
@@ -298,16 +304,11 @@ class Slider(QSlider):
         self.step = step
         if self.orientation() == Qt.Horizontal:
             self.blockSignals(True)  # don't spam new values on move, click and release
-        self.setMinimum(0)#min_val)
-        self.setMaximum(int((max_val-min_val)/self.step) if max_val>min_val else -1*int((max_val-min_val)/self.step))#max_val)
-        #if int(step) == float(step):
-        #    self.setTickInterval(int(step))
-        #    self.setSingleStep(int(step))
-        #else:
+        self.setMinimum(0)
+        self.setMaximum(int((max_val-min_val)/self.step) if max_val > min_val else -1*int((max_val-min_val)/self.step))
         self.setTickInterval(1)
         self.setSingleStep(1)
-        #self.setInterval(self.step)
-        self.setValue(round(abs((start-self._min)/step)))# if self._min < self._max else int((start-self._max)/step))
+        self.setValue(round(abs((start-self._min)/step)))
         self.setTickPosition(tickpos)
 
         if hasattr(self.parent(), "page_log"):  # awkward workaround to reference "Page"

@@ -38,7 +38,7 @@ def order_from_file(file):
     list[list[int]]
         list of orders
     """
-    with open(file) as f: #"../Stimulus_Reihenfolgen_seed_17_2021-10-15.txt"
+    with open(file) as f:
         orders = f.read().splitlines()
     for row in range(0, len(orders)):
         orders[row] = orders[row].split(",")

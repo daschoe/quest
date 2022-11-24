@@ -106,9 +106,16 @@ class OSCButton(QWidget):
             self.setLayout(layout)
 
     def set_used(self):
+        """Mark self as clicked."""
         self.used = True
 
     def get_used(self):
+        """ Get the status if the button has been clicked.
+
+        Returns
+        -------
+        bool
+        """
         return self.used
 
     def __click_animation(self):
