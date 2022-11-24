@@ -2,6 +2,7 @@
 Commands for controlling vlc player from python
 """
 import argparse
+import socket
 from threading import Thread
 
 from VideoPlayer import Player
@@ -71,7 +72,6 @@ def vlc_still(unused_addr, args):
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
-    parser.add_argument("--ip", default="127.0.0.1", help="IPv4 from this computer.")
     parser.add_argument("--port", type=int, default=5005, help="The port to listen on.")
     parser.add_argument("--reaper", type=bool, default=True, help="Flag to use Reaper (default: True).")
     parser.add_argument("--reaper_ip", default="127.0.0.1", help="IPv4 the computer hosting Reaper.")
@@ -88,6 +88,7 @@ if __name__ == "__main__":
     dispatcher.map("/vlc_finish", vlc_finish)  # close the player all together
     dispatcher.map("/vlc_still", vlc_still)  # show a still image
 
-    server = osc_server.ThreadingOSCUDPServer((args.ip, args.port), dispatcher)
+    ip = socket.gethostbyname(socket.gethostname())
+    server = osc_server.ThreadingOSCUDPServer((ip, args.port), dispatcher)
     print("Serving on {}".format(server.server_address))
     server.serve_forever()

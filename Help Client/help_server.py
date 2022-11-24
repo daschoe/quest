@@ -10,11 +10,12 @@ from pythonosc import dispatcher
 from pythonosc import osc_server
 from timeloop import Timeloop
 
-HOST = "127.0.0.1"  # TODO change to your GUI's address
-WAIT_TIME_SECONDS = 60  # TODO change this to your liking
-TIMEOUT = 0.75  # TODO change this to your liking
+HOST = "127.0.0.1"
+WAIT_TIME_SECONDS = 60
+TIMEOUT = 0.75
 
 tl = Timeloop()
+server = None
 
 
 def request(unused_addr, opt_args):
@@ -75,6 +76,7 @@ def finished(unused_addr, opt_args):
 def send_ping():
     """Send a ping to the GUI's machine."""
     # noinspection PyTypeChecker
+    print("Pinging {} every {} seconds with timeout {}.".format(HOST, WAIT_TIME_SECONDS, TIMEOUT))
     response = ping(HOST, timeout=TIMEOUT)
     if response is None:
         print(Back.RED+"Connection to GUI lost.")
@@ -85,12 +87,19 @@ def send_ping():
 if __name__ == "__main__":
     init(autoreset=True)
     own_ip = socket.gethostbyname(socket.gethostname())
-    print("Own IP:", own_ip)
-    tl.start(block=False)
     parser = argparse.ArgumentParser()
-    parser.add_argument("--ip", default=own_ip, help="IPv4 of this computer.")
     parser.add_argument("--port", type=int, default=5005, help="The port to listen on.")
+    parser.add_argument("--ping_ip", type=str, default=HOST,
+                        help="IP of the GUI to ping to.")  # TODO testen
+    parser.add_argument("--ping_timeout", type=float, default=TIMEOUT,
+                        help="Timeout for ping back of GUI.")  # TODO testen
     args = parser.parse_args()
+    if args.ping_ip is not None:
+        HOST = args.ping_ip
+    if args.ping_timeout is not None:
+        TIMEOUT = args.ping_timeout
+    print("Pinging {} every {} seconds with timeout {}.".format(HOST, WAIT_TIME_SECONDS, TIMEOUT))
+    tl.start(block=False)
 
     dispatcher = dispatcher.Dispatcher()
     # noinspection PyTypeChecker
@@ -102,6 +111,6 @@ if __name__ == "__main__":
     # noinspection PyTypeChecker
     dispatcher.map("/questionnaire_finished", finished)
 
-    server = osc_server.ThreadingOSCUDPServer((args.ip, args.port), dispatcher)
+    server = osc_server.ThreadingOSCUDPServer((own_ip, args.port), dispatcher)
     print("Serving on {}".format(server.server_address))
     server.serve_forever()
