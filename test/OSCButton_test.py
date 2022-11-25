@@ -22,6 +22,7 @@ def prepare_listeners(structure):
     """Set up the listeners for audio & video."""
     global thread
     print("setting up thread....")
+    structure = ConfigObj("./test/osctest.txt")
     port = int(structure["Page 1"]["Question 1"]["receiver"][1])
     thread = MockReceiver(port)
     QTest.qWait(1000)
