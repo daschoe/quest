@@ -113,7 +113,7 @@ The necessary python libraries are given in ```requirements.txt```.
 
 ### Installation
 
-1. Clone the repo or download the [latest stable release](https://gitlab.uni-hannover.de/da.schoessow/quest/-/releases#v1.0.5)
+1. Clone the repo or download the [latest stable release](https://gitlab.uni-hannover.de/da.schoessow/quest/-/releases#v1.0.6)
    ```sh
    git clone https://gitlab.uni-hannover.de/da.schoessow/quest.git
    ```
