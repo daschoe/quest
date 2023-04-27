@@ -102,6 +102,8 @@ class StackedWindowGui(QWidget):
         self.global_osc_send_port = None
         self.global_osc_recv_port = None
         self.stop_initiated = False
+        self.reaper_server = None
+        self.osc_server = None
 
         if not os.path.isfile(file):
             raise FileNotFoundError("File {} does not exist.".format(file))
@@ -224,12 +226,12 @@ class StackedWindowGui(QWidget):
                     self.global_osc_client = None
                 if self.popup and not self.preview and self.global_osc_ip is not None and self.global_osc_recv_port is not None:
                     #self.global_osc_client = udp_client.SimpleUDPClient(self.global_osc_ip, self.global_osc_send_port)
-                    self.global_osc_server = threading.Thread(target=self.osc_listener_default, args=[self.global_osc_recv_port])
-                    self.global_osc_server.daemon = True
-                    self.global_osc_server.start()
+                    self.global_osc_server_thread = threading.Thread(target=self.osc_listener_default, args=[self.global_osc_recv_port])
+                    self.global_osc_server_thread.daemon = True
+                    self.global_osc_server_thread.start()
                 else:
                     #self.global_osc_client = None
-                    self.global_osc_server = None
+                    self.global_osc_server_thread = None
                 no_zmq_connection = False
                 if popup and not self.preview and self.pupil_ip is not None and self.pupil_port is not None:
                     self.ctx = zmq.Context()
@@ -268,14 +270,14 @@ class StackedWindowGui(QWidget):
                         self.audio_client.send_message("/action", 40341)  # mute all
                         self.audio_client.send_message("/action", 40297)  # unselect all
                         if self.audio_recv_port is not None:
-                            self.audio_server = threading.Thread(target=self.osc_listener_reaper, args=[self.audio_recv_port])
-                            self.audio_server.daemon = True
-                            self.audio_server.start()
+                            self.audio_server_thread = threading.Thread(target=self.osc_listener_reaper, args=[self.audio_recv_port])
+                            self.audio_server_thread.daemon = True
+                            self.audio_server_thread.start()
                         else:
-                            self.audio_server = None
+                            self.audio_server_thread = None
                     else:
                         self.audio_client = None
-                        self.audio_server = None
+                        self.audio_server_thread = None
                     self.filepath_log = '{}/log_{}_{}.txt'.format(self.filepath_results.rsplit("/", 1)[0], self.get_participant_number(), datetime.datetime.now().strftime("%Y-%m-%d_%H-%M-%S"))
                     if popup and not self.preview:
                         print(self.filepath_log)
@@ -441,8 +443,8 @@ class StackedWindowGui(QWidget):
         print("Listening on {}:{}".format(ip, port))
         dispatcher = Dispatcher()
         dispatcher.set_default_handler(self.play_state)
-        server = osc_server.OSCUDPServer((ip, port), dispatcher)
-        server.serve_forever()
+        self.reaper_server = osc_server.OSCUDPServer((ip, port), dispatcher)
+        self.reaper_server.serve_forever()
 
     def osc_listener_default(self, port):
         """ Handle the listening of messages from any source.
@@ -456,8 +458,8 @@ class StackedWindowGui(QWidget):
         print("Listening on {}:{}".format(ip, port))
         dispatcher = Dispatcher()
         dispatcher.set_default_handler(self.osc_reply)  # Funktion, die ausgeführt wird
-        server = osc_server.OSCUDPServer((ip, port), dispatcher)
-        server.serve_forever()
+        self.osc_server = osc_server.OSCUDPServer((ip, port), dispatcher)
+        self.osc_server.serve_forever()
 
     def osc_reply(self, address, args):
         """Monitor the incoming OSC messages from the default OSC listener.
@@ -670,7 +672,7 @@ class StackedWindowGui(QWidget):
             self.forwardbutton.setToolTip(None)
             self.log += self.Stack.currentWidget().page_log
             self.Stack.currentWidget().page_log = ""
-            if self.global_osc_server is not None:
+            if self.global_osc_server_thread is not None:
                 self.Stack.currentWidget().set_osc_message(self.global_osc_message)
             i = self.Stack.currentIndex() + 1
             if i + 1 <= self.Stack.count():
@@ -764,8 +766,14 @@ class StackedWindowGui(QWidget):
         """
         if not self.saved and not self.preview:
             self.collect_and_save_data()
-        #if self.global_osc_server is not None:
-        #    self.global_osc_server.shutdown()
+        if self.osc_server is not None:
+            self.osc_server.shutdown()
+            self.osc_server.server_close()
+            self.global_osc_server_thread.join()
+        if self.reaper_server is not None:
+            self.reaper_server.shutdown()
+            self.reaper_server.server_close()
+            self.audio_server_thread.join()
         self.close()
 
     def continue_message(self):
