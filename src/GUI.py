@@ -97,6 +97,10 @@ class StackedWindowGui(QWidget):
         self.connection_lost_title = "Internet Verbindung verloren"
         self.connection_lost_text = "Bitte melden Sie sich beim betreuenden Mitarbeiter."
         self.global_play_state = None
+        self.global_osc_message = None
+        self.global_osc_ip = None
+        self.global_osc_send_port = None
+        self.global_osc_recv_port = None
         self.stop_initiated = False
 
         if not os.path.isfile(file):
@@ -182,6 +186,12 @@ class StackedWindowGui(QWidget):
                         self.rand = structure[key]
                     elif key == "randomization_file" and structure[key] != "":
                         self.rand_file = structure[key]
+                    elif key == "global_osc_ip" and structure[key] != "":
+                        self.global_osc_ip = structure[key]
+                    elif key == "global_osc_send_port" and structure[key] != "":
+                        self.global_osc_send_port = structure.as_int(key)
+                    elif key == "global_osc_recv_port" and structure[key] != "":
+                        self.global_osc_recv_port = structure.as_int(key)
 
                 #  Set up client/server connections
                 if self.popup and not self.preview and self.video_ip is not None and self.video_port is not None and self.video_player is not None:
@@ -208,6 +218,18 @@ class StackedWindowGui(QWidget):
                         msg.exec_()
                 else:
                     self.help_client = None
+                if self.popup and not self.preview and self.global_osc_ip is not None and self.global_osc_send_port is not None:
+                    self.global_osc_client = udp_client.SimpleUDPClient(self.global_osc_ip, self.global_osc_send_port)
+                else:
+                    self.global_osc_client = None
+                if self.popup and not self.preview and self.global_osc_ip is not None and self.global_osc_recv_port is not None:
+                    #self.global_osc_client = udp_client.SimpleUDPClient(self.global_osc_ip, self.global_osc_send_port)
+                    self.global_osc_server = threading.Thread(target=self.osc_listener_default, args=[self.global_osc_recv_port])
+                    self.global_osc_server.daemon = True
+                    self.global_osc_server.start()
+                else:
+                    #self.global_osc_client = None
+                    self.global_osc_server = None
                 no_zmq_connection = False
                 if popup and not self.preview and self.pupil_ip is not None and self.pupil_port is not None:
                     self.ctx = zmq.Context()
@@ -246,7 +268,7 @@ class StackedWindowGui(QWidget):
                         self.audio_client.send_message("/action", 40341)  # mute all
                         self.audio_client.send_message("/action", 40297)  # unselect all
                         if self.audio_recv_port is not None:
-                            self.audio_server = threading.Thread(target=self.osc_listener, args=[self.audio_recv_port])
+                            self.audio_server = threading.Thread(target=self.osc_listener_reaper, args=[self.audio_recv_port])
                             self.audio_server.daemon = True
                             self.audio_server.start()
                         else:
@@ -255,7 +277,8 @@ class StackedWindowGui(QWidget):
                         self.audio_client = None
                         self.audio_server = None
                     self.filepath_log = '{}/log_{}_{}.txt'.format(self.filepath_results.rsplit("/", 1)[0], self.get_participant_number(), datetime.datetime.now().strftime("%Y-%m-%d_%H-%M-%S"))
-                    print(self.filepath_log)
+                    if popup and not self.preview:
+                        print(self.filepath_log)
 
                     if not os.path.isfile(stylesheet):
                         raise FileNotFoundError("File {} does not exist.".format(stylesheet))
@@ -291,10 +314,10 @@ class StackedWindowGui(QWidget):
                                     for o in order:
                                         self.Stack.addWidget(random_pages[o - 1])
                                 else:
-                                    self.Stack.addWidget(Page(structure[page], parent=self))
+                                    self.Stack.addWidget(Page(structure[page], page, parent=self))
                                 random_pages = []
                             last_group = structure[page]["randomgroup"]
-                            random_pages.append(Page(structure[page], parent=self))
+                            random_pages.append(Page(structure[page], page, parent=self))
                         else:
                             if len(random_pages) > 0:
                                 if self.rand == "balanced latin square":
@@ -314,8 +337,8 @@ class StackedWindowGui(QWidget):
                                     for o in order:
                                         self.Stack.addWidget(random_pages[o - 1])
                                 else:
-                                    self.Stack.addWidget(Page(structure[page], parent=self))
-                            self.Stack.addWidget(Page(structure[page], parent=self))
+                                    self.Stack.addWidget(Page(structure[page], page, parent=self))
+                            self.Stack.addWidget(Page(structure[page], page, parent=self))
                             random_pages = []
                     if len(random_pages) > 0 and popup:
                         if self.rand == "balanced latin square":
@@ -406,7 +429,7 @@ class StackedWindowGui(QWidget):
                                 scroll.setVerticalScrollBarPolicy(Qt.ScrollBarAlwaysOff)
                             self.show()
 
-    def osc_listener(self, port):
+    def osc_listener_reaper(self, port):
         """ Handle the listening of messages from Reaper.
 
             Parameters
@@ -420,6 +443,35 @@ class StackedWindowGui(QWidget):
         dispatcher.set_default_handler(self.play_state)
         server = osc_server.OSCUDPServer((ip, port), dispatcher)
         server.serve_forever()
+
+    def osc_listener_default(self, port):
+        """ Handle the listening of messages from any source.
+
+            Parameters
+            ----------
+            port : int
+                the port to listen on
+        """
+        ip = socket.gethostbyname(socket.gethostname())
+        print("Listening on {}:{}".format(ip, port))
+        dispatcher = Dispatcher()
+        dispatcher.set_default_handler(self.osc_reply)  # Funktion, die ausgeführt wird
+        server = osc_server.OSCUDPServer((ip, port), dispatcher)
+        server.serve_forever()
+
+    def osc_reply(self, address, args):
+        """Monitor the incoming OSC messages from the default OSC listener.
+
+            Parameters
+            ----------
+            address : string
+                OSC address of the message
+            args : tuple
+                value(s) of the message
+        """
+        print("Received", args)
+        self.global_osc_message = args
+        self.log += "\n{} - Received {} from global OSC".format(datetime.datetime.now().replace(microsecond=0).__str__(), self.global_osc_message)
 
     def play_state(self, address, args):
         """ Monitor the play state given by Reaper.
@@ -618,6 +670,8 @@ class StackedWindowGui(QWidget):
             self.forwardbutton.setToolTip(None)
             self.log += self.Stack.currentWidget().page_log
             self.Stack.currentWidget().page_log = ""
+            if self.global_osc_server is not None:
+                self.Stack.currentWidget().set_osc_message(self.global_osc_message)
             i = self.Stack.currentIndex() + 1
             if i + 1 <= self.Stack.count():
                 self.log += "\n{} - Changed to Page {}".format(datetime.datetime.now().replace(microsecond=0).__str__(), i + 1)
@@ -641,6 +695,7 @@ class StackedWindowGui(QWidget):
                         self.backbutton.setEnabled(False)
             if self.pupil_remote is not None and self.Stack.currentWidget().pupil_on_next is not None:
                 self.Stack.currentWidget().pupil_func.send_trigger(self.Stack.currentWidget().pupil_func.new_trigger(self.Stack.currentWidget().pupil_on_next))
+
             # change the page
             if i <= self.Stack.count() - 1:  # normal pages in the middle
                 self.Stack.setCurrentIndex(i)
@@ -650,6 +705,7 @@ class StackedWindowGui(QWidget):
                 self.is_connected()
             if i + 1 == self.Stack.count() and i != self.sections.index(self.save_after):
                 self.forwardbutton.setEnabled(False)
+            self.global_osc_message = None
         else:
             self.forwardbutton.setToolTip(self.tooltip_not_all_answered)
 
@@ -708,6 +764,8 @@ class StackedWindowGui(QWidget):
         """
         if not self.saved and not self.preview:
             self.collect_and_save_data()
+        #if self.global_osc_server is not None:
+        #    self.global_osc_server.shutdown()
         self.close()
 
     def continue_message(self):

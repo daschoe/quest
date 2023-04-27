@@ -81,8 +81,16 @@ class OSCButton(QWidget):
             self.name = objectname
         else:
             self.name = None
-
-        self.osc_client = udp_client.SimpleUDPClient(receiver[0], int(receiver[1]))
+        if (receiver[0] == self.parent().parent().audio_ip) and (receiver[1] == self.parent().parent().audio_port):
+            self.osc_client = self.parent().parent().audio_client
+        elif (receiver[0] == self.parent().parent().video_ip) and (receiver[1] == self.parent().parent().video_port):
+            self.osc_client = self.parent().parent().video_client
+        elif (receiver[0] == self.parent().parent().help_ip) and (receiver[1] == self.parent().parent().help_port):
+            self.osc_client = self.parent().parent().help_client
+        elif (receiver[0] == self.parent().parent().global_osc_ip) and (receiver[1] == self.parent().parent().global_osc_send_port):
+            self.osc_client = self.parent().parent().global_osc_client
+        else:
+            self.osc_client = udp_client.SimpleUDPClient(receiver[0], int(receiver[1]))
         response = ping(receiver[0], timeout=TIMEOUT)
         if response is None:
             msg = QMessageBox()

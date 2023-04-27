@@ -758,6 +758,8 @@ class EditGui(QWidget):
                                             options.addItems(["help"])
                                         if "video_ip" in self.parent().structure.keys() and "video_port" in self.parent().structure.keys():
                                             options.addItems(["video"])
+                                        if "global_osc_ip" in self.parent().structure.keys() and "global_osc_send_port" in self.parent().structure.keys():
+                                            options.addItems(["global osc"])
                                         options.setCurrentIndex(0)
                                         options.activated.connect(self.update_val)
                                         rec_layout_outer = QVBoxLayout()
@@ -970,6 +972,9 @@ class EditGui(QWidget):
                     elif self.sender().currentText() == "video":
                         self.sender().parent().layout().itemAt(1).widget().layout().itemAt(1).widget().setText(self.parent().structure["video_ip"])
                         self.sender().parent().layout().itemAt(1).widget().layout().itemAt(3).widget().setText(self.parent().structure["video_port"])
+                    elif self.sender().currentText() == "global osc":
+                        self.sender().parent().layout().itemAt(1).widget().layout().itemAt(1).widget().setText(self.parent().structure["global_osc_ip"])
+                        self.sender().parent().layout().itemAt(1).widget().layout().itemAt(3).widget().setText(self.parent().structure["global_osc_send_port"])
                     lbl = "receiver"
                     new_val = [self.sender().parent().layout().itemAt(1).widget().layout().itemAt(1).widget().text(), self.sender().parent().layout().itemAt(1).widget().layout().itemAt(3).widget().text()]
                 elif lbl == "policy":

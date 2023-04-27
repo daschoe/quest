@@ -34,13 +34,15 @@ class Page(QWidget):
          widget/layout this widget is embedded in
     """
 
-    def __init__(self, structure, parent=None):
+    def __init__(self, structure, id, parent=None):
         """
 
         Parameters
         ----------
         structure : ConfigObj
             questionnaire structure
+        id : str
+            name of the page
         parent : QObject, optional
              widget/layout this widget is embedded in
         """
@@ -58,6 +60,7 @@ class Page(QWidget):
         self.image_position = None
         self.image = None
         self.outer_layout = None
+        self.id = id
 
         if "pupil_on_next" in structure.keys() and structure["pupil_on_next"] is not None and \
                 structure["pupil_on_next"] != "" and not self.parent().preview:
@@ -353,3 +356,14 @@ class Page(QWidget):
                 return key
 
         return "key doesn't exist"
+
+    def set_osc_message(self, val):
+        """Function to set the received OSC message for this page
+
+        Parameters
+        ----------
+        val : str
+            message to set
+        """
+        #self.osc_message = val
+        self.evaluationvars["OSCMessage_{}".format(self.id)] = val
