@@ -503,10 +503,10 @@ def validate_questionnaire(structure, suppress=False) -> (bool, bool, str):
             warning_details.append("No global_osc_ip found, but global_osc_recv_port. Receiving over global OSC will be disabled.\n")
     elif "global_osc_send_port" in structure.keys() and structure["global_osc_send_port"] != "":
         warning_found = True
-        warning_details.append("No global_osc_ip found, but global_osc_send_port. Sending over global will be disabled.\n")
+        warning_details.append("No global_osc_ip found, but global_osc_send_port. Sending over global OSC will be disabled.\n")
     elif "global_osc_recv_port" in structure.keys() and structure["global_osc_recv_port"] != "":
         warning_found = True
-        warning_details.append("No global_osc_ip found, but global_osc_recv_port. Receiving over global will be disabled.\n")
+        warning_details.append("No global_osc_ip found, but global_osc_recv_port. Receiving over global OSC will be disabled.\n")
 
     if "global_osc_send_port" in structure.keys():
         if structure["global_osc_send_port"] != "":
@@ -630,7 +630,7 @@ def validate_questionnaire(structure, suppress=False) -> (bool, bool, str):
     if "save_after" in structure.keys() and structure["save_after"] not in structure.sections and structure["save_after"] is not None:
         error_found = True
         error_details.append("The value given for 'save_after' is not the name of a page of this questionnaire.\n")
-    elif "save_after" not in structure.keys():
+    elif "save_after" not in structure.keys() and len(structure.sections) > 0:
         warning_found = True
         warning_details.append("No value for 'save_after' given, saving after the last page by default.\n")
         structure["save_after"] = structure.sections[-1] if len(structure.sections) > 0 else None
