@@ -58,8 +58,7 @@ class QEditGuiMain(QMainWindow):
         save_as.triggered.connect(self.saveas)
         file.addAction(save_as)
         validate = QAction("Validate Questionnaire", self)
-        validate.triggered.connect(
-            lambda: validate_questionnaire(listify(self.structure, self.status, self.status_duration)))
+        validate.triggered.connect(self.run_validation)
         validate.setShortcut(QKeySequence("Ctrl+Q"))
         file.addAction(validate)
         export = QAction("Export GUI to .pdf", self)
@@ -110,6 +109,12 @@ class QEditGuiMain(QMainWindow):
         # self.showMaximized()
         self.show()
 
+    def run_validation(self):
+        """Make sure that the current variable is saved and then run validation."""
+        if (type(QApplication.focusWidget()) == QLineEdit) or (type(QApplication.focusWidget()) == TextEdit):
+            QApplication.focusWidget().clearFocus()
+        validate_questionnaire(listify(self.structure, self.status, self.status_duration))
+
     @staticmethod
     def unsaved_message():
         """
@@ -140,6 +145,7 @@ class QEditGuiMain(QMainWindow):
 
     def quit_editor(self):
         """Check for unsaved changes before quitting."""
+        QApplication.focusWidget().clearFocus()
         if self.initial_structure is not None and self.initial_structure != copy.deepcopy(
                 dict(listify(self.structure))) and len(self.undo_stack) > 0 \
                 and not (
@@ -150,6 +156,8 @@ class QEditGuiMain(QMainWindow):
 
     def export(self):
         """Export GUI to pdf by taking screenshots of every page and combining them."""
+        if (type(QApplication.focusWidget()) == QLineEdit) or (type(QApplication.focusWidget()) == TextEdit):
+            QApplication.focusWidget().clearFocus()
         if self.filename is None:
             self.structure.filename = "./tmp.txt"
             self.structure.encoding = "utf-8"
@@ -250,6 +258,8 @@ class QEditGuiMain(QMainWindow):
 
     def save(self):
         """Save current structure with current name."""
+        if (type(QApplication.focusWidget()) == QLineEdit) or (type(QApplication.focusWidget()) == TextEdit):
+            QApplication.focusWidget().clearFocus()
         self.structure = listify(self.structure, self.status, self.status_duration)
         if self.structure.filename is None or self.structure.filename == "./tmp.txt":
             self.saveas()
@@ -266,6 +276,9 @@ class QEditGuiMain(QMainWindow):
 
     def saveas(self):
         """Save current structure as .txt file."""
+        if (type(QApplication.focusWidget()) == QLineEdit) or (type(QApplication.focusWidget()) == TextEdit):
+            # QLineEdit().editingFinished()
+            QApplication.focusWidget().clearFocus()
         self.structure = listify(self.structure, self.status, self.status_duration)
         file = QFileDialog().getSaveFileName(self, caption="Save File", filter="Text files (*.txt)")[0]
         if file != "":
@@ -511,6 +524,8 @@ class EditGui(QWidget):
         file : str, optional, default=None
             name/path of the config file, use None for previewing an unsaved structure.
         """
+        if (type(QApplication.focusWidget()) == QLineEdit) or (type(QApplication.focusWidget()) == TextEdit):
+            self.edit_done()
         error_found, _, _ = validate_questionnaire(
             listify(self.parent().structure, self.parent().status, self.parent().status_duration), suppress=True)
         if not error_found:
