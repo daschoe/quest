@@ -562,7 +562,7 @@ class StackedWindowGui(QWidget):
                         ((type(ans) is QCheckBox) and not ans.isChecked()) or \
                         ((type(ans) is QLineEdit or type(ans) is PasswordEntry) and (len(ans.text()) == 0)) or \
                         ((type(ans) is QPlainTextEdit) and (len(ans.toPlainText()) == 0)) or \
-                        (((type(ans) is Slider) or (type(ans) is LabeledSlider)) and (ans.value() == -1)) or \
+                        (((type(ans) is Slider) or (type(ans) is LabeledSlider)) and (ans.value() == ans.start) and not ans.get_moved()) or \
                         ((type(ans) is list) and (len(ans) == 0)
                          and not self.Stack.currentWidget().required[quest][3]) or \
                         ((type(ans) is list) and (type(ans[0]) is list) and (0 in (len(x) for x in ans))
