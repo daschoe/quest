@@ -76,6 +76,10 @@ class OSCButton(QWidget):
                 if not skip and self.parent().parent().widget(s) == self.parent():
                     skip = True
 
+        try:  # try to send float if possible
+            self.value = float(self.value)
+        except ValueError:
+            self.value = str(self.value)
         if objectname is not None:
             self.setObjectName(objectname)
             self.name = objectname
@@ -107,7 +111,7 @@ class OSCButton(QWidget):
             self.button.setObjectName(self.objectName())
             self.button_fade = self.parent().parent().button_fade
             layout.addWidget(self.button)
-            self.button.clicked.connect(lambda: self.osc_client.send_message(address, value))
+            self.button.clicked.connect(lambda: self.osc_client.send_message(address, self.value))
             self.button.clicked.connect(self.set_used)
             self.button.clicked.connect(self.log)
             self.button.clicked.connect(self.__click_animation)
