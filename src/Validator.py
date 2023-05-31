@@ -488,6 +488,9 @@ def validate_questionnaire(structure, suppress=False) -> (bool, bool, str):
     if "help_text" in structure.keys() and "help_ip" not in structure.keys() and "help_port" not in structure.keys():
         warning_found = True
         warning_details.append("No help connection given, but text. Calling help will be disabled.\n")
+    elif "help_text" not in structure.keys() and "help_ip" in structure.keys() and "help_port" in structure.keys():
+        warning_found = True
+        warning_details.append("No text given for the help button, but a connection. The external logging will still work.\n")
 
     if "global_osc_ip" in structure.keys():
         if structure["global_osc_ip"] != "":

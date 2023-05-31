@@ -28,6 +28,7 @@ def test_global_settings(gui_init):
     # -------help-------
     structure["help_ip"] = "address"
     structure["help_port"] = "2000"
+    structure["help_text"] = "Help"
     QTimer.singleShot(150, handle_dialog_error)
     err, warn, det = validate_questionnaire(structure, True)
     assert err == True
@@ -79,9 +80,15 @@ def test_global_settings(gui_init):
     err, warn, det = validate_questionnaire(structure, True)
     assert err == False
     assert warn == False
+    structure.pop("help_text")
+    err, warn, det = validate_questionnaire(structure, True)
+    assert err == False
+    assert warn == True
+    assert det[0] == "No text given for the help button, but a connection. The external logging will still work.\n"
+    structure["help_text"] = "HELP"
     structure.pop("help_ip")
     structure.pop("help_port")
-    structure["help_text"] = "HELP"
+    #structure["help_text"] = "HELP"
     err, warn, det = validate_questionnaire(structure, True)
     assert err == False
     assert warn == True

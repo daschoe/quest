@@ -88,7 +88,7 @@ class StackedWindowGui(QWidget):
         self.pupil_port = None
         self.help_ip = None
         self.help_port = None
-        self.help_text = "Hilfe"
+        self.help_text = None  # "Hilfe"
         self.rand = None
         stylesheet = './stylesheets/minimal.qss'
         self.button_fade = 100
@@ -379,13 +379,13 @@ class StackedWindowGui(QWidget):
                         self.page_label = QLabel(self.pagecount_text, None)
                     self.navigation.addWidget(self.page_label)
                     self.navigation.addStretch()
-                    if self.help_client is not None:
+                    if self.help_client is not None and self.help_text is not None:
                         self.help_button = QPushButton(self.help_text)
                         self.help_button.clicked.connect(lambda: self.help_client.send_message("/help_request", ""))
                         self.help_button.clicked.connect(self.__click_animation)
                         self.navigation.addWidget(self.help_button)
                         self.navigation.addStretch()
-                    elif (self.preview or not self.popup) and self.help_ip is not None and self.help_port is not None:
+                    elif (self.preview or not self.popup) and self.help_ip is not None and self.help_port is not None and self.help_text is not None:
                         self.help_button = QPushButton(self.help_text)
                         self.navigation.addWidget(self.help_button)
                         self.navigation.addStretch()
