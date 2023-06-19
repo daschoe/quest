@@ -6,6 +6,7 @@ import argparse
 import csv
 import datetime
 import os
+import re
 import socket
 import sys
 import threading
@@ -811,6 +812,25 @@ class StackedWindowGui(QWidget):
                 self.pupil_remote.recv_string()
             except zmq.ZMQError:
                 print("Couldn't connect with Pupil Capture!")
+                
+        emoji_pattern = re.compile("["
+                                u"\U0001F600-\U0001F64F" # emoticons
+                                u"\U0001F300-\U0001F5FF" # symbols & pictographs
+                                u"\U0001F680-\U0001F6FF" # transport & map symbols
+                                u"\U0001F1E0-\U0001F1FF" # flags (iOS)
+                                u"\U00002500-\U000027B0"
+                                u"\U000024C2-\U0001F251"
+                                u"\U0001f926-\U0001f937"
+                                u"\U00010000-\U0010ffff"
+                                u"\u2640-\u2642"
+                                u"\u2600-\u2B55"
+                                u"\u200d"
+                                u"\u23cf"
+                                u"\u23e9"
+                                u"\u231a"
+                                u"\ufe0f"
+                                u"\u3030"
+                                "]+", flags=re.UNICODE)
 
         try:
             fields = {"data_row_number": self.get_participant_number()}
@@ -842,8 +862,12 @@ class StackedWindowGui(QWidget):
                             if type(ans.validator()) == QDoubleValidator:
                                 ans.setText(ans.text().replace(",", "."))
                             fields[qid] = ans.text()
+                            # remove any emojis
+                            fields[qid] = re.sub(emoji_pattern, '', fields[qid]) 
                         elif type(ans) is QPlainTextEdit:
                             fields[qid] = ans.toPlainText().replace("\n", " ")
+                            # remove any emojis
+                            fields[qid] = re.sub(emoji_pattern, '', fields[qid])  
                         elif (type(ans) is Slider) or (type(ans) is LabeledSlider) or (type(ans) is QSlider):
                             fields[qid] = ans.value()
                         elif (type(ans) is Button) or type(ans) is OSCButton:
@@ -869,6 +893,9 @@ class StackedWindowGui(QWidget):
         if not os.path.exists(self.filepath_log):
             if path[0] != "." and path[0] != [".."]:
                 os.makedirs(path[0] + "/", exist_ok=True)
+        # remove any emojis
+        self.log = re.sub(emoji_pattern, '', self.log)   
+        
         log_file = open(self.filepath_log, 'w')
         log_file.write(self.log)
         log_file.close()
