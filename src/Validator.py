@@ -488,6 +488,60 @@ def validate_questionnaire(structure, suppress=False) -> (bool, bool, str):
     if "help_text" in structure.keys() and "help_ip" not in structure.keys() and "help_port" not in structure.keys():
         warning_found = True
         warning_details.append("No help connection given, but text. Calling help will be disabled.\n")
+    elif "help_text" not in structure.keys() and "help_ip" in structure.keys() and "help_port" in structure.keys():
+        warning_found = True
+        warning_details.append("No text given for the help button, but a connection. The external logging will still work.\n")
+
+    if "global_osc_ip" in structure.keys():
+        if structure["global_osc_ip"] != "":
+            match = re.match(ip_mask, structure["global_osc_ip"])
+            if match is None or match.span()[1] < len(structure["global_osc_ip"]):
+                error_found = True
+                error_details.append("Invalid global_osc IP(v4) found.\n")
+        elif "global_osc_send_port" in structure.keys():
+            warning_found = True
+            warning_details.append("No global_osc_ip found, but global_osc_send_port. Sending over global OSC will be disabled.\n")
+        elif "global_osc_recv_port" in structure.keys():
+            warning_found = True
+            warning_details.append("No global_osc_ip found, but global_osc_recv_port. Receiving over global OSC will be disabled.\n")
+    elif "global_osc_send_port" in structure.keys() and structure["global_osc_send_port"] != "":
+        warning_found = True
+        warning_details.append("No global_osc_ip found, but global_osc_send_port. Sending over global OSC will be disabled.\n")
+    elif "global_osc_recv_port" in structure.keys() and structure["global_osc_recv_port"] != "":
+        warning_found = True
+        warning_details.append("No global_osc_ip found, but global_osc_recv_port. Receiving over global OSC will be disabled.\n")
+
+    if "global_osc_send_port" in structure.keys():
+        if structure["global_osc_send_port"] != "":
+            try:
+                int(structure["global_osc_send_port"])
+                if int(structure["global_osc_send_port"]) < 0 or int(structure["global_osc_send_port"]) > 65535:
+                    raise ValueError
+            except ValueError:
+                error_found = True
+                error_details.append("Invalid global_osc_send_port, couldn't be converted to a number 0-65535.\n")
+        elif "global_osc_ip" in structure.keys():
+            warning_found = True
+            warning_details.append("No global_osc_send_port found, but IP. Sending over global will be disabled.\n")
+    elif "global_osc_ip" in structure.keys() and structure["global_osc_ip"] != "":
+        warning_found = True
+        warning_details.append("No global_osc_send_port found, but IP. Sending over global will be disabled.\n")
+
+    if "global_osc_recv_port" in structure.keys():
+        if structure["global_osc_recv_port"] != "":
+            try:
+                int(structure["global_osc_recv_port"])
+                if int(structure["global_osc_recv_port"]) < 0 or int(structure["global_osc_recv_port"]) > 65535:
+                    raise ValueError
+            except ValueError:
+                error_found = True
+                error_details.append("Invalid global_osc_recv_port, couldn't be converted to a number 0-65535.\n")
+        elif "global_osc_ip" in structure.keys():
+            warning_found = True
+            warning_details.append("No global_osc_recv_port found, but IP. Receiving over global will be disabled.\n")
+    elif "global_osc_ip" in structure.keys() and structure["global_osc_ip"] != "":
+        warning_found = True
+        warning_details.append("No global_osc_recv_port found, but IP. Receiving over global will be disabled.\n")
 
     if "go_back" in structure.keys():
         try:
@@ -579,7 +633,7 @@ def validate_questionnaire(structure, suppress=False) -> (bool, bool, str):
     if "save_after" in structure.keys() and structure["save_after"] not in structure.sections and structure["save_after"] is not None:
         error_found = True
         error_details.append("The value given for 'save_after' is not the name of a page of this questionnaire.\n")
-    elif "save_after" not in structure.keys():
+    elif "save_after" not in structure.keys() and len(structure.sections) > 0:
         warning_found = True
         warning_details.append("No value for 'save_after' given, saving after the last page by default.\n")
         structure["save_after"] = structure.sections[-1] if len(structure.sections) > 0 else None

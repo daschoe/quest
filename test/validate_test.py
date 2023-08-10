@@ -28,6 +28,7 @@ def test_global_settings(gui_init):
     # -------help-------
     structure["help_ip"] = "address"
     structure["help_port"] = "2000"
+    structure["help_text"] = "Help"
     QTimer.singleShot(150, handle_dialog_error)
     err, warn, det = validate_questionnaire(structure, True)
     assert err == True
@@ -79,9 +80,14 @@ def test_global_settings(gui_init):
     err, warn, det = validate_questionnaire(structure, True)
     assert err == False
     assert warn == False
+    structure.pop("help_text")
+    err, warn, det = validate_questionnaire(structure, True)
+    assert err == False
+    assert warn == True
+    assert det[0] == "No text given for the help button, but a connection. The external logging will still work.\n"
+    structure["help_text"] = "HELP"
     structure.pop("help_ip")
     structure.pop("help_port")
-    structure["help_text"] = "HELP"
     err, warn, det = validate_questionnaire(structure, True)
     assert err == False
     assert warn == True
@@ -333,6 +339,98 @@ def test_global_settings(gui_init):
     assert -1 <= text.find("No valid value found for 'go_back'.\n") > -1
     structure["go_back"] = "false"
     # TODO Tests for pagecount_text?
+
+    # -------global_osc-------
+    structure["global_osc_ip"] = "address"
+    structure["global_osc_send_port"] = "2000"
+    structure["global_osc_recv_port"] = 5000
+    QTimer.singleShot(150, handle_dialog_error)
+    err, warn, det = validate_questionnaire(structure, True)
+    assert err == True
+    assert warn == False
+    assert -1 <= text.find("Invalid global_osc IP(v4) found.\n") > -1
+    structure["global_osc_ip"] = ""
+    err, warn, det = validate_questionnaire(structure, True)
+    assert err == False
+    assert warn == True
+    assert det[0] == "No global_osc_ip found, but global_osc_send_port. Sending over global OSC will be disabled.\n"
+    structure.pop("global_osc_ip")
+    err, warn, det = validate_questionnaire(structure, True)
+    assert err == False
+    assert warn == True
+    assert det[0] == "No global_osc_ip found, but global_osc_send_port. Sending over global OSC will be disabled.\n"
+    structure["global_osc_ip"] = "127.0.0.1"
+    err, warn, det = validate_questionnaire(structure, True)
+    assert err == False
+    assert warn == False
+    structure["global_osc_send_port"] = "abcd"
+    QTimer.singleShot(150, handle_dialog_error)
+    err, warn, det = validate_questionnaire(structure, True)
+    assert err == True
+    assert warn == False
+    assert -1 <= text.find("Invalid global_osc_send_port, couldn't be converted to a number 0-65535.\n") > -1
+    structure["global_osc_send_port"] = ""
+    err, warn, det = validate_questionnaire(structure, True)
+    assert err == False
+    assert warn == True
+    assert det[0] == "No global_osc_send_port found, but IP. Sending over global will be disabled.\n"
+    structure.pop("global_osc_send_port")
+    err, warn, det = validate_questionnaire(structure, True)
+    assert err == False
+    assert warn == True
+    assert det[0] == "No global_osc_send_port found, but IP. Sending over global will be disabled.\n"
+    structure["global_osc_send_port"] = -1
+    QTimer.singleShot(150, handle_dialog_error)
+    err, warn, det = validate_questionnaire(structure, True)
+    assert err == True
+    assert warn == False
+    assert -1 <= text.find("Invalid global_osc_send_port, couldn't be converted to a number 0-65535.\n") > -1
+    structure["global_osc_send_port"] = 65536
+    QTimer.singleShot(150, handle_dialog_error)
+    err, warn, det = validate_questionnaire(structure, True)
+    assert err == True
+    assert warn == False
+    assert -1 <= text.find("Invalid global_osc_send_port, couldn't be converted to a number 0-65535.\n") > -1
+    structure["global_osc_send_port"] = 3500
+    err, warn, det = validate_questionnaire(structure, True)
+    assert err == False
+    assert warn == False
+    structure.pop("global_osc_recv_port")
+    err, warn, det = validate_questionnaire(structure, True)
+    assert err == False
+    assert warn == True
+    assert det[0] == "No global_osc_recv_port found, but IP. Receiving over global will be disabled.\n"
+
+    structure["global_osc_recv_port"] = "abcd"
+    QTimer.singleShot(150, handle_dialog_error)
+    err, warn, det = validate_questionnaire(structure, True)
+    assert err == True
+    assert warn == False
+    assert -1 <= text.find("Invalid global_osc_recv_port, couldn't be converted to a number 0-65535.\n") > -1
+    structure["global_osc_recv_port"] = -1
+    QTimer.singleShot(150, handle_dialog_error)
+    err, warn, det = validate_questionnaire(structure, True)
+    assert err == True
+    assert warn == False
+    assert -1 <= text.find("Invalid global_osc_recv_port, couldn't be converted to a number 0-65535.\n") > -1
+    structure["global_osc_recv_port"] = 65536
+    QTimer.singleShot(150, handle_dialog_error)
+    err, warn, det = validate_questionnaire(structure, True)
+    assert err == True
+    assert warn == False
+    assert -1 <= text.find("Invalid global_osc_recv_port, couldn't be converted to a number 0-65535.\n") > -1
+    structure["global_osc_recv_port"] = 3500
+    err, warn, det = validate_questionnaire(structure, True)
+    assert err == False
+    assert warn == False
+    structure.pop("global_osc_send_port")
+    err, warn, det = validate_questionnaire(structure, True)
+    assert err == False
+    assert warn == True
+    assert det[0] == "No global_osc_send_port found, but IP. Sending over global will be disabled.\n"
+    structure.pop("global_osc_ip")
+    structure.pop("global_osc_recv_port")
+
     # ------save message------
     structure["save_after"] = "5"
     QTimer.singleShot(150, handle_dialog_error)
@@ -343,12 +441,13 @@ def test_global_settings(gui_init):
     structure.pop("save_after")
     err, warn, det = validate_questionnaire(structure, True)
     assert err == False
-    assert warn == True
-    assert det[0] == "No value for 'save_after' given, saving after the last page by default.\n"
+    assert warn == False
+    #assert det[0] == "No value for 'save_after' given, saving after the last page by default.\n"
     structure["save_after"] = None
     err, warn, det = validate_questionnaire(structure, True)
     assert err == False
     assert warn == False
+    # TODO test for having a page
     # no tests needed for save_message
     structure["answer_pos"] = "maybe"
     structure["answer_neg"] = "maybe"

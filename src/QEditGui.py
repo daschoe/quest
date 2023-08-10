@@ -58,8 +58,7 @@ class QEditGuiMain(QMainWindow):
         save_as.triggered.connect(self.saveas)
         file.addAction(save_as)
         validate = QAction("Validate Questionnaire", self)
-        validate.triggered.connect(
-            lambda: validate_questionnaire(listify(self.structure, self.status, self.status_duration)))
+        validate.triggered.connect(self.run_validation)
         validate.setShortcut(QKeySequence("Ctrl+Q"))
         file.addAction(validate)
         export = QAction("Export GUI to .pdf", self)
@@ -110,6 +109,12 @@ class QEditGuiMain(QMainWindow):
         # self.showMaximized()
         self.show()
 
+    def run_validation(self):
+        """Make sure that the current variable is saved and then run validation."""
+        if (type(QApplication.focusWidget()) == QLineEdit) or (type(QApplication.focusWidget()) == TextEdit):
+            QApplication.focusWidget().clearFocus()
+        validate_questionnaire(listify(self.structure, self.status, self.status_duration))
+
     @staticmethod
     def unsaved_message():
         """
@@ -140,6 +145,7 @@ class QEditGuiMain(QMainWindow):
 
     def quit_editor(self):
         """Check for unsaved changes before quitting."""
+        QApplication.focusWidget().clearFocus()
         if self.initial_structure is not None and self.initial_structure != copy.deepcopy(
                 dict(listify(self.structure))) and len(self.undo_stack) > 0 \
                 and not (
@@ -150,6 +156,8 @@ class QEditGuiMain(QMainWindow):
 
     def export(self):
         """Export GUI to pdf by taking screenshots of every page and combining them."""
+        if (type(QApplication.focusWidget()) == QLineEdit) or (type(QApplication.focusWidget()) == TextEdit):
+            QApplication.focusWidget().clearFocus()
         if self.filename is None:
             self.structure.filename = "./tmp.txt"
             self.structure.encoding = "utf-8"
@@ -250,6 +258,8 @@ class QEditGuiMain(QMainWindow):
 
     def save(self):
         """Save current structure with current name."""
+        if (type(QApplication.focusWidget()) == QLineEdit) or (type(QApplication.focusWidget()) == TextEdit):
+            QApplication.focusWidget().clearFocus()
         self.structure = listify(self.structure, self.status, self.status_duration)
         if self.structure.filename is None or self.structure.filename == "./tmp.txt":
             self.saveas()
@@ -266,6 +276,9 @@ class QEditGuiMain(QMainWindow):
 
     def saveas(self):
         """Save current structure as .txt file."""
+        if (type(QApplication.focusWidget()) == QLineEdit) or (type(QApplication.focusWidget()) == TextEdit):
+            # QLineEdit().editingFinished()
+            QApplication.focusWidget().clearFocus()
         self.structure = listify(self.structure, self.status, self.status_duration)
         file = QFileDialog().getSaveFileName(self, caption="Save File", filter="Text files (*.txt)")[0]
         if file != "":
@@ -511,9 +524,11 @@ class EditGui(QWidget):
         file : str, optional, default=None
             name/path of the config file, use None for previewing an unsaved structure.
         """
+        if (type(QApplication.focusWidget()) == QLineEdit) or (type(QApplication.focusWidget()) == TextEdit):
+            self.edit_done()
         error_found, _, _ = validate_questionnaire(
             listify(self.parent().structure, self.parent().status, self.parent().status_duration), suppress=True)
-        if not error_found:
+        if not error_found and len(self.parent().structure.sections) > 0:
             self.clear_layout(self.prev_widget)
             if file is None or not file:
                 if not file and (self.parent().structure.filename is None or file == "./tmp.txt" or
@@ -758,6 +773,8 @@ class EditGui(QWidget):
                                             options.addItems(["help"])
                                         if "video_ip" in self.parent().structure.keys() and "video_port" in self.parent().structure.keys():
                                             options.addItems(["video"])
+                                        if "global_osc_ip" in self.parent().structure.keys() and "global_osc_send_port" in self.parent().structure.keys():
+                                            options.addItems(["global osc"])
                                         options.setCurrentIndex(0)
                                         options.activated.connect(self.update_val)
                                         rec_layout_outer = QVBoxLayout()
@@ -970,6 +987,9 @@ class EditGui(QWidget):
                     elif self.sender().currentText() == "video":
                         self.sender().parent().layout().itemAt(1).widget().layout().itemAt(1).widget().setText(self.parent().structure["video_ip"])
                         self.sender().parent().layout().itemAt(1).widget().layout().itemAt(3).widget().setText(self.parent().structure["video_port"])
+                    elif self.sender().currentText() == "global osc":
+                        self.sender().parent().layout().itemAt(1).widget().layout().itemAt(1).widget().setText(self.parent().structure["global_osc_ip"])
+                        self.sender().parent().layout().itemAt(1).widget().layout().itemAt(3).widget().setText(self.parent().structure["global_osc_send_port"])
                     lbl = "receiver"
                     new_val = [self.sender().parent().layout().itemAt(1).widget().layout().itemAt(1).widget().text(), self.sender().parent().layout().itemAt(1).widget().layout().itemAt(3).widget().text()]
                 elif lbl == "policy":
@@ -1360,7 +1380,7 @@ class EditGui(QWidget):
                 if "save_after" not in self.parent().structure.keys() or self.parent().structure["save_after"] is None:
                     self.parent().structure["save_after"] = text
                 else:
-                    new_val = self.change_save_after_message(text)  # TODO change save_after
+                    new_val = self.change_save_after_message(text)
                     if new_val == QMessageBox.AcceptRole:
                         self.parent().structure["save_after"] = text
             else:
@@ -1374,7 +1394,7 @@ class EditGui(QWidget):
                         self.parent().structure[text][key] = copy.deepcopy(dict(data[key]))
                 for quest in data.sections:
                     _ = QTreeWidgetItem(page, [quest])
-                new_val = self.change_save_after_message(text)  # TODO change save_after
+                new_val = self.change_save_after_message(text)
                 if new_val == QMessageBox.AcceptRole:
                     self.parent().structure["save_after"] = text
                 self.update_structure()

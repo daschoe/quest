@@ -77,6 +77,8 @@ class LabeledSlider(QtWidgets.QWidget):
         else:
             raise ValueError("<orientation> wrong.")
 
+        self.start = start
+
         self.left_margin = 0
         self.top_margin = 0
         self.right_margin = 0
@@ -100,6 +102,15 @@ class LabeledSlider(QtWidgets.QWidget):
             current tick position of the handle
         """
         return self.sl.value()
+
+    def get_moved(self):
+        """ Return whether the slider has been touched by the user.
+
+        Returns
+        -------
+        boolean - if the slider handle has been moved
+        """
+        return self.sl.moved
 
     def paintEvent(self, event):
         """

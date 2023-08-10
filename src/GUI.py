@@ -6,6 +6,7 @@ import argparse
 import csv
 import datetime
 import os
+import re
 import socket
 import sys
 import threading
@@ -37,7 +38,7 @@ from src.OSCButton import OSCButton
 from src.randomization import *
 
 TIMEOUT = 0.5  # TODO change this to your liking
-VERSION = "1.0.6"
+VERSION = "1.0.7"
 
 
 class StackedWindowGui(QWidget):
@@ -88,7 +89,7 @@ class StackedWindowGui(QWidget):
         self.pupil_port = None
         self.help_ip = None
         self.help_port = None
-        self.help_text = "Hilfe"
+        self.help_text = None  # "Hilfe"
         self.rand = None
         stylesheet = './stylesheets/minimal.qss'
         self.button_fade = 100
@@ -97,7 +98,13 @@ class StackedWindowGui(QWidget):
         self.connection_lost_title = "Internet Verbindung verloren"
         self.connection_lost_text = "Bitte melden Sie sich beim betreuenden Mitarbeiter."
         self.global_play_state = None
+        self.global_osc_message = None
+        self.global_osc_ip = None
+        self.global_osc_send_port = None
+        self.global_osc_recv_port = None
         self.stop_initiated = False
+        self.reaper_server = None
+        self.osc_server = None
 
         if not os.path.isfile(file):
             raise FileNotFoundError("File {} does not exist.".format(file))
@@ -182,6 +189,12 @@ class StackedWindowGui(QWidget):
                         self.rand = structure[key]
                     elif key == "randomization_file" and structure[key] != "":
                         self.rand_file = structure[key]
+                    elif key == "global_osc_ip" and structure[key] != "":
+                        self.global_osc_ip = structure[key]
+                    elif key == "global_osc_send_port" and structure[key] != "":
+                        self.global_osc_send_port = structure.as_int(key)
+                    elif key == "global_osc_recv_port" and structure[key] != "":
+                        self.global_osc_recv_port = structure.as_int(key)
 
                 #  Set up client/server connections
                 if self.popup and not self.preview and self.video_ip is not None and self.video_port is not None and self.video_player is not None:
@@ -208,6 +221,18 @@ class StackedWindowGui(QWidget):
                         msg.exec_()
                 else:
                     self.help_client = None
+                if self.popup and not self.preview and self.global_osc_ip is not None and self.global_osc_send_port is not None:
+                    self.global_osc_client = udp_client.SimpleUDPClient(self.global_osc_ip, self.global_osc_send_port)
+                else:
+                    self.global_osc_client = None
+                if self.popup and not self.preview and self.global_osc_ip is not None and self.global_osc_recv_port is not None:
+                    #self.global_osc_client = udp_client.SimpleUDPClient(self.global_osc_ip, self.global_osc_send_port)
+                    self.global_osc_server_thread = threading.Thread(target=self.osc_listener_default, args=[self.global_osc_recv_port])
+                    self.global_osc_server_thread.daemon = True
+                    self.global_osc_server_thread.start()
+                else:
+                    #self.global_osc_client = None
+                    self.global_osc_server_thread = None
                 no_zmq_connection = False
                 if popup and not self.preview and self.pupil_ip is not None and self.pupil_port is not None:
                     self.ctx = zmq.Context()
@@ -246,16 +271,17 @@ class StackedWindowGui(QWidget):
                         self.audio_client.send_message("/action", 40341)  # mute all
                         self.audio_client.send_message("/action", 40297)  # unselect all
                         if self.audio_recv_port is not None:
-                            self.audio_server = threading.Thread(target=self.osc_listener, args=[self.audio_recv_port])
-                            self.audio_server.daemon = True
-                            self.audio_server.start()
+                            self.audio_server_thread = threading.Thread(target=self.osc_listener_reaper, args=[self.audio_recv_port])
+                            self.audio_server_thread.daemon = True
+                            self.audio_server_thread.start()
                         else:
-                            self.audio_server = None
+                            self.audio_server_thread = None
                     else:
                         self.audio_client = None
-                        self.audio_server = None
+                        self.audio_server_thread = None
                     self.filepath_log = '{}/log_{}_{}.txt'.format(self.filepath_results.rsplit("/", 1)[0], self.get_participant_number(), datetime.datetime.now().strftime("%Y-%m-%d_%H-%M-%S"))
-                    print(self.filepath_log)
+                    if popup and not self.preview:
+                        print(self.filepath_log)
 
                     if not os.path.isfile(stylesheet):
                         raise FileNotFoundError("File {} does not exist.".format(stylesheet))
@@ -291,10 +317,10 @@ class StackedWindowGui(QWidget):
                                     for o in order:
                                         self.Stack.addWidget(random_pages[o - 1])
                                 else:
-                                    self.Stack.addWidget(Page(structure[page], parent=self))
+                                    self.Stack.addWidget(Page(structure[page], page, parent=self))
                                 random_pages = []
                             last_group = structure[page]["randomgroup"]
-                            random_pages.append(Page(structure[page], parent=self))
+                            random_pages.append(Page(structure[page], page, parent=self))
                         else:
                             if len(random_pages) > 0:
                                 if self.rand == "balanced latin square":
@@ -314,8 +340,8 @@ class StackedWindowGui(QWidget):
                                     for o in order:
                                         self.Stack.addWidget(random_pages[o - 1])
                                 else:
-                                    self.Stack.addWidget(Page(structure[page], parent=self))
-                            self.Stack.addWidget(Page(structure[page], parent=self))
+                                    self.Stack.addWidget(Page(structure[page], page, parent=self))
+                            self.Stack.addWidget(Page(structure[page], page, parent=self))
                             random_pages = []
                     if len(random_pages) > 0 and popup:
                         if self.rand == "balanced latin square":
@@ -354,13 +380,13 @@ class StackedWindowGui(QWidget):
                         self.page_label = QLabel(self.pagecount_text, None)
                     self.navigation.addWidget(self.page_label)
                     self.navigation.addStretch()
-                    if self.help_client is not None:
+                    if self.help_client is not None and self.help_text is not None:
                         self.help_button = QPushButton(self.help_text)
                         self.help_button.clicked.connect(lambda: self.help_client.send_message("/help_request", ""))
                         self.help_button.clicked.connect(self.__click_animation)
                         self.navigation.addWidget(self.help_button)
                         self.navigation.addStretch()
-                    elif (self.preview or not self.popup) and self.help_ip is not None and self.help_port is not None:
+                    elif (self.preview or not self.popup) and self.help_ip is not None and self.help_port is not None and self.help_text is not None:
                         self.help_button = QPushButton(self.help_text)
                         self.navigation.addWidget(self.help_button)
                         self.navigation.addStretch()
@@ -406,7 +432,7 @@ class StackedWindowGui(QWidget):
                                 scroll.setVerticalScrollBarPolicy(Qt.ScrollBarAlwaysOff)
                             self.show()
 
-    def osc_listener(self, port):
+    def osc_listener_reaper(self, port):
         """ Handle the listening of messages from Reaper.
 
             Parameters
@@ -418,8 +444,37 @@ class StackedWindowGui(QWidget):
         print("Listening on {}:{}".format(ip, port))
         dispatcher = Dispatcher()
         dispatcher.set_default_handler(self.play_state)
-        server = osc_server.OSCUDPServer((ip, port), dispatcher)
-        server.serve_forever()
+        self.reaper_server = osc_server.OSCUDPServer((ip, port), dispatcher)
+        self.reaper_server.serve_forever()
+
+    def osc_listener_default(self, port):
+        """ Handle the listening of messages from any source.
+
+            Parameters
+            ----------
+            port : int
+                the port to listen on
+        """
+        ip = socket.gethostbyname(socket.gethostname())
+        print("Listening on {}:{}".format(ip, port))
+        dispatcher = Dispatcher()
+        dispatcher.set_default_handler(self.osc_reply)  # Funktion, die ausgeführt wird
+        self.osc_server = osc_server.OSCUDPServer((ip, port), dispatcher)
+        self.osc_server.serve_forever()
+
+    def osc_reply(self, address, args):
+        """Monitor the incoming OSC messages from the default OSC listener.
+
+            Parameters
+            ----------
+            address : string
+                OSC address of the message
+            args : tuple
+                value(s) of the message
+        """
+        print("Received", args)
+        self.global_osc_message = args
+        self.log += "\n{} - Received {} from global OSC".format(datetime.datetime.now().replace(microsecond=0).__str__(), self.global_osc_message)
 
     def play_state(self, address, args):
         """ Monitor the play state given by Reaper.
@@ -508,7 +563,7 @@ class StackedWindowGui(QWidget):
                         ((type(ans) is QCheckBox) and not ans.isChecked()) or \
                         ((type(ans) is QLineEdit or type(ans) is PasswordEntry) and (len(ans.text()) == 0)) or \
                         ((type(ans) is QPlainTextEdit) and (len(ans.toPlainText()) == 0)) or \
-                        (((type(ans) is Slider) or (type(ans) is LabeledSlider)) and (ans.value() == -1)) or \
+                        (((type(ans) is Slider) or (type(ans) is LabeledSlider)) and (ans.value() == ans.start) and not ans.get_moved()) or \
                         ((type(ans) is list) and (len(ans) == 0)
                          and not self.Stack.currentWidget().required[quest][3]) or \
                         ((type(ans) is list) and (type(ans[0]) is list) and (0 in (len(x) for x in ans))
@@ -618,6 +673,8 @@ class StackedWindowGui(QWidget):
             self.forwardbutton.setToolTip(None)
             self.log += self.Stack.currentWidget().page_log
             self.Stack.currentWidget().page_log = ""
+            if self.global_osc_server_thread is not None:
+                self.Stack.currentWidget().set_osc_message(self.global_osc_message)
             i = self.Stack.currentIndex() + 1
             if i + 1 <= self.Stack.count():
                 self.log += "\n{} - Changed to Page {}".format(datetime.datetime.now().replace(microsecond=0).__str__(), i + 1)
@@ -641,6 +698,7 @@ class StackedWindowGui(QWidget):
                         self.backbutton.setEnabled(False)
             if self.pupil_remote is not None and self.Stack.currentWidget().pupil_on_next is not None:
                 self.Stack.currentWidget().pupil_func.send_trigger(self.Stack.currentWidget().pupil_func.new_trigger(self.Stack.currentWidget().pupil_on_next))
+
             # change the page
             if i <= self.Stack.count() - 1:  # normal pages in the middle
                 self.Stack.setCurrentIndex(i)
@@ -650,6 +708,7 @@ class StackedWindowGui(QWidget):
                 self.is_connected()
             if i + 1 == self.Stack.count() and i != self.sections.index(self.save_after):
                 self.forwardbutton.setEnabled(False)
+            self.global_osc_message = None
         else:
             self.forwardbutton.setToolTip(self.tooltip_not_all_answered)
 
@@ -708,6 +767,14 @@ class StackedWindowGui(QWidget):
         """
         if not self.saved and not self.preview:
             self.collect_and_save_data()
+        if self.osc_server is not None:
+            self.osc_server.shutdown()
+            self.osc_server.server_close()
+            self.global_osc_server_thread.join()
+        if self.reaper_server is not None:
+            self.reaper_server.shutdown()
+            self.reaper_server.server_close()
+            self.audio_server_thread.join()
         self.close()
 
     def continue_message(self):
@@ -745,6 +812,25 @@ class StackedWindowGui(QWidget):
                 self.pupil_remote.recv_string()
             except zmq.ZMQError:
                 print("Couldn't connect with Pupil Capture!")
+                
+        emoji_pattern = re.compile("["
+                                u"\U0001F600-\U0001F64F" # emoticons
+                                u"\U0001F300-\U0001F5FF" # symbols & pictographs
+                                u"\U0001F680-\U0001F6FF" # transport & map symbols
+                                u"\U0001F1E0-\U0001F1FF" # flags (iOS)
+                                u"\U00002500-\U000027B0"
+                                u"\U000024C2-\U0001F251"
+                                u"\U0001f926-\U0001f937"
+                                u"\U00010000-\U0010ffff"
+                                u"\u2640-\u2642"
+                                u"\u2600-\u2B55"
+                                u"\u200d"
+                                u"\u23cf"
+                                u"\u23e9"
+                                u"\u231a"
+                                u"\ufe0f"
+                                u"\u3030"
+                                "]+", flags=re.UNICODE)
 
         try:
             fields = {"data_row_number": self.get_participant_number()}
@@ -776,8 +862,12 @@ class StackedWindowGui(QWidget):
                             if type(ans.validator()) == QDoubleValidator:
                                 ans.setText(ans.text().replace(",", "."))
                             fields[qid] = ans.text()
+                            # remove any emojis
+                            fields[qid] = re.sub(emoji_pattern, '', fields[qid]) 
                         elif type(ans) is QPlainTextEdit:
                             fields[qid] = ans.toPlainText().replace("\n", " ")
+                            # remove any emojis
+                            fields[qid] = re.sub(emoji_pattern, '', fields[qid])  
                         elif (type(ans) is Slider) or (type(ans) is LabeledSlider) or (type(ans) is QSlider):
                             fields[qid] = ans.value()
                         elif (type(ans) is Button) or type(ans) is OSCButton:
@@ -803,6 +893,9 @@ class StackedWindowGui(QWidget):
         if not os.path.exists(self.filepath_log):
             if path[0] != "." and path[0] != [".."]:
                 os.makedirs(path[0] + "/", exist_ok=True)
+        # remove any emojis
+        self.log = re.sub(emoji_pattern, '', self.log)   
+        
         log_file = open(self.filepath_log, 'w')
         log_file.write(self.log)
         log_file.close()

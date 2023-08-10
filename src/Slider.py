@@ -39,6 +39,7 @@ class Slider(QSlider):
     strokecolor_disabled = None
     moving = False
     mushra_stopped = pyqtSignal()
+    moved = False
 
     def paintEvent(self, event):
         """
@@ -126,6 +127,7 @@ class Slider(QSlider):
             if self.orientation() == Qt.Horizontal:
                 self.blockSignals(True)
             val = self.pixel_pos_to_range_value(event.pos())
+            self.moved = True
             if self.value() != val:
                 self.setValue(val)
                 self.blockSignals(False)
@@ -214,6 +216,15 @@ class Slider(QSlider):
         """
         value = round(self._min + super(Slider, self).value() * (self.step if self._min < self._max else -1*self.step), str(self.step)[::-1].find('.'))
         return value if int(self.step) != float(self.step) else int(value)
+
+    def get_moved(self):
+        """ Return whether the slider has been touched by the user.
+
+        Returns
+        -------
+        boolean - if the slider handle has been moved
+        """
+        return self.moved
     '''
     def setValue(self, value):
         index = round((value - self._min) / self.step)
@@ -302,6 +313,8 @@ class Slider(QSlider):
         self._min = min_val
         self._max = max_val
         self.step = step
+        self.start = start
+        self.prev = None
         if self.orientation() == Qt.Horizontal:
             self.blockSignals(True)  # don't spam new values on move, click and release
         self.setMinimum(0)
