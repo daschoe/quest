@@ -528,7 +528,7 @@ class EditGui(QWidget):
             self.edit_done()
         error_found, _, _ = validate_questionnaire(
             listify(self.parent().structure, self.parent().status, self.parent().status_duration), suppress=True)
-        if not error_found:
+        if not error_found and len(self.parent().structure.sections) > 0:
             self.clear_layout(self.prev_widget)
             if file is None or not file:
                 if not file and (self.parent().structure.filename is None or file == "./tmp.txt" or
@@ -1380,7 +1380,7 @@ class EditGui(QWidget):
                 if "save_after" not in self.parent().structure.keys() or self.parent().structure["save_after"] is None:
                     self.parent().structure["save_after"] = text
                 else:
-                    new_val = self.change_save_after_message(text)  # TODO change save_after
+                    new_val = self.change_save_after_message(text)
                     if new_val == QMessageBox.AcceptRole:
                         self.parent().structure["save_after"] = text
             else:
@@ -1394,7 +1394,7 @@ class EditGui(QWidget):
                         self.parent().structure[text][key] = copy.deepcopy(dict(data[key]))
                 for quest in data.sections:
                     _ = QTreeWidgetItem(page, [quest])
-                new_val = self.change_save_after_message(text)  # TODO change save_after
+                new_val = self.change_save_after_message(text)
                 if new_val == QMessageBox.AcceptRole:
                     self.parent().structure["save_after"] = text
                 self.update_structure()
