@@ -73,13 +73,13 @@ class PasswordEntry(QLineEdit):
 
     def validate(self):
         """Check if the user-given string is in the list of valid passwords."""
-        if len(self.text()) > 0 and not self.text() in self.passwords:
+        if (len(self.text()) > 0) and (len(self.passwords) > 0) and (not self.text() in self.passwords):
             self.setToolTip("Invalid password.")
             self.setObjectName("required")
             return False
-        elif len(self.text()) == 0 and not self.text() in self.passwords:
+        elif (len(self.text()) == 0) and (len(self.passwords) > 0) and (not self.text() in self.passwords):
             return False
-        elif len(self.text()) == 0 and '' in self.passwords:
+        elif (len(self.text()) == 0) and (len(self.passwords) > 0) and ('' in self.passwords):
             return True
         else:
             self.setToolTip("")
