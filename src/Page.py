@@ -260,7 +260,7 @@ class Page(QWidget):
                             child.stackUnder(img)
             self.setLayout(layout)
         elif self.image_position == "bottom":
-            layout.addRow(img)
+            layout.addRow(self.image)
             self.setLayout(layout)
         elif self.image_position == "left" or self.image_position == "right":
             self.outer_layout = QHBoxLayout()
