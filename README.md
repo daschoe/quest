@@ -238,5 +238,5 @@ Project Link: [https://gitlab.uni-hannover.de/da.schoessow/quest](https://gitlab
 [product-screenshot]: images/screenshot.png
 [coverage-shield]: https://gitlab.uni-hannover.de/da.schoessow/quest/badges/main/coverage.svg
 <!---https://img.shields.io/github/coverage/da.schoessow/quest/main.svg?style=for-the-badge--->
-[doi-shield]: https://zenodo.org/badge/DOI/10.5281/zenodo.6340995.svg 
-[doi-url]: https://doi.org/10.5281/zenodo.6340995 
+[doi-shield]: https://zenodo.org/badge/DOI/10.5281/zenodo.8233755.svg 
+[doi-url]: https://doi.org/10.5281/zenodo.8233755
