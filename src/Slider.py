@@ -314,6 +314,7 @@ class Slider(QSlider):
         self._max = max_val
         self.step = step
         self.start = start
+        self.prev = None
         if self.orientation() == Qt.Horizontal:
             self.blockSignals(True)  # don't spam new values on move, click and release
         self.setMinimum(0)

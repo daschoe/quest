@@ -38,7 +38,7 @@ from src.OSCButton import OSCButton
 from src.randomization import *
 
 TIMEOUT = 0.5  # TODO change this to your liking
-VERSION = "1.0.6"
+VERSION = "1.0.7"
 
 
 class StackedWindowGui(QWidget):

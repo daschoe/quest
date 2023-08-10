@@ -88,7 +88,6 @@ def test_global_settings(gui_init):
     structure["help_text"] = "HELP"
     structure.pop("help_ip")
     structure.pop("help_port")
-    #structure["help_text"] = "HELP"
     err, warn, det = validate_questionnaire(structure, True)
     assert err == False
     assert warn == True
