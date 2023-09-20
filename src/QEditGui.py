@@ -8,10 +8,10 @@ from os.path import basename
 import configobj
 from PyQt5 import sip
 from PyQt5.QtCore import Qt, QModelIndex, QPoint
-from PyQt5.QtGui import QCloseEvent, QKeySequence
+from PyQt5.QtGui import QCloseEvent, QKeySequence, QPixmap
 from PyQt5.QtWidgets import QApplication, QTreeWidgetItem, QWidget, QHBoxLayout, QGroupBox, QSplitter, QFileDialog, \
     QMainWindow, QAction, QLabel, QVBoxLayout, QFormLayout, QLineEdit, QPushButton, QGridLayout, QComboBox, QCheckBox, \
-    QRadioButton, QButtonGroup, QMenu, QInputDialog, QMessageBox, QLayout, QScrollArea
+    QRadioButton, QButtonGroup, QMenu, QInputDialog, QMessageBox, QLayout, QScrollArea, QDesktopWidget
 from configobj import ConfigObj, ConfigObjError
 from fpdf import FPDF
 
@@ -165,7 +165,11 @@ class QEditGuiMain(QMainWindow):
             self.structure.write()
         self.status.showMessage("Exporting to pdf...", self.status_duration)
         exgui = StackedWindowGui(self.structure.filename, preview=True)
-        pdf = FPDF()
+        exgui.children()[1].setVerticalScrollBarPolicy(Qt.ScrollBarAlwaysOff)  # this is the ScrollArea
+        exgui.children()[1].setHorizontalScrollBarPolicy(Qt.ScrollBarAlwaysOff)  # this is the ScrollArea
+        rec_size = exgui.children()[1].children()[0].children()[0].children()[0].sizeHint()  # this is the Page object
+        exgui.resize(max(exgui.width(), rec_size.width()), max(exgui.height(), rec_size.height()))
+        pdf = None#FPDF()
         for page in range(exgui.Stack.count()):
             exgui.Stack.setCurrentIndex(page)
             if page + 1 == exgui.Stack.count():  # last page
@@ -174,12 +178,17 @@ class QEditGuiMain(QMainWindow):
             w = p.width()
             h = p.height()
             p.save("./Page_{}.png".format(page))
-            if w > h:
+            if pdf is None:
+                pdf = FPDF(format=(w,h))
+            '''if w > h:
                 pdf.add_page(orientation='L')
-                pdf.image("./Page_{}.png".format(page), x=0, y=0, w=297)
+                pdf.image("./Page_{}.png".format(page), x=0, y=0)#, w=297)
             else:
                 pdf.add_page(orientation='P')
-                pdf.image("./Page_{}.png".format(page), x=0, y=0, h=297)
+                pdf.image("./Page_{}.png".format(page), x=0, y=0)#, h=297)
+            '''
+            pdf.add_page()
+            pdf.image("./Page_{}.png".format(page), x=0, y=0, w=w, h=h)
         exgui.close()
         file = QFileDialog().getSaveFileName(self, caption="Save PDF-File", filter="pdf files (*.pdf)")[0]
         if file is not None and file != "":
