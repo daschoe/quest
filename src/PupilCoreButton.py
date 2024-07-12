@@ -6,30 +6,14 @@ from time import time
 
 import msgpack as serializer
 import zmq
-from PyQt5.QtCore import Qt, QTimer, QObject
-from PyQt5.QtGui import QPixmap, QDoubleValidator
-from PyQt5.QtWidgets import QPushButton, QWidget, QHBoxLayout, QLabel, QDesktopWidget, QLineEdit, QPlainTextEdit
+from PySide6.QtCore import Qt, QTimer, QObject
+from PySide6.QtGui import QPixmap, QDoubleValidator, QGuiApplication
+from PySide6.QtWidgets import QPushButton, QWidget, QHBoxLayout, QLabel, QLineEdit, QPlainTextEdit
 from src.PasswordEntry import PasswordEntry
 
 
 class Button(QWidget):
-    """Button with custom functionality for interacting with Pupil Core.
-
-    Attributes
-    ----------
-    inscription : str
-        the text displayed on the button
-    function : str
-        shorthand hint for functionality
-    parent : QObject
-        the page the button is on
-    qid : str
-        id of the question
-    recording_name : str, optional
-        name for the recording folder(?)
-    objectname : str, optional
-        name of the object, if it is supposed to be styled individually
-    """
+    """Button with custom functionality for interacting with Pupil Core."""
 
     def __init__(self, inscription, function, parent, qid, recording_name=None, objectname=None, annotation=None):
         """
@@ -37,14 +21,14 @@ class Button(QWidget):
 
             Parameters
             ----------
-            inscription : str
-                the text displayed on the button
+            inscription : Union(str, None)
+                the text displayed on the button, if None the Button will be invisible
             function : str
                 shorthand hint for functionality
             parent : QObject
                 the page the button is on
-            qid : str
-                id of the question
+            qid : Union(str, None)
+                id of the question, if None invisible Button that just triggers the function
             recording_name : str, optional
                 name for the recording folder(?)
             objectname : str, optional
@@ -90,7 +74,7 @@ class Button(QWidget):
                     self.setup_annotate()
                 self.button.clicked.connect(lambda: self.send_trigger(self.new_trigger("test" if annotation is None else str(annotation))))
             self.button.clicked.connect(self.log)
-            self.button.clicked.connect(self.__click_animation)
+            self.button.clicked.connect(lambda: self.__click_animation(self.button))
             self.setLayout(layout)
         elif function == "Annotate":  # the only function that needs setup
             self.setup_annotate()
@@ -105,8 +89,8 @@ class Button(QWidget):
         'v'  # get the Pupil Core software version string
         '''
 
-    def __click_animation(self):
-        __btn = self.sender()
+    def __click_animation(self, btn):
+        __btn = btn
         __btn.setDown(True)
         QTimer.singleShot(self.button_fade, lambda: __btn.setDown(False))
 
@@ -279,7 +263,7 @@ class Button(QWidget):
         return {
             "topic": "annotation",
             "label": label,
-            "timestamp": time(),  # time.asctime(time.localtime()); for Pupil Core > v3.4.0 NEEDS to be float
+            "timestamp": time(),  # time.asctime(time.localtime()); for Pupil Core > v3.4.0 NEEDS to be of type float
             "duration": duration,
         }
 
@@ -302,8 +286,8 @@ class Calib(QWidget):
     def __init__(self):
         super().__init__()
         self.setStyleSheet("QWidget {background-color: white;}")
-        self.setWindowFlags(Qt.CustomizeWindowHint | Qt.FramelessWindowHint)
-        sg = QDesktopWidget().screenGeometry()
+        self.setWindowFlags(Qt.WindowType.CustomizeWindowHint | Qt.WindowType.FramelessWindowHint)
+        sg = QGuiApplication.primaryScreen().availableGeometry()  # TODO testen ob das richtig ist
         self.setFixedWidth(sg.width())
         self.setFixedHeight(sg.height())
 

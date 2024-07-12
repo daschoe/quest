@@ -7,7 +7,7 @@ with open("README.md", 'r') as f:
 
 setup(
     name='QUEST',
-    version='1.0.0',
+    version='1.1.0',
     description='An easy solution to create graphical user interfaces for offline questionnaires without programming knowledge.',
     license="GNU GPLv3",
     long_description=long_description,
@@ -35,7 +35,7 @@ setup(
     #   'configobj',
     #   'fpdf',
     #   'msgpack_python',
-    #   'PyQt5',
+    #   'PySide6',
     #   'pyzmq',
     #   'timeloop',
     # ],

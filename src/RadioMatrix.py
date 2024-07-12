@@ -1,8 +1,8 @@
 """A matrix of questions with radiobuttons as answers using all one set of answer possibilities."""
 import random
 
-from PyQt5.QtCore import Qt
-from PyQt5.QtWidgets import QWidget, QFormLayout, QLabel, QHBoxLayout
+from PySide6.QtCore import Qt
+from PySide6.QtWidgets import QWidget, QFormLayout, QLabel, QHBoxLayout
 
 from src.AnswerRadioButton import make_answers
 
@@ -56,14 +56,14 @@ class RadioMatrix(QWidget):
         for h in range(0, len(answers) - 1):
             lbl = QLabel()
             lbl.setText(answers[h])
-            lbl.setAlignment(Qt.AlignHCenter)
+            lbl.setAlignment(Qt.AlignmentFlag.AlignHCenter)
             lbl.setObjectName("MatrixHeader")
             header_layout.addWidget(lbl)
             header_layout.addStretch()
         if len(answers) >= 1:
             lbl = QLabel()
             lbl.setText(answers[-1])
-            lbl.setAlignment(Qt.AlignHCenter)
+            lbl.setAlignment(Qt.AlignmentFlag.AlignHCenter)
             lbl.setObjectName("MatrixHeader")
             header_layout.addWidget(lbl)
         header_widget = QWidget()

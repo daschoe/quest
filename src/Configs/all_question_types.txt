@@ -28,6 +28,11 @@ video_player = None
         type = Check
         answers = yes, no
         id = CB1
+    [[Check2]]
+        text = CheckBox example (0..n answers)
+        type = Check
+        answers = no, no
+        id = CB2
     [[HLine]]
         type = HLine
     [[Password]]

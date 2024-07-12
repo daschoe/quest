@@ -1,7 +1,7 @@
 """Customized QTreeWidget with drag&drop functionality according to the questionnaire structure."""
-from PyQt5.QtCore import Qt, pyqtSignal
-from PyQt5.QtGui import QDragMoveEvent, QDropEvent
-from PyQt5.QtWidgets import QTreeWidget, QAbstractItemView, QInputDialog, QLineEdit, QTreeWidgetItem
+from PySide6.QtCore import Qt, Signal
+from PySide6.QtGui import QDragMoveEvent, QDropEvent
+from PySide6.QtWidgets import QTreeWidget, QAbstractItemView, QInputDialog, QLineEdit, QTreeWidgetItem
 
 
 # noinspection PyUnresolvedReferences
@@ -17,8 +17,8 @@ class Tree(QTreeWidget):
     parent : QObject, optional
         widget/layout this widget is embedded in
     """
-    tree_changed = pyqtSignal()
-    error_message = pyqtSignal(str)
+    tree_changed = Signal()
+    error_message = Signal(str)
 
     def __init__(self, parent=None):
         """
@@ -45,7 +45,7 @@ class Tree(QTreeWidget):
         event : QDragMoveEvent
         """
         super().dragMoveEvent(event)
-        if self.dropIndicatorPosition() == self.OnViewport:
+        if self.dropIndicatorPosition() == QAbstractItemView.OnViewport:
             # do not accept drop on the viewport
             event.ignore()
 
@@ -63,9 +63,9 @@ class Tree(QTreeWidget):
         """
         source = self.indexFromItem(self.selectedItems()[0])
         if event.source() == self:
-            if self.dropIndicatorPosition() == self.OnViewport:
+            if self.dropIndicatorPosition() == QAbstractItemView.OnViewport:
                 event.ignore()
-            if self.dropIndicatorPosition() == self.OnItem:
+            if self.dropIndicatorPosition() == QAbstractItemView.OnItem:
                 tree_target_item = self.itemAt(event.pos())
                 target_children = []
                 for ch in range(self.itemAt(event.pos()).childCount()):

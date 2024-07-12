@@ -31,7 +31,7 @@ def test_create(gui_init, qtbot):
     QTest.qWait(500)
 
     QTimer.singleShot(100, handle_dialog_p)
-    QTest.mouseClick(gui_init.gui.page_add, Qt.LeftButton, delay=1)
+    QTest.mouseClick(gui_init.gui.page_add, Qt.MouseButton.LeftButton, delay=1)
     tv = gui_init.gui.treeview
     # create a question
     tv.setCurrentItem(tv.topLevelItem(0).child(0))
@@ -39,7 +39,7 @@ def test_create(gui_init, qtbot):
     QTest.qWait(500)
 
     QTimer.singleShot(100, handle_dialog_q)
-    QTest.mouseClick(gui_init.gui.question_add, Qt.LeftButton, delay=1)
+    QTest.mouseClick(gui_init.gui.question_add, Qt.MouseButton.LeftButton, delay=1)
     assert tv.itemAt(0, 0).text(0) == "<new questionnaire>"
     assert tv.topLevelItemCount() == 1
     assert tv.topLevelItem(0).childCount() == 1
@@ -56,19 +56,19 @@ def test_create(gui_init, qtbot):
     layout = gui_init.gui.edit_layout
     not_none_rows = 0
     for row in range(layout.rowCount()):
-        if type(layout.itemAt(row, 1)) == QWidgetItem:
+        if type(layout.itemAt(row, QFormLayout.ItemRole.FieldRole)) == QWidgetItem:
             not_none_rows += 1
-            assert layout.itemAt(row, 0).widget().text() in fields_per_type["HLine"][0].keys()
-            assert str(type(layout.itemAt(row, 1).widget())).strip("'<>").rsplit(".", 1)[1] == \
-                   'TextEdit' if fields_per_type["HLine"][0][layout.itemAt(row, 0).widget().text()] == 'QPlainTextEdit'\
-                   else fields_per_type["HLine"][0][layout.itemAt(row, 0).widget().text()]
-            if type(layout.itemAt(row, 1).widget()) == QLineEdit and layout.itemAt(row, 0).widget().text() in \
+            assert layout.itemAt(row, QFormLayout.ItemRole.LabelRole).widget().text() in fields_per_type["HLine"][0].keys()
+            assert str(type(layout.itemAt(row, QFormLayout.ItemRole.FieldRole).widget())).strip("'<>").rsplit(".", 1)[1] == \
+                   'TextEdit' if fields_per_type["HLine"][0][layout.itemAt(row, QFormLayout.ItemRole.LabelRole).widget().text()] == 'QPlainTextEdit'\
+                   else fields_per_type["HLine"][0][layout.itemAt(row, QFormLayout.ItemRole.LabelRole).widget().text()]
+            if type(layout.itemAt(row, QFormLayout.ItemRole.FieldRole).widget()) == QLineEdit and layout.itemAt(row, QFormLayout.ItemRole.LabelRole).widget().text() in \
                     default_values:
-                assert layout.itemAt(row, 1).widget().text() == default_values[layout.itemAt(row, 0).widget().text()]
-            elif type(layout.itemAt(row, 1).widget()) == QCheckBox and layout.itemAt(row, 0).widget().text() in \
+                assert layout.itemAt(row, QFormLayout.ItemRole.FieldRole).widget().text() == default_values[layout.itemAt(row, QFormLayout.ItemRole.LabelRole).widget().text()]
+            elif type(layout.itemAt(row, QFormLayout.ItemRole.FieldRole).widget()) == QCheckBox and layout.itemAt(row, QFormLayout.ItemRole.LabelRole).widget().text() in \
                     default_values:
-                assert layout.itemAt(row, 1).widget().isChecked() == default_values[
-                    layout.itemAt(row, 0).widget().text()]
+                assert layout.itemAt(row, QFormLayout.ItemRole.FieldRole).widget().isChecked() == default_values[
+                    layout.itemAt(row, QFormLayout.ItemRole.LabelRole).widget().text()]
     assert not_none_rows == len(fields_per_type["HLine"][0].keys())
     assert len(gui_init.undo_stack) == 2  # 2 for creating page & question
 
@@ -115,12 +115,12 @@ def test_execute_questionnaire_no_interaction(run, qtbot):
     assert run.Stack.count() == 1
     line_cnt = 0
     for child in run.Stack.currentWidget().children():
-        if type(child) == QHLine:
+        if type(child) is QHLine:
             line_cnt += 1
     assert line_cnt == 1
 
     QTimer.singleShot(100, handle_dialog)
-    QTest.mouseClick(run.forwardbutton, Qt.LeftButton)
+    QTest.mouseClick(run.forwardbutton, Qt.MouseButton.LeftButton)
 
     results = []
     with open('./test/results/results_hl.csv', mode='r') as file:
@@ -144,7 +144,7 @@ def test_execute_questionnaire_no_interaction_blocked(run, qtbot):
     with mock_file(r'./test/results/results_hl.csv'):
         assert run.Stack.count() == 1
         QTimer.singleShot(100, handle_dialog)
-        QTest.mouseClick(run.forwardbutton, Qt.LeftButton)
+        QTest.mouseClick(run.forwardbutton, Qt.MouseButton.LeftButton)
         res_file = None
         for file in os.listdir("./test/results/"):
             if file.find("_backup_"):

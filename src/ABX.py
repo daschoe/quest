@@ -2,7 +2,7 @@
 
 from random import shuffle
 
-from PyQt5.QtWidgets import QWidget, QHBoxLayout, QVBoxLayout, QFormLayout, QLabel
+from PySide6.QtWidgets import QWidget, QHBoxLayout, QVBoxLayout, QFormLayout, QLabel
 
 from src.AnswerRadioButton import make_answers as radio
 from src.Player import Player

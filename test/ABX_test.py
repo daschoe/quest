@@ -37,7 +37,7 @@ def test_create(gui_init, qtbot):
     QTest.qWait(500)
 
     QTimer.singleShot(100, handle_dialog_p)
-    QTest.mouseClick(gui_init.gui.page_add, Qt.LeftButton, delay=1)
+    QTest.mouseClick(gui_init.gui.page_add, Qt.MouseButton.LeftButton, delay=1)
     tv = gui_init.gui.treeview
     # create a question
     tv.setCurrentItem(tv.topLevelItem(0).child(0))
@@ -45,7 +45,7 @@ def test_create(gui_init, qtbot):
     QTest.qWait(500)
 
     QTimer.singleShot(100, handle_dialog_q)
-    QTest.mouseClick(gui_init.gui.question_add, Qt.LeftButton, delay=1)
+    QTest.mouseClick(gui_init.gui.question_add, Qt.MouseButton.LeftButton, delay=1)
     assert tv.itemAt(0, 0).text(0) == "<new questionnaire>"
     assert tv.topLevelItemCount() == 1
     assert tv.topLevelItem(0).childCount() == 1
@@ -58,36 +58,36 @@ def test_create(gui_init, qtbot):
     tv.setCurrentItem(tv.topLevelItem(0).child(0).child(0))  # should be 'Question 1'
     assert len(tv.selectedItems()) == 1
     assert tv.selectedItems()[0].text(0) == "Question 1"
-    QTest.mouseClick(gui_init.gui.questiontype, Qt.LeftButton)
-    QTest.keyClick(gui_init.gui.questiontype, Qt.Key_Down)
-    QTest.keyClick(gui_init.gui.questiontype, Qt.Key_Down)
-    QTest.keyClick(gui_init.gui.questiontype, Qt.Key_Down)
-    QTest.keyClick(gui_init.gui.questiontype, Qt.Key_Down)
-    QTest.keyClick(gui_init.gui.questiontype, Qt.Key_Down)
-    QTest.keyClick(gui_init.gui.questiontype, Qt.Key_Down)
-    QTest.keyClick(gui_init.gui.questiontype, Qt.Key_Down)
-    QTest.keyClick(gui_init.gui.questiontype, Qt.Key_Down)
-    QTest.keyClick(gui_init.gui.questiontype, Qt.Key_Down)
-    QTest.keyClick(gui_init.gui.questiontype, Qt.Key_Down)
-    QTest.keyClick(gui_init.gui.questiontype, Qt.Key_Enter)
+    QTest.mouseClick(gui_init.gui.questiontype, Qt.MouseButton.LeftButton)
+    QTest.keyClick(gui_init.gui.questiontype, Qt.Key.Key_Down)
+    QTest.keyClick(gui_init.gui.questiontype, Qt.Key.Key_Down)
+    QTest.keyClick(gui_init.gui.questiontype, Qt.Key.Key_Down)
+    QTest.keyClick(gui_init.gui.questiontype, Qt.Key.Key_Down)
+    QTest.keyClick(gui_init.gui.questiontype, Qt.Key.Key_Down)
+    QTest.keyClick(gui_init.gui.questiontype, Qt.Key.Key_Down)
+    QTest.keyClick(gui_init.gui.questiontype, Qt.Key.Key_Down)
+    QTest.keyClick(gui_init.gui.questiontype, Qt.Key.Key_Down)
+    QTest.keyClick(gui_init.gui.questiontype, Qt.Key.Key_Down)
+    QTest.keyClick(gui_init.gui.questiontype, Qt.Key.Key_Down)
+    QTest.keyClick(gui_init.gui.questiontype, Qt.Key.Key_Enter)
     gui_init.gui.questiontype.setCurrentIndex(types.index("ABX"))
     assert gui_init.gui.questiontype.currentText() == "ABX"
     # check if the layout is correct, if all needed fields are loaded and have correct default values (if applicable)
     layout = gui_init.gui.edit_layout
     not_none_rows = 0
     for row in range(layout.rowCount()):
-        if type(layout.itemAt(row, 1)) == QWidgetItem:
+        if type(layout.itemAt(row, QFormLayout.ItemRole.FieldRole)) == QWidgetItem:
             not_none_rows += 1
-            assert layout.itemAt(row, 0).widget().text() in fields_per_type["ABX"][0].keys()
-            assert str(type(layout.itemAt(row, 1).widget())).strip("'<>").rsplit(".", 1)[1] == \
-                   fields_per_type["ABX"][0][layout.itemAt(row, 0).widget().text()]
-            if type(layout.itemAt(row, 1).widget()) == QLineEdit and layout.itemAt(row, 0).widget().text() in \
+            assert layout.itemAt(row, QFormLayout.ItemRole.LabelRole).widget().text() in fields_per_type["ABX"][0].keys()
+            assert str(type(layout.itemAt(row, QFormLayout.ItemRole.FieldRole).widget())).strip("'<>").rsplit(".", 1)[1] == \
+                   fields_per_type["ABX"][0][layout.itemAt(row, QFormLayout.ItemRole.LabelRole).widget().text()]
+            if type(layout.itemAt(row, QFormLayout.ItemRole.FieldRole).widget()) == QLineEdit and layout.itemAt(row, QFormLayout.ItemRole.LabelRole).widget().text() in \
                     default_values:
-                assert layout.itemAt(row, 1).widget().text() == default_values[layout.itemAt(row, 0).widget().text()]
-            elif type(layout.itemAt(row, 1).widget()) == QCheckBox and layout.itemAt(row, 0).widget().text() in \
+                assert layout.itemAt(row, QFormLayout.ItemRole.FieldRole).widget().text() == default_values[layout.itemAt(row, QFormLayout.ItemRole.LabelRole).widget().text()]
+            elif type(layout.itemAt(row, QFormLayout.ItemRole.FieldRole).widget()) == QCheckBox and layout.itemAt(row, QFormLayout.ItemRole.LabelRole).widget().text() in \
                     default_values:
-                assert layout.itemAt(row, 1).widget().isChecked() == default_values[
-                    layout.itemAt(row, 0).widget().text()]
+                assert layout.itemAt(row, QFormLayout.ItemRole.FieldRole).widget().isChecked() == default_values[
+                    layout.itemAt(row, QFormLayout.ItemRole.LabelRole).widget().text()]
     assert not_none_rows == len(fields_per_type["ABX"][0].keys())
     assert len(gui_init.undo_stack) == 12  # 2 for creating page & question, 10 for choosing ABX
 
@@ -141,14 +141,14 @@ def test_button_texts(gui_load, qtbot):
     assert tv.selectedItems()[0].text(0) == "Question 1"
 
     rect = tv.visualItemRect(tv.currentItem())
-    QTest.mouseClick(tv.viewport(), Qt.LeftButton, Qt.NoModifier, rect.center())
+    QTest.mouseClick(tv.viewport(), Qt.MouseButton.LeftButton, Qt.KeyboardModifier.NoModifier, rect.center())
     labels_pos = find_row_by_label(gui_load.gui.edit_layout, 'button_texts')
     x_pos = find_row_by_label(gui_load.gui.edit_layout, 'x')
 
-    gui_load.gui.edit_layout.itemAt(labels_pos, 1).widget().clear()
-    gui_load.gui.edit_layout.itemAt(labels_pos, 1).widget().setText("only one")
-    assert gui_load.gui.edit_layout.itemAt(labels_pos, 1).widget().text() == "only one"
-    gui_load.gui.edit_layout.itemAt(labels_pos, 1).widget().editingFinished.emit()
+    gui_load.gui.edit_layout.itemAt(labels_pos, QFormLayout.ItemRole.FieldRole).widget().clear()
+    gui_load.gui.edit_layout.itemAt(labels_pos, QFormLayout.ItemRole.FieldRole).widget().setText("only one")
+    assert gui_load.gui.edit_layout.itemAt(labels_pos, QFormLayout.ItemRole.FieldRole).widget().text() == "only one"
+    gui_load.gui.edit_layout.itemAt(labels_pos, QFormLayout.ItemRole.FieldRole).widget().editingFinished.emit()
     assert gui_load.structure["Page 1"]["Question 1"]["button_texts"] == "only one"
     gui_load.structure = listify(gui_load.structure)
     QTimer.singleShot(150, handle_dialog_error)
@@ -156,10 +156,10 @@ def test_button_texts(gui_load, qtbot):
     assert error_found == True
     assert warning_found == False
 
-    gui_load.gui.edit_layout.itemAt(labels_pos, 1).widget().clear()
-    gui_load.gui.edit_layout.itemAt(labels_pos, 1).widget().setText("1")
-    assert gui_load.gui.edit_layout.itemAt(labels_pos, 1).widget().text() == "1"
-    gui_load.gui.edit_layout.itemAt(labels_pos, 1).widget().editingFinished.emit()
+    gui_load.gui.edit_layout.itemAt(labels_pos, QFormLayout.ItemRole.FieldRole).widget().clear()
+    gui_load.gui.edit_layout.itemAt(labels_pos, QFormLayout.ItemRole.FieldRole).widget().setText("1")
+    assert gui_load.gui.edit_layout.itemAt(labels_pos, QFormLayout.ItemRole.FieldRole).widget().text() == "1"
+    gui_load.gui.edit_layout.itemAt(labels_pos, QFormLayout.ItemRole.FieldRole).widget().editingFinished.emit()
     assert gui_load.structure["Page 1"]["Question 1"]["button_texts"] == "1"
     gui_load.structure = listify(gui_load.structure)
     QTimer.singleShot(150, handle_dialog_error)
@@ -167,10 +167,10 @@ def test_button_texts(gui_load, qtbot):
     assert error_found == True
     assert warning_found == False
 
-    gui_load.gui.edit_layout.itemAt(labels_pos, 1).widget().clear()
-    gui_load.gui.edit_layout.itemAt(labels_pos, 1).widget().setText("one, two, too many")
-    assert gui_load.gui.edit_layout.itemAt(labels_pos, 1).widget().text() == "one, two, too many"
-    gui_load.gui.edit_layout.itemAt(labels_pos, 1).widget().editingFinished.emit()
+    gui_load.gui.edit_layout.itemAt(labels_pos, QFormLayout.ItemRole.FieldRole).widget().clear()
+    gui_load.gui.edit_layout.itemAt(labels_pos, QFormLayout.ItemRole.FieldRole).widget().setText("one, two, too many")
+    assert gui_load.gui.edit_layout.itemAt(labels_pos, QFormLayout.ItemRole.FieldRole).widget().text() == "one, two, too many"
+    gui_load.gui.edit_layout.itemAt(labels_pos, QFormLayout.ItemRole.FieldRole).widget().editingFinished.emit()
     assert gui_load.structure["Page 1"]["Question 1"]["button_texts"] == "one, two, too many"
     gui_load.structure = listify(gui_load.structure)
     QTimer.singleShot(150, handle_dialog_error)
@@ -178,8 +178,8 @@ def test_button_texts(gui_load, qtbot):
     assert error_found == True
     assert warning_found == False
 
-    gui_load.gui.edit_layout.itemAt(labels_pos, 1).widget().clear()
-    gui_load.gui.edit_layout.itemAt(labels_pos, 1).widget().editingFinished.emit()
+    gui_load.gui.edit_layout.itemAt(labels_pos, QFormLayout.ItemRole.FieldRole).widget().clear()
+    gui_load.gui.edit_layout.itemAt(labels_pos, QFormLayout.ItemRole.FieldRole).widget().editingFinished.emit()
     assert gui_load.structure["Page 1"]["Question 1"]["button_texts"] == ""
     gui_load.structure = listify(gui_load.structure)
     QTimer.singleShot(150, handle_dialog_error)
@@ -188,14 +188,14 @@ def test_button_texts(gui_load, qtbot):
     assert warning_found == False
 
     # ABX
-    gui_load.gui.edit_layout.itemAt(x_pos, 1).widget().click()
-    assert gui_load.gui.edit_layout.itemAt(x_pos, 1).widget().isChecked() == True
+    gui_load.gui.edit_layout.itemAt(x_pos, QFormLayout.ItemRole.FieldRole).widget().click()
+    assert gui_load.gui.edit_layout.itemAt(x_pos, QFormLayout.ItemRole.FieldRole).widget().isChecked() == True
     assert gui_load.structure["Page 1"]["Question 1"]["x"] == True
 
-    gui_load.gui.edit_layout.itemAt(labels_pos, 1).widget().clear()
-    gui_load.gui.edit_layout.itemAt(labels_pos, 1).widget().setText("one, two")
-    assert gui_load.gui.edit_layout.itemAt(labels_pos, 1).widget().text() == "one, two"
-    gui_load.gui.edit_layout.itemAt(labels_pos, 1).widget().editingFinished.emit()
+    gui_load.gui.edit_layout.itemAt(labels_pos, QFormLayout.ItemRole.FieldRole).widget().clear()
+    gui_load.gui.edit_layout.itemAt(labels_pos, QFormLayout.ItemRole.FieldRole).widget().setText("one, two")
+    assert gui_load.gui.edit_layout.itemAt(labels_pos, QFormLayout.ItemRole.FieldRole).widget().text() == "one, two"
+    gui_load.gui.edit_layout.itemAt(labels_pos, QFormLayout.ItemRole.FieldRole).widget().editingFinished.emit()
     assert gui_load.structure["Page 1"]["Question 1"]["button_texts"] == "one, two"
     gui_load.structure = listify(gui_load.structure)
     QTimer.singleShot(150, handle_dialog_error)
@@ -203,10 +203,10 @@ def test_button_texts(gui_load, qtbot):
     assert error_found == True
     assert warning_found == False
 
-    gui_load.gui.edit_layout.itemAt(labels_pos, 1).widget().clear()
-    gui_load.gui.edit_layout.itemAt(labels_pos, 1).widget().setText("one, two, three, too many")
-    assert gui_load.gui.edit_layout.itemAt(labels_pos, 1).widget().text() == "one, two, three, too many"
-    gui_load.gui.edit_layout.itemAt(labels_pos, 1).widget().editingFinished.emit()
+    gui_load.gui.edit_layout.itemAt(labels_pos, QFormLayout.ItemRole.FieldRole).widget().clear()
+    gui_load.gui.edit_layout.itemAt(labels_pos, QFormLayout.ItemRole.FieldRole).widget().setText("one, two, three, too many")
+    assert gui_load.gui.edit_layout.itemAt(labels_pos, QFormLayout.ItemRole.FieldRole).widget().text() == "one, two, three, too many"
+    gui_load.gui.edit_layout.itemAt(labels_pos, QFormLayout.ItemRole.FieldRole).widget().editingFinished.emit()
     assert gui_load.structure["Page 1"]["Question 1"]["button_texts"] == "one, two, three, too many"
     gui_load.structure = listify(gui_load.structure)
     QTimer.singleShot(150, handle_dialog_error)
@@ -214,10 +214,10 @@ def test_button_texts(gui_load, qtbot):
     assert error_found == True
     assert warning_found == False
 
-    gui_load.gui.edit_layout.itemAt(labels_pos, 1).widget().clear()
-    gui_load.gui.edit_layout.itemAt(labels_pos, 1).widget().setText("one, two, not too many")
-    assert gui_load.gui.edit_layout.itemAt(labels_pos, 1).widget().text() == "one, two, not too many"
-    gui_load.gui.edit_layout.itemAt(labels_pos, 1).widget().editingFinished.emit()
+    gui_load.gui.edit_layout.itemAt(labels_pos, QFormLayout.ItemRole.FieldRole).widget().clear()
+    gui_load.gui.edit_layout.itemAt(labels_pos, QFormLayout.ItemRole.FieldRole).widget().setText("one, two, not too many")
+    assert gui_load.gui.edit_layout.itemAt(labels_pos, QFormLayout.ItemRole.FieldRole).widget().text() == "one, two, not too many"
+    gui_load.gui.edit_layout.itemAt(labels_pos, QFormLayout.ItemRole.FieldRole).widget().editingFinished.emit()
     assert gui_load.structure["Page 1"]["Question 1"]["button_texts"] == "one, two, not too many"
     gui_load.structure = listify(gui_load.structure)
     QTimer.singleShot(150, handle_dialog_error)
@@ -225,8 +225,8 @@ def test_button_texts(gui_load, qtbot):
     assert error_found == False
     assert warning_found == False
 
-    gui_load.gui.edit_layout.itemAt(labels_pos, 1).widget().clear()
-    gui_load.gui.edit_layout.itemAt(labels_pos, 1).widget().editingFinished.emit()
+    gui_load.gui.edit_layout.itemAt(labels_pos, QFormLayout.ItemRole.FieldRole).widget().clear()
+    gui_load.gui.edit_layout.itemAt(labels_pos, QFormLayout.ItemRole.FieldRole).widget().editingFinished.emit()
     assert gui_load.structure["Page 1"]["Question 1"]["button_texts"] == ""
     gui_load.structure = listify(gui_load.structure)
     QTimer.singleShot(150, handle_dialog_error)
@@ -249,15 +249,15 @@ def test_answers(gui_load, qtbot):
     assert tv.selectedItems()[0].text(0) == "Question 1"
 
     rect = tv.visualItemRect(tv.currentItem())
-    QTest.mouseClick(tv.viewport(), Qt.LeftButton, Qt.NoModifier, rect.center())
+    QTest.mouseClick(tv.viewport(), Qt.MouseButton.LeftButton, Qt.KeyboardModifier.NoModifier, rect.center())
     ans_pos = find_row_by_label(gui_load.gui.edit_layout, 'answers')
     button_pos = find_row_by_label(gui_load.gui.edit_layout, 'button_texts')
     x_pos = find_row_by_label(gui_load.gui.edit_layout, 'x')
 
-    gui_load.gui.edit_layout.itemAt(ans_pos, 1).widget().clear()
-    gui_load.gui.edit_layout.itemAt(ans_pos, 1).widget().setText("only one")
-    assert gui_load.gui.edit_layout.itemAt(ans_pos, 1).widget().text() == "only one"
-    gui_load.gui.edit_layout.itemAt(ans_pos, 1).widget().editingFinished.emit()
+    gui_load.gui.edit_layout.itemAt(ans_pos, QFormLayout.ItemRole.FieldRole).widget().clear()
+    gui_load.gui.edit_layout.itemAt(ans_pos, QFormLayout.ItemRole.FieldRole).widget().setText("only one")
+    assert gui_load.gui.edit_layout.itemAt(ans_pos, QFormLayout.ItemRole.FieldRole).widget().text() == "only one"
+    gui_load.gui.edit_layout.itemAt(ans_pos, QFormLayout.ItemRole.FieldRole).widget().editingFinished.emit()
     assert gui_load.structure["Page 1"]["Question 1"]["answers"] == "only one"
     gui_load.structure = listify(gui_load.structure)
     QTimer.singleShot(150, handle_dialog_error)
@@ -265,10 +265,10 @@ def test_answers(gui_load, qtbot):
     assert error_found == True
     assert warning_found == False
 
-    gui_load.gui.edit_layout.itemAt(ans_pos, 1).widget().clear()
-    gui_load.gui.edit_layout.itemAt(ans_pos, 1).widget().setText("1")
-    assert gui_load.gui.edit_layout.itemAt(ans_pos, 1).widget().text() == "1"
-    gui_load.gui.edit_layout.itemAt(ans_pos, 1).widget().editingFinished.emit()
+    gui_load.gui.edit_layout.itemAt(ans_pos, QFormLayout.ItemRole.FieldRole).widget().clear()
+    gui_load.gui.edit_layout.itemAt(ans_pos, QFormLayout.ItemRole.FieldRole).widget().setText("1")
+    assert gui_load.gui.edit_layout.itemAt(ans_pos, QFormLayout.ItemRole.FieldRole).widget().text() == "1"
+    gui_load.gui.edit_layout.itemAt(ans_pos, QFormLayout.ItemRole.FieldRole).widget().editingFinished.emit()
     assert gui_load.structure["Page 1"]["Question 1"]["answers"] == "1"
     gui_load.structure = listify(gui_load.structure)
     QTimer.singleShot(150, handle_dialog_error)
@@ -276,10 +276,10 @@ def test_answers(gui_load, qtbot):
     assert error_found == True
     assert warning_found == False
 
-    gui_load.gui.edit_layout.itemAt(ans_pos, 1).widget().clear()
-    gui_load.gui.edit_layout.itemAt(ans_pos, 1).widget().setText("one, two, too many")
-    assert gui_load.gui.edit_layout.itemAt(ans_pos, 1).widget().text() == "one, two, too many"
-    gui_load.gui.edit_layout.itemAt(ans_pos, 1).widget().editingFinished.emit()
+    gui_load.gui.edit_layout.itemAt(ans_pos, QFormLayout.ItemRole.FieldRole).widget().clear()
+    gui_load.gui.edit_layout.itemAt(ans_pos, QFormLayout.ItemRole.FieldRole).widget().setText("one, two, too many")
+    assert gui_load.gui.edit_layout.itemAt(ans_pos, QFormLayout.ItemRole.FieldRole).widget().text() == "one, two, too many"
+    gui_load.gui.edit_layout.itemAt(ans_pos, QFormLayout.ItemRole.FieldRole).widget().editingFinished.emit()
     assert gui_load.structure["Page 1"]["Question 1"]["answers"] == "one, two, too many"
     gui_load.structure = listify(gui_load.structure)
     QTimer.singleShot(150, handle_dialog_error)
@@ -288,17 +288,17 @@ def test_answers(gui_load, qtbot):
     assert warning_found == False
 
     # ABX
-    gui_load.gui.edit_layout.itemAt(x_pos, 1).widget().click()
-    assert gui_load.gui.edit_layout.itemAt(x_pos, 1).widget().isChecked() == True
+    gui_load.gui.edit_layout.itemAt(x_pos, QFormLayout.ItemRole.FieldRole).widget().click()
+    assert gui_load.gui.edit_layout.itemAt(x_pos, QFormLayout.ItemRole.FieldRole).widget().isChecked() == True
     assert gui_load.structure["Page 1"]["Question 1"]["x"] == True
-    gui_load.gui.edit_layout.itemAt(button_pos, 1).widget().clear()
-    gui_load.gui.edit_layout.itemAt(button_pos, 1).widget().editingFinished.emit()
+    gui_load.gui.edit_layout.itemAt(button_pos, QFormLayout.ItemRole.FieldRole).widget().clear()
+    gui_load.gui.edit_layout.itemAt(button_pos, QFormLayout.ItemRole.FieldRole).widget().editingFinished.emit()
     assert gui_load.structure["Page 1"]["Question 1"]["button_texts"] == ""
 
-    gui_load.gui.edit_layout.itemAt(ans_pos, 1).widget().clear()
-    gui_load.gui.edit_layout.itemAt(ans_pos, 1).widget().setText("only one")
-    assert gui_load.gui.edit_layout.itemAt(ans_pos, 1).widget().text() == "only one"
-    gui_load.gui.edit_layout.itemAt(ans_pos, 1).widget().editingFinished.emit()
+    gui_load.gui.edit_layout.itemAt(ans_pos, QFormLayout.ItemRole.FieldRole).widget().clear()
+    gui_load.gui.edit_layout.itemAt(ans_pos, QFormLayout.ItemRole.FieldRole).widget().setText("only one")
+    assert gui_load.gui.edit_layout.itemAt(ans_pos, QFormLayout.ItemRole.FieldRole).widget().text() == "only one"
+    gui_load.gui.edit_layout.itemAt(ans_pos, QFormLayout.ItemRole.FieldRole).widget().editingFinished.emit()
     assert gui_load.structure["Page 1"]["Question 1"]["answers"] == "only one"
     gui_load.structure = listify(gui_load.structure)
     QTimer.singleShot(150, handle_dialog_error)
@@ -306,10 +306,10 @@ def test_answers(gui_load, qtbot):
     assert error_found == True
     assert warning_found == False
 
-    gui_load.gui.edit_layout.itemAt(ans_pos, 1).widget().clear()
-    gui_load.gui.edit_layout.itemAt(ans_pos, 1).widget().setText("one, two, too many")
-    assert gui_load.gui.edit_layout.itemAt(ans_pos, 1).widget().text() == "one, two, too many"
-    gui_load.gui.edit_layout.itemAt(ans_pos, 1).widget().editingFinished.emit()
+    gui_load.gui.edit_layout.itemAt(ans_pos, QFormLayout.ItemRole.FieldRole).widget().clear()
+    gui_load.gui.edit_layout.itemAt(ans_pos, QFormLayout.ItemRole.FieldRole).widget().setText("one, two, too many")
+    assert gui_load.gui.edit_layout.itemAt(ans_pos, QFormLayout.ItemRole.FieldRole).widget().text() == "one, two, too many"
+    gui_load.gui.edit_layout.itemAt(ans_pos, QFormLayout.ItemRole.FieldRole).widget().editingFinished.emit()
     assert gui_load.structure["Page 1"]["Question 1"]["answers"] == "one, two, too many"
     gui_load.structure = listify(gui_load.structure)
     QTimer.singleShot(150, handle_dialog_error)
@@ -317,10 +317,10 @@ def test_answers(gui_load, qtbot):
     assert error_found == True
     assert warning_found == False
 
-    gui_load.gui.edit_layout.itemAt(ans_pos, 1).widget().clear()
-    gui_load.gui.edit_layout.itemAt(ans_pos, 1).widget().setText("one, two")
-    assert gui_load.gui.edit_layout.itemAt(ans_pos, 1).widget().text() == "one, two"
-    gui_load.gui.edit_layout.itemAt(ans_pos, 1).widget().editingFinished.emit()
+    gui_load.gui.edit_layout.itemAt(ans_pos, QFormLayout.ItemRole.FieldRole).widget().clear()
+    gui_load.gui.edit_layout.itemAt(ans_pos, QFormLayout.ItemRole.FieldRole).widget().setText("one, two")
+    assert gui_load.gui.edit_layout.itemAt(ans_pos, QFormLayout.ItemRole.FieldRole).widget().text() == "one, two"
+    gui_load.gui.edit_layout.itemAt(ans_pos, QFormLayout.ItemRole.FieldRole).widget().editingFinished.emit()
     assert gui_load.structure["Page 1"]["Question 1"]["answers"] == "one, two"
     gui_load.structure = listify(gui_load.structure)
     QTimer.singleShot(150, handle_dialog_error)
@@ -412,15 +412,15 @@ def test_start_cues(gui_load, qtbot):
     assert tv.selectedItems()[0].text(0) == "Question 1"
 
     rect = tv.visualItemRect(tv.currentItem())
-    QTest.mouseClick(tv.viewport(), Qt.LeftButton, Qt.NoModifier, rect.center())
+    QTest.mouseClick(tv.viewport(), Qt.MouseButton.LeftButton, Qt.KeyboardModifier.NoModifier, rect.center())
     sc_pos = find_row_by_label(gui_load.gui.edit_layout, 'start_cues')
     button_pos = find_row_by_label(gui_load.gui.edit_layout, 'button_texts')
     x_pos = find_row_by_label(gui_load.gui.edit_layout, 'x')
 
-    gui_load.gui.edit_layout.itemAt(sc_pos, 1).widget().clear()
-    gui_load.gui.edit_layout.itemAt(sc_pos, 1).widget().setText("1")
-    assert gui_load.gui.edit_layout.itemAt(sc_pos, 1).widget().text() == "1"
-    gui_load.gui.edit_layout.itemAt(sc_pos, 1).widget().editingFinished.emit()
+    gui_load.gui.edit_layout.itemAt(sc_pos, QFormLayout.ItemRole.FieldRole).widget().clear()
+    gui_load.gui.edit_layout.itemAt(sc_pos, QFormLayout.ItemRole.FieldRole).widget().setText("1")
+    assert gui_load.gui.edit_layout.itemAt(sc_pos, QFormLayout.ItemRole.FieldRole).widget().text() == "1"
+    gui_load.gui.edit_layout.itemAt(sc_pos, QFormLayout.ItemRole.FieldRole).widget().editingFinished.emit()
     assert gui_load.structure["Page 1"]["Question 1"]["start_cues"] == "1"
     gui_load.structure = listify(gui_load.structure)
     QTimer.singleShot(150, handle_dialog_error)
@@ -428,10 +428,10 @@ def test_start_cues(gui_load, qtbot):
     assert error_found == True
     assert warning_found == False
 
-    gui_load.gui.edit_layout.itemAt(sc_pos, 1).widget().clear()
-    gui_load.gui.edit_layout.itemAt(sc_pos, 1).widget().setText("1, 2, 3")
-    assert gui_load.gui.edit_layout.itemAt(sc_pos, 1).widget().text() == "1, 2, 3"
-    gui_load.gui.edit_layout.itemAt(sc_pos, 1).widget().editingFinished.emit()
+    gui_load.gui.edit_layout.itemAt(sc_pos, QFormLayout.ItemRole.FieldRole).widget().clear()
+    gui_load.gui.edit_layout.itemAt(sc_pos, QFormLayout.ItemRole.FieldRole).widget().setText("1, 2, 3")
+    assert gui_load.gui.edit_layout.itemAt(sc_pos, QFormLayout.ItemRole.FieldRole).widget().text() == "1, 2, 3"
+    gui_load.gui.edit_layout.itemAt(sc_pos, QFormLayout.ItemRole.FieldRole).widget().editingFinished.emit()
     assert gui_load.structure["Page 1"]["Question 1"]["start_cues"] == "1, 2, 3"
     gui_load.structure = listify(gui_load.structure)
     QTimer.singleShot(150, handle_dialog_error)
@@ -439,8 +439,8 @@ def test_start_cues(gui_load, qtbot):
     assert error_found == True
     assert warning_found == False
 
-    gui_load.gui.edit_layout.itemAt(sc_pos, 1).widget().clear()
-    gui_load.gui.edit_layout.itemAt(sc_pos, 1).widget().editingFinished.emit()
+    gui_load.gui.edit_layout.itemAt(sc_pos, QFormLayout.ItemRole.FieldRole).widget().clear()
+    gui_load.gui.edit_layout.itemAt(sc_pos, QFormLayout.ItemRole.FieldRole).widget().editingFinished.emit()
     assert gui_load.structure["Page 1"]["Question 1"]["start_cues"] == ""
     gui_load.structure = listify(gui_load.structure)
     QTimer.singleShot(150, handle_dialog_error)
@@ -448,10 +448,10 @@ def test_start_cues(gui_load, qtbot):
     assert error_found == True
     assert warning_found == False
 
-    gui_load.gui.edit_layout.itemAt(sc_pos, 1).widget().clear()
-    gui_load.gui.edit_layout.itemAt(sc_pos, 1).widget().setText("1, 2")
-    assert gui_load.gui.edit_layout.itemAt(sc_pos, 1).widget().text() == "1, 2"
-    gui_load.gui.edit_layout.itemAt(sc_pos, 1).widget().editingFinished.emit()
+    gui_load.gui.edit_layout.itemAt(sc_pos, QFormLayout.ItemRole.FieldRole).widget().clear()
+    gui_load.gui.edit_layout.itemAt(sc_pos, QFormLayout.ItemRole.FieldRole).widget().setText("1, 2")
+    assert gui_load.gui.edit_layout.itemAt(sc_pos, QFormLayout.ItemRole.FieldRole).widget().text() == "1, 2"
+    gui_load.gui.edit_layout.itemAt(sc_pos, QFormLayout.ItemRole.FieldRole).widget().editingFinished.emit()
     assert gui_load.structure["Page 1"]["Question 1"]["start_cues"] == "1, 2"
     gui_load.structure = listify(gui_load.structure)
     QTimer.singleShot(150, handle_dialog_error)
@@ -459,10 +459,10 @@ def test_start_cues(gui_load, qtbot):
     assert error_found == False
     assert warning_found == False
 
-    gui_load.gui.edit_layout.itemAt(sc_pos, 1).widget().clear()
-    gui_load.gui.edit_layout.itemAt(sc_pos, 1).widget().setText("'1', 2")
-    assert gui_load.gui.edit_layout.itemAt(sc_pos, 1).widget().text() == "'1', 2"
-    gui_load.gui.edit_layout.itemAt(sc_pos, 1).widget().editingFinished.emit()
+    gui_load.gui.edit_layout.itemAt(sc_pos, QFormLayout.ItemRole.FieldRole).widget().clear()
+    gui_load.gui.edit_layout.itemAt(sc_pos, QFormLayout.ItemRole.FieldRole).widget().setText("'1', 2")
+    assert gui_load.gui.edit_layout.itemAt(sc_pos, QFormLayout.ItemRole.FieldRole).widget().text() == "'1', 2"
+    gui_load.gui.edit_layout.itemAt(sc_pos, QFormLayout.ItemRole.FieldRole).widget().editingFinished.emit()
     assert gui_load.structure["Page 1"]["Question 1"]["start_cues"] == "'1', 2"
     gui_load.structure = listify(gui_load.structure)
     QTimer.singleShot(150, handle_dialog_error)
@@ -470,10 +470,10 @@ def test_start_cues(gui_load, qtbot):
     assert error_found == False
     assert warning_found == False
 
-    gui_load.gui.edit_layout.itemAt(sc_pos, 1).widget().clear()
-    gui_load.gui.edit_layout.itemAt(sc_pos, 1).widget().setText("1, '2'")
-    assert gui_load.gui.edit_layout.itemAt(sc_pos, 1).widget().text() == "1, '2'"
-    gui_load.gui.edit_layout.itemAt(sc_pos, 1).widget().editingFinished.emit()
+    gui_load.gui.edit_layout.itemAt(sc_pos, QFormLayout.ItemRole.FieldRole).widget().clear()
+    gui_load.gui.edit_layout.itemAt(sc_pos, QFormLayout.ItemRole.FieldRole).widget().setText("1, '2'")
+    assert gui_load.gui.edit_layout.itemAt(sc_pos, QFormLayout.ItemRole.FieldRole).widget().text() == "1, '2'"
+    gui_load.gui.edit_layout.itemAt(sc_pos, QFormLayout.ItemRole.FieldRole).widget().editingFinished.emit()
     assert gui_load.structure["Page 1"]["Question 1"]["start_cues"] == "1, '2'"
     gui_load.structure = listify(gui_load.structure)
     QTimer.singleShot(150, handle_dialog_error)
@@ -482,17 +482,17 @@ def test_start_cues(gui_load, qtbot):
     assert warning_found == False
 
     # ABX
-    gui_load.gui.edit_layout.itemAt(x_pos, 1).widget().click()
-    assert gui_load.gui.edit_layout.itemAt(x_pos, 1).widget().isChecked() == True
+    gui_load.gui.edit_layout.itemAt(x_pos, QFormLayout.ItemRole.FieldRole).widget().click()
+    assert gui_load.gui.edit_layout.itemAt(x_pos, QFormLayout.ItemRole.FieldRole).widget().isChecked() == True
     assert gui_load.structure["Page 1"]["Question 1"]["x"] == True
-    gui_load.gui.edit_layout.itemAt(button_pos, 1).widget().clear()
-    gui_load.gui.edit_layout.itemAt(button_pos, 1).widget().editingFinished.emit()
+    gui_load.gui.edit_layout.itemAt(button_pos, QFormLayout.ItemRole.FieldRole).widget().clear()
+    gui_load.gui.edit_layout.itemAt(button_pos, QFormLayout.ItemRole.FieldRole).widget().editingFinished.emit()
     assert gui_load.structure["Page 1"]["Question 1"]["button_texts"] == ""
 
-    gui_load.gui.edit_layout.itemAt(sc_pos, 1).widget().clear()
-    gui_load.gui.edit_layout.itemAt(sc_pos, 1).widget().setText("1")
-    assert gui_load.gui.edit_layout.itemAt(sc_pos, 1).widget().text() == "1"
-    gui_load.gui.edit_layout.itemAt(sc_pos, 1).widget().editingFinished.emit()
+    gui_load.gui.edit_layout.itemAt(sc_pos, QFormLayout.ItemRole.FieldRole).widget().clear()
+    gui_load.gui.edit_layout.itemAt(sc_pos, QFormLayout.ItemRole.FieldRole).widget().setText("1")
+    assert gui_load.gui.edit_layout.itemAt(sc_pos, QFormLayout.ItemRole.FieldRole).widget().text() == "1"
+    gui_load.gui.edit_layout.itemAt(sc_pos, QFormLayout.ItemRole.FieldRole).widget().editingFinished.emit()
     assert gui_load.structure["Page 1"]["Question 1"]["start_cues"] == "1"
     gui_load.structure = listify(gui_load.structure)
     QTimer.singleShot(150, handle_dialog_error)
@@ -500,10 +500,10 @@ def test_start_cues(gui_load, qtbot):
     assert error_found == True
     assert warning_found == False
 
-    gui_load.gui.edit_layout.itemAt(sc_pos, 1).widget().clear()
-    gui_load.gui.edit_layout.itemAt(sc_pos, 1).widget().setText("1, 2, 3")
-    assert gui_load.gui.edit_layout.itemAt(sc_pos, 1).widget().text() == "1, 2, 3"
-    gui_load.gui.edit_layout.itemAt(sc_pos, 1).widget().editingFinished.emit()
+    gui_load.gui.edit_layout.itemAt(sc_pos, QFormLayout.ItemRole.FieldRole).widget().clear()
+    gui_load.gui.edit_layout.itemAt(sc_pos, QFormLayout.ItemRole.FieldRole).widget().setText("1, 2, 3")
+    assert gui_load.gui.edit_layout.itemAt(sc_pos, QFormLayout.ItemRole.FieldRole).widget().text() == "1, 2, 3"
+    gui_load.gui.edit_layout.itemAt(sc_pos, QFormLayout.ItemRole.FieldRole).widget().editingFinished.emit()
     assert gui_load.structure["Page 1"]["Question 1"]["start_cues"] == "1, 2, 3"
     gui_load.structure = listify(gui_load.structure)
     QTimer.singleShot(150, handle_dialog_error)
@@ -511,10 +511,10 @@ def test_start_cues(gui_load, qtbot):
     assert error_found == True
     assert warning_found == False
 
-    gui_load.gui.edit_layout.itemAt(sc_pos, 1).widget().clear()
-    gui_load.gui.edit_layout.itemAt(sc_pos, 1).widget().setText("'1', 2")
-    assert gui_load.gui.edit_layout.itemAt(sc_pos, 1).widget().text() == "'1', 2"
-    gui_load.gui.edit_layout.itemAt(sc_pos, 1).widget().editingFinished.emit()
+    gui_load.gui.edit_layout.itemAt(sc_pos, QFormLayout.ItemRole.FieldRole).widget().clear()
+    gui_load.gui.edit_layout.itemAt(sc_pos, QFormLayout.ItemRole.FieldRole).widget().setText("'1', 2")
+    assert gui_load.gui.edit_layout.itemAt(sc_pos, QFormLayout.ItemRole.FieldRole).widget().text() == "'1', 2"
+    gui_load.gui.edit_layout.itemAt(sc_pos, QFormLayout.ItemRole.FieldRole).widget().editingFinished.emit()
     assert gui_load.structure["Page 1"]["Question 1"]["start_cues"] == "'1', 2"
     gui_load.structure = listify(gui_load.structure)
     QTimer.singleShot(150, handle_dialog_error)
@@ -537,15 +537,15 @@ def test_track(gui_load, qtbot):
     assert tv.selectedItems()[0].text(0) == "Question 1"
 
     rect = tv.visualItemRect(tv.currentItem())
-    QTest.mouseClick(tv.viewport(), Qt.LeftButton, Qt.NoModifier, rect.center())
+    QTest.mouseClick(tv.viewport(), Qt.MouseButton.LeftButton, Qt.KeyboardModifier.NoModifier, rect.center())
     track_pos = find_row_by_label(gui_load.gui.edit_layout, 'track')
     button_pos = find_row_by_label(gui_load.gui.edit_layout, 'button_texts')
     x_pos = find_row_by_label(gui_load.gui.edit_layout, 'x')
 
-    gui_load.gui.edit_layout.itemAt(track_pos, 1).widget().clear()
-    gui_load.gui.edit_layout.itemAt(track_pos, 1).widget().setText("1")
-    assert gui_load.gui.edit_layout.itemAt(track_pos, 1).widget().text() == "1"
-    gui_load.gui.edit_layout.itemAt(track_pos, 1).widget().editingFinished.emit()
+    gui_load.gui.edit_layout.itemAt(track_pos, QFormLayout.ItemRole.FieldRole).widget().clear()
+    gui_load.gui.edit_layout.itemAt(track_pos, QFormLayout.ItemRole.FieldRole).widget().setText("1")
+    assert gui_load.gui.edit_layout.itemAt(track_pos, QFormLayout.ItemRole.FieldRole).widget().text() == "1"
+    gui_load.gui.edit_layout.itemAt(track_pos, QFormLayout.ItemRole.FieldRole).widget().editingFinished.emit()
     assert gui_load.structure["Page 1"]["Question 1"]["track"] == "1"
     gui_load.structure = listify(gui_load.structure)
     QTimer.singleShot(150, handle_dialog_error)
@@ -553,10 +553,10 @@ def test_track(gui_load, qtbot):
     assert error_found == False
     assert warning_found == False
 
-    gui_load.gui.edit_layout.itemAt(track_pos, 1).widget().clear()
-    gui_load.gui.edit_layout.itemAt(track_pos, 1).widget().setText("1, 2, 3")
-    assert gui_load.gui.edit_layout.itemAt(track_pos, 1).widget().text() == "1, 2, 3"
-    gui_load.gui.edit_layout.itemAt(track_pos, 1).widget().editingFinished.emit()
+    gui_load.gui.edit_layout.itemAt(track_pos, QFormLayout.ItemRole.FieldRole).widget().clear()
+    gui_load.gui.edit_layout.itemAt(track_pos, QFormLayout.ItemRole.FieldRole).widget().setText("1, 2, 3")
+    assert gui_load.gui.edit_layout.itemAt(track_pos, QFormLayout.ItemRole.FieldRole).widget().text() == "1, 2, 3"
+    gui_load.gui.edit_layout.itemAt(track_pos, QFormLayout.ItemRole.FieldRole).widget().editingFinished.emit()
     assert gui_load.structure["Page 1"]["Question 1"]["track"] == "1, 2, 3"
     gui_load.structure = listify(gui_load.structure)
     QTimer.singleShot(150, handle_dialog_error)
@@ -564,8 +564,8 @@ def test_track(gui_load, qtbot):
     assert error_found == True
     assert warning_found == False
 
-    gui_load.gui.edit_layout.itemAt(track_pos, 1).widget().clear()
-    gui_load.gui.edit_layout.itemAt(track_pos, 1).widget().editingFinished.emit()
+    gui_load.gui.edit_layout.itemAt(track_pos, QFormLayout.ItemRole.FieldRole).widget().clear()
+    gui_load.gui.edit_layout.itemAt(track_pos, QFormLayout.ItemRole.FieldRole).widget().editingFinished.emit()
     assert gui_load.structure["Page 1"]["Question 1"]["track"] == ""
     gui_load.structure = listify(gui_load.structure)
     QTimer.singleShot(150, handle_dialog_error)
@@ -573,10 +573,10 @@ def test_track(gui_load, qtbot):
     assert error_found == True
     assert warning_found == False
 
-    gui_load.gui.edit_layout.itemAt(track_pos, 1).widget().clear()
-    gui_load.gui.edit_layout.itemAt(track_pos, 1).widget().setText("1, 2")
-    assert gui_load.gui.edit_layout.itemAt(track_pos, 1).widget().text() == "1, 2"
-    gui_load.gui.edit_layout.itemAt(track_pos, 1).widget().editingFinished.emit()
+    gui_load.gui.edit_layout.itemAt(track_pos, QFormLayout.ItemRole.FieldRole).widget().clear()
+    gui_load.gui.edit_layout.itemAt(track_pos, QFormLayout.ItemRole.FieldRole).widget().setText("1, 2")
+    assert gui_load.gui.edit_layout.itemAt(track_pos, QFormLayout.ItemRole.FieldRole).widget().text() == "1, 2"
+    gui_load.gui.edit_layout.itemAt(track_pos, QFormLayout.ItemRole.FieldRole).widget().editingFinished.emit()
     assert gui_load.structure["Page 1"]["Question 1"]["track"] == "1, 2"
     gui_load.structure = listify(gui_load.structure)
     QTimer.singleShot(150, handle_dialog_error)
@@ -584,10 +584,10 @@ def test_track(gui_load, qtbot):
     assert error_found == False
     assert warning_found == False
 
-    gui_load.gui.edit_layout.itemAt(track_pos, 1).widget().clear()
-    gui_load.gui.edit_layout.itemAt(track_pos, 1).widget().setText("'1', 2")
-    assert gui_load.gui.edit_layout.itemAt(track_pos, 1).widget().text() == "'1', 2"
-    gui_load.gui.edit_layout.itemAt(track_pos, 1).widget().editingFinished.emit()
+    gui_load.gui.edit_layout.itemAt(track_pos, QFormLayout.ItemRole.FieldRole).widget().clear()
+    gui_load.gui.edit_layout.itemAt(track_pos, QFormLayout.ItemRole.FieldRole).widget().setText("'1', 2")
+    assert gui_load.gui.edit_layout.itemAt(track_pos, QFormLayout.ItemRole.FieldRole).widget().text() == "'1', 2"
+    gui_load.gui.edit_layout.itemAt(track_pos, QFormLayout.ItemRole.FieldRole).widget().editingFinished.emit()
     assert gui_load.structure["Page 1"]["Question 1"]["track"] == "'1', 2"
     gui_load.structure = listify(gui_load.structure)
     QTimer.singleShot(150, handle_dialog_error)
@@ -595,10 +595,10 @@ def test_track(gui_load, qtbot):
     assert error_found == False
     assert warning_found == False
 
-    gui_load.gui.edit_layout.itemAt(track_pos, 1).widget().clear()
-    gui_load.gui.edit_layout.itemAt(track_pos, 1).widget().setText("'1','2'")
-    assert gui_load.gui.edit_layout.itemAt(track_pos, 1).widget().text() == "'1','2'"
-    gui_load.gui.edit_layout.itemAt(track_pos, 1).widget().editingFinished.emit()
+    gui_load.gui.edit_layout.itemAt(track_pos, QFormLayout.ItemRole.FieldRole).widget().clear()
+    gui_load.gui.edit_layout.itemAt(track_pos, QFormLayout.ItemRole.FieldRole).widget().setText("'1','2'")
+    assert gui_load.gui.edit_layout.itemAt(track_pos, QFormLayout.ItemRole.FieldRole).widget().text() == "'1','2'"
+    gui_load.gui.edit_layout.itemAt(track_pos, QFormLayout.ItemRole.FieldRole).widget().editingFinished.emit()
     assert gui_load.structure["Page 1"]["Question 1"]["track"] == "'1','2'"
     gui_load.structure = listify(gui_load.structure)
     QTimer.singleShot(150, handle_dialog_error)
@@ -606,10 +606,10 @@ def test_track(gui_load, qtbot):
     assert error_found == False
     assert warning_found == False
 
-    gui_load.gui.edit_layout.itemAt(track_pos, 1).widget().clear()
-    gui_load.gui.edit_layout.itemAt(track_pos, 1).widget().setText("1,'2'")
-    assert gui_load.gui.edit_layout.itemAt(track_pos, 1).widget().text() == "1,'2'"
-    gui_load.gui.edit_layout.itemAt(track_pos, 1).widget().editingFinished.emit()
+    gui_load.gui.edit_layout.itemAt(track_pos, QFormLayout.ItemRole.FieldRole).widget().clear()
+    gui_load.gui.edit_layout.itemAt(track_pos, QFormLayout.ItemRole.FieldRole).widget().setText("1,'2'")
+    assert gui_load.gui.edit_layout.itemAt(track_pos, QFormLayout.ItemRole.FieldRole).widget().text() == "1,'2'"
+    gui_load.gui.edit_layout.itemAt(track_pos, QFormLayout.ItemRole.FieldRole).widget().editingFinished.emit()
     assert gui_load.structure["Page 1"]["Question 1"]["track"] == "1,'2'"
     gui_load.structure = listify(gui_load.structure)
     QTimer.singleShot(150, handle_dialog_error)
@@ -618,17 +618,17 @@ def test_track(gui_load, qtbot):
     assert warning_found == False
 
     # ABX
-    gui_load.gui.edit_layout.itemAt(x_pos, 1).widget().click()
-    assert gui_load.gui.edit_layout.itemAt(x_pos, 1).widget().isChecked() == True
+    gui_load.gui.edit_layout.itemAt(x_pos, QFormLayout.ItemRole.FieldRole).widget().click()
+    assert gui_load.gui.edit_layout.itemAt(x_pos, QFormLayout.ItemRole.FieldRole).widget().isChecked() == True
     assert gui_load.structure["Page 1"]["Question 1"]["x"] == True
-    gui_load.gui.edit_layout.itemAt(button_pos, 1).widget().clear()
-    gui_load.gui.edit_layout.itemAt(button_pos, 1).widget().editingFinished.emit()
+    gui_load.gui.edit_layout.itemAt(button_pos, QFormLayout.ItemRole.FieldRole).widget().clear()
+    gui_load.gui.edit_layout.itemAt(button_pos, QFormLayout.ItemRole.FieldRole).widget().editingFinished.emit()
     assert gui_load.structure["Page 1"]["Question 1"]["button_texts"] == ""
 
-    gui_load.gui.edit_layout.itemAt(track_pos, 1).widget().clear()
-    gui_load.gui.edit_layout.itemAt(track_pos, 1).widget().setText("1")
-    assert gui_load.gui.edit_layout.itemAt(track_pos, 1).widget().text() == "1"
-    gui_load.gui.edit_layout.itemAt(track_pos, 1).widget().editingFinished.emit()
+    gui_load.gui.edit_layout.itemAt(track_pos, QFormLayout.ItemRole.FieldRole).widget().clear()
+    gui_load.gui.edit_layout.itemAt(track_pos, QFormLayout.ItemRole.FieldRole).widget().setText("1")
+    assert gui_load.gui.edit_layout.itemAt(track_pos, QFormLayout.ItemRole.FieldRole).widget().text() == "1"
+    gui_load.gui.edit_layout.itemAt(track_pos, QFormLayout.ItemRole.FieldRole).widget().editingFinished.emit()
     assert gui_load.structure["Page 1"]["Question 1"]["track"] == "1"
     gui_load.structure = listify(gui_load.structure)
     QTimer.singleShot(150, handle_dialog_error)
@@ -636,10 +636,10 @@ def test_track(gui_load, qtbot):
     assert error_found == False
     assert warning_found == False
 
-    gui_load.gui.edit_layout.itemAt(track_pos, 1).widget().clear()
-    gui_load.gui.edit_layout.itemAt(track_pos, 1).widget().setText("1, 2, 3")
-    assert gui_load.gui.edit_layout.itemAt(track_pos, 1).widget().text() == "1, 2, 3"
-    gui_load.gui.edit_layout.itemAt(track_pos, 1).widget().editingFinished.emit()
+    gui_load.gui.edit_layout.itemAt(track_pos, QFormLayout.ItemRole.FieldRole).widget().clear()
+    gui_load.gui.edit_layout.itemAt(track_pos, QFormLayout.ItemRole.FieldRole).widget().setText("1, 2, 3")
+    assert gui_load.gui.edit_layout.itemAt(track_pos, QFormLayout.ItemRole.FieldRole).widget().text() == "1, 2, 3"
+    gui_load.gui.edit_layout.itemAt(track_pos, QFormLayout.ItemRole.FieldRole).widget().editingFinished.emit()
     assert gui_load.structure["Page 1"]["Question 1"]["track"] == "1, 2, 3"
     gui_load.structure = listify(gui_load.structure)
     QTimer.singleShot(150, handle_dialog_error)
@@ -647,10 +647,10 @@ def test_track(gui_load, qtbot):
     assert error_found == True
     assert warning_found == False
 
-    gui_load.gui.edit_layout.itemAt(track_pos, 1).widget().clear()
-    gui_load.gui.edit_layout.itemAt(track_pos, 1).widget().setText("'1',2")
-    assert gui_load.gui.edit_layout.itemAt(track_pos, 1).widget().text() == "'1',2"
-    gui_load.gui.edit_layout.itemAt(track_pos, 1).widget().editingFinished.emit()
+    gui_load.gui.edit_layout.itemAt(track_pos, QFormLayout.ItemRole.FieldRole).widget().clear()
+    gui_load.gui.edit_layout.itemAt(track_pos, QFormLayout.ItemRole.FieldRole).widget().setText("'1',2")
+    assert gui_load.gui.edit_layout.itemAt(track_pos, QFormLayout.ItemRole.FieldRole).widget().text() == "'1',2"
+    gui_load.gui.edit_layout.itemAt(track_pos, QFormLayout.ItemRole.FieldRole).widget().editingFinished.emit()
     assert gui_load.structure["Page 1"]["Question 1"]["track"] == "'1',2"
     gui_load.structure = listify(gui_load.structure)
     QTimer.singleShot(150, handle_dialog_error)
@@ -665,7 +665,7 @@ def test_track(gui_load, qtbot):
 def test_execute_questionnaire_no_interaction(run, qtbot):
     assert run.Stack.count() == 1
     QTimer.singleShot(100, handle_dialog)
-    QTest.mouseClick(run.forwardbutton, Qt.LeftButton)
+    QTest.mouseClick(run.forwardbutton, Qt.MouseButton.LeftButton)
 
     results = []
     with open('./test/results/results_abx.csv', mode='r') as file:
@@ -688,7 +688,7 @@ def test_execute_questionnaire_no_interaction_blocked(run, qtbot):
     with mock_file(r'./test/results/results_abx.csv'):
         assert run.Stack.count() == 1
         QTimer.singleShot(100, handle_dialog)
-        QTest.mouseClick(run.forwardbutton, Qt.LeftButton)
+        QTest.mouseClick(run.forwardbutton, Qt.MouseButton.LeftButton)
         res_file = None
         for file in os.listdir("./test/results/"):
             if file.find("_backup_"):
@@ -721,16 +721,16 @@ def test_execute_questionnaire_no_interaction_blocked(run, qtbot):
 def test_execute_questionnaire_ab(run, qtbot):
     assert run.Stack.count() == 1
     for child in run.Stack.currentWidget().children():
-        if type(child) == ABX:
-            QTest.mouseClick(child.a_button.play_button, Qt.LeftButton)
+        if type(child) is ABX:
+            QTest.mouseClick(child.a_button.play_button, Qt.MouseButton.LeftButton)
             QTest.qWait(1000)
-            QTest.mouseClick(child.b_button.play_button, Qt.LeftButton)
+            QTest.mouseClick(child.b_button.play_button, Qt.MouseButton.LeftButton)
             QTest.qWait(500)
-            QTest.mouseClick(child.a_button.play_button, Qt.LeftButton)
-            QTest.mouseClick(child.answer.button(0), Qt.LeftButton, delay=1)
+            QTest.mouseClick(child.a_button.play_button, Qt.MouseButton.LeftButton)
+            QTest.mouseClick(child.answer.button(0), Qt.MouseButton.LeftButton, delay=1)
 
     QTimer.singleShot(100, handle_dialog)
-    QTest.mouseClick(run.forwardbutton, Qt.LeftButton, delay=1)
+    QTest.mouseClick(run.forwardbutton, Qt.MouseButton.LeftButton, delay=1)
 
     results = []
     with open('./test/results/results_abx.csv', mode='r') as file:
@@ -763,15 +763,15 @@ def test_execute_questionnaire_blocked(run, qtbot):
     with mock_file(r'./test/results/results_abx.csv'):
         assert run.Stack.count() == 1
         for child in run.Stack.currentWidget().children():
-            if type(child) == ABX:
-                QTest.mouseClick(child.a_button.play_button, Qt.LeftButton)
+            if type(child) is ABX:
+                QTest.mouseClick(child.a_button.play_button, Qt.MouseButton.LeftButton)
                 QTest.qWait(1000)
-                QTest.mouseClick(child.b_button.play_button, Qt.LeftButton)
+                QTest.mouseClick(child.b_button.play_button, Qt.MouseButton.LeftButton)
                 QTest.qWait(500)
-                QTest.mouseClick(child.a_button.play_button, Qt.LeftButton)
-                QTest.mouseClick(child.answer.button(0), Qt.LeftButton, delay=1)
+                QTest.mouseClick(child.a_button.play_button, Qt.MouseButton.LeftButton)
+                QTest.mouseClick(child.answer.button(0), Qt.MouseButton.LeftButton, delay=1)
         QTimer.singleShot(100, handle_dialog)
-        QTest.mouseClick(run.forwardbutton, Qt.LeftButton)
+        QTest.mouseClick(run.forwardbutton, Qt.MouseButton.LeftButton)
         res_file = None
         for file in os.listdir("./test/results/"):
             if file.find("_backup_"):
@@ -807,7 +807,7 @@ def test_execute_questionnaire_no_interaction_x(run2, qtbot):
     assert run2.Stack.count() == 1
 
     QTimer.singleShot(100, handle_dialog)
-    QTest.mouseClick(run2.forwardbutton, Qt.LeftButton)
+    QTest.mouseClick(run2.forwardbutton, Qt.MouseButton.LeftButton)
 
     results = []
     with open('./test/results/results_abx.csv', mode='r') as file:
@@ -831,7 +831,7 @@ def test_execute_questionnaire_no_interaction_x_blocked(run2, qtbot):
     with mock_file(r'./test/results/results_abx.csv'):
         assert run2.Stack.count() == 1
         QTimer.singleShot(100, handle_dialog)
-        QTest.mouseClick(run2.forwardbutton, Qt.LeftButton)
+        QTest.mouseClick(run2.forwardbutton, Qt.MouseButton.LeftButton)
         res_file = None
         for file in os.listdir("./test/results/"):
             if file.find("_backup_"):
@@ -866,23 +866,23 @@ def test_execute_questionnaire_no_interaction_x_blocked(run2, qtbot):
 def test_execute_questionnaire_abx(run2, qtbot):
     assert run2.Stack.count() == 1
     for child in run2.Stack.currentWidget().children():
-        if type(child) == ABX:
-            QTest.mouseClick(child.x_button.play_button, Qt.LeftButton)
+        if type(child) is ABX:
+            QTest.mouseClick(child.x_button.play_button, Qt.MouseButton.LeftButton)
             QTest.qWait(500)
-            QTest.mouseClick(child.a_button.play_button, Qt.LeftButton)
+            QTest.mouseClick(child.a_button.play_button, Qt.MouseButton.LeftButton)
             QTest.qWait(1000)
-            QTest.mouseClick(child.x_button.play_button, Qt.LeftButton)
+            QTest.mouseClick(child.x_button.play_button, Qt.MouseButton.LeftButton)
             QTest.qWait(500)
-            QTest.mouseClick(child.b_button.play_button, Qt.LeftButton)
+            QTest.mouseClick(child.b_button.play_button, Qt.MouseButton.LeftButton)
             QTest.qWait(500)
-            QTest.mouseClick(child.x_button.play_button, Qt.LeftButton)
+            QTest.mouseClick(child.x_button.play_button, Qt.MouseButton.LeftButton)
             QTest.qWait(500)
-            QTest.mouseClick(child.b_button.play_button, Qt.LeftButton)
+            QTest.mouseClick(child.b_button.play_button, Qt.MouseButton.LeftButton)
             QTest.qWait(2000)
-            QTest.mouseClick(child.answer.button(0), Qt.LeftButton, delay=1)
+            QTest.mouseClick(child.answer.button(0), Qt.MouseButton.LeftButton, delay=1)
 
     QTimer.singleShot(100, handle_dialog)
-    QTest.mouseClick(run2.forwardbutton, Qt.LeftButton, delay=1)
+    QTest.mouseClick(run2.forwardbutton, Qt.MouseButton.LeftButton, delay=1)
 
     results = []
     with open('./test/results/results_abx.csv', mode='r') as file:
@@ -915,22 +915,22 @@ def test_execute_questionnaire_abx_blocked(run2, qtbot):
     with mock_file(r'./test/results/results_abx.csv'):
         assert run2.Stack.count() == 1
         for child in run2.Stack.currentWidget().children():
-            if type(child) == ABX:
-                QTest.mouseClick(child.x_button.play_button, Qt.LeftButton)
+            if type(child) is ABX:
+                QTest.mouseClick(child.x_button.play_button, Qt.MouseButton.LeftButton)
                 QTest.qWait(500)
-                QTest.mouseClick(child.a_button.play_button, Qt.LeftButton)
+                QTest.mouseClick(child.a_button.play_button, Qt.MouseButton.LeftButton)
                 QTest.qWait(1000)
-                QTest.mouseClick(child.x_button.play_button, Qt.LeftButton)
+                QTest.mouseClick(child.x_button.play_button, Qt.MouseButton.LeftButton)
                 QTest.qWait(500)
-                QTest.mouseClick(child.b_button.play_button, Qt.LeftButton)
+                QTest.mouseClick(child.b_button.play_button, Qt.MouseButton.LeftButton)
                 QTest.qWait(500)
-                QTest.mouseClick(child.x_button.play_button, Qt.LeftButton)
+                QTest.mouseClick(child.x_button.play_button, Qt.MouseButton.LeftButton)
                 QTest.qWait(500)
-                QTest.mouseClick(child.b_button.play_button, Qt.LeftButton)
+                QTest.mouseClick(child.b_button.play_button, Qt.MouseButton.LeftButton)
                 QTest.qWait(2000)
-                QTest.mouseClick(child.answer.button(0), Qt.LeftButton, delay=1)
+                QTest.mouseClick(child.answer.button(0), Qt.MouseButton.LeftButton, delay=1)
         QTimer.singleShot(100, handle_dialog)
-        QTest.mouseClick(run2.forwardbutton, Qt.LeftButton)
+        QTest.mouseClick(run2.forwardbutton, Qt.MouseButton.LeftButton)
         res_file = None
         for file in os.listdir("./test/results/"):
             if file.find("_backup_"):

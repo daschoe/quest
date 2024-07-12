@@ -36,7 +36,7 @@ def test_execute_questionnaire_1(run, qtbot):
     assert run.forwardbutton.text() == "Absenden"
     assert run.forwardbutton.isEnabled()
     QTimer.singleShot(100, handle_dialog)
-    QTest.mouseClick(run.forwardbutton, Qt.LeftButton)
+    QTest.mouseClick(run.forwardbutton, Qt.MouseButton.LeftButton)
     assert run.forwardbutton.text() == "Absenden"
     assert run.forwardbutton.isEnabled() == False
 
@@ -50,11 +50,11 @@ def test_execute_questionnaire_2(run2, qtbot):
     assert run2.Stack.count() == 2
     assert run2.forwardbutton.text() == "Weiter"
     assert run2.forwardbutton.isEnabled()
-    QTest.mouseClick(run2.forwardbutton, Qt.LeftButton)
+    QTest.mouseClick(run2.forwardbutton, Qt.MouseButton.LeftButton)
     assert run2.forwardbutton.text() == "Absenden"
     assert run2.forwardbutton.isEnabled()
     QTimer.singleShot(100, handle_dialog)
-    QTest.mouseClick(run2.forwardbutton, Qt.LeftButton)
+    QTest.mouseClick(run2.forwardbutton, Qt.MouseButton.LeftButton)
     assert run2.forwardbutton.isEnabled() == False
 
     os.remove("./test/results/results.csv")
@@ -68,10 +68,10 @@ def test_execute_questionnaire_3(run3, qtbot):
     assert run3.forwardbutton.text() == "Absenden"
     assert run3.forwardbutton.isEnabled()
     QTimer.singleShot(100, handle_dialog)
-    QTest.mouseClick(run3.forwardbutton, Qt.LeftButton)
+    QTest.mouseClick(run3.forwardbutton, Qt.MouseButton.LeftButton)
     assert run3.forwardbutton.text() == "Weiter"
     assert run3.forwardbutton.isEnabled()
-    QTest.mouseClick(run3.forwardbutton, Qt.LeftButton)
+    QTest.mouseClick(run3.forwardbutton, Qt.MouseButton.LeftButton)
     assert run3.forwardbutton.text() == "Weiter"
     assert run3.forwardbutton.isEnabled() == False
 

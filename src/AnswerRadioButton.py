@@ -1,7 +1,7 @@
 """
 This class creates a set of radiobuttons.
 """
-from PyQt5.QtWidgets import QHBoxLayout, QRadioButton, QButtonGroup
+from PySide6.QtWidgets import QHBoxLayout, QRadioButton, QButtonGroup
 
 
 def make_answers(answer, parent, qid, objectname=None, start_answer_id=0, log=True):
@@ -47,7 +47,7 @@ def make_answers(answer, parent, qid, objectname=None, start_answer_id=0, log=Tr
         bg.addButton(rb, cnt)
         cnt += 1
     if log:
-        bg.buttonClicked.connect(lambda: parent.log(qid))
+        bg.buttonClicked.connect(lambda: parent.log(qid, bg))
     else:  # for RadioMatrix
-        bg.buttonClicked.connect(lambda: parent.parent().log(qid))
+        bg.buttonClicked.connect(lambda: parent.parent().log(qid, bg))
     return hbox, bg

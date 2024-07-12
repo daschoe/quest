@@ -13,15 +13,16 @@ import threading
 import time
 
 import zmq
-from PyQt5.QtCore import Qt, QTimer
-from PyQt5.QtGui import QDoubleValidator
-from PyQt5.QtWidgets import QWidget, QPushButton, QLabel, QHBoxLayout, QVBoxLayout, QStackedWidget, QApplication, \
-    QMessageBox, QScrollArea, QButtonGroup, QCheckBox, QLineEdit, QPlainTextEdit, QSlider, QDesktopWidget, QSizePolicy
+from PySide6.QtCore import Qt, QTimer, Signal
+from PySide6.QtGui import QDoubleValidator, QGuiApplication
+from PySide6.QtWidgets import QWidget, QPushButton, QLabel, QHBoxLayout, QVBoxLayout, QStackedWidget, QApplication, \
+    QMessageBox, QScrollArea, QButtonGroup, QCheckBox, QLineEdit, QPlainTextEdit, QSlider, QSizePolicy
 from configobj import ConfigObj
 from ping3 import ping
 from pythonosc import udp_client, osc_server
 from pythonosc.dispatcher import Dispatcher
 
+from src.AnswerCheckBox import CheckBox
 from src.LabeledSlider import LabeledSlider
 from src.MUSHRA import MUSHRA
 from src.MessageBox import ResizeMessageBox
@@ -37,8 +38,8 @@ from src.ABX import ABX
 from src.OSCButton import OSCButton
 from src.randomization import *
 
-TIMEOUT = 0.5  # TODO change this to your liking
-VERSION = "1.0.7"
+TIMEOUT = 1  # TODO timeout in seconds, change this to your liking (has to be int)
+VERSION = "1.1.0"
 
 
 class StackedWindowGui(QWidget):
@@ -114,22 +115,22 @@ class StackedWindowGui(QWidget):
         structure = ConfigObj(file)  # reads the config file into a nested dict, this is all the magic
         error_found, warning_found, warning_det = validate_questionnaire(listify(structure), True)
         if not error_found:
-            ans_continue = QMessageBox.Yes
+            ans_continue = QMessageBox.StandardButton.Yes
             if warning_found and popup:
                 msg = ResizeMessageBox()
                 msg.setWindowTitle("Validation Result")
                 msg.setSizeGripEnabled(True)
-                msg.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Expanding)
-                msg.setIcon(QMessageBox.Warning)
+                msg.setSizePolicy(QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Expanding)
+                msg.setIcon(QMessageBox.Icon.Warning)
                 msg.setText("The validation detected incomplete info. Do you want to continue?")
                 warning_string = ""
                 for warn in warning_det:
                     warning_string += warn + "\n"
                 msg.setDetailedText(warning_string)
-                msg.setStandardButtons(QMessageBox.Yes | QMessageBox.No)
-                msg.setDefaultButton(QMessageBox.No)
-                ans_continue = msg.exec_()
-            if ans_continue == QMessageBox.Yes or not popup:
+                msg.setStandardButtons(QMessageBox.StandardButton.Yes | QMessageBox.StandardButton.No)
+                msg.setDefaultButton(QMessageBox.StandardButton.No)
+                ans_continue = msg.exec()
+            if ans_continue == QMessageBox.StandardButton.Yes or not popup:
                 for key in structure:
                     #  Style properties
                     if key == "stylesheet":
@@ -215,10 +216,10 @@ class StackedWindowGui(QWidget):
                         msg = QMessageBox()
                         msg.setWindowTitle(self.connection_lost_title)
                         msg.setSizeGripEnabled(True)
-                        msg.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Expanding)
-                        msg.setIcon(QMessageBox.Information)
+                        msg.setSizePolicy(QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Expanding)
+                        msg.setIcon(QMessageBox.Icon.Information)
                         msg.setText("No connection to {}.".format(self.help_ip))
-                        msg.exec_()
+                        msg.exec()
                 else:
                     self.help_client = None
                 if self.popup and not self.preview and self.global_osc_ip is not None and self.global_osc_send_port is not None:
@@ -226,12 +227,10 @@ class StackedWindowGui(QWidget):
                 else:
                     self.global_osc_client = None
                 if self.popup and not self.preview and self.global_osc_ip is not None and self.global_osc_recv_port is not None:
-                    #self.global_osc_client = udp_client.SimpleUDPClient(self.global_osc_ip, self.global_osc_send_port)
                     self.global_osc_server_thread = threading.Thread(target=self.osc_listener_default, args=[self.global_osc_recv_port])
                     self.global_osc_server_thread.daemon = True
                     self.global_osc_server_thread.start()
                 else:
-                    #self.global_osc_client = None
                     self.global_osc_server_thread = None
                 no_zmq_connection = False
                 if popup and not self.preview and self.pupil_ip is not None and self.pupil_port is not None:
@@ -255,9 +254,9 @@ class StackedWindowGui(QWidget):
                             if retries_left == 0 and self.popup:
                                 msg = QMessageBox()
                                 msg.setWindowTitle("Error")
-                                msg.setIcon(QMessageBox.Critical)
+                                msg.setIcon(QMessageBox.Icon.Critical)
                                 msg.setText("No connection with Pupil Capture possible!")
-                                msg.exec_()
+                                msg.exec()
                                 no_zmq_connection = True
                             if not no_zmq_connection:
                                 self.pupil_remote = zmq.Socket(self.ctx, zmq.REQ)
@@ -383,7 +382,7 @@ class StackedWindowGui(QWidget):
                     if self.help_client is not None and self.help_text is not None:
                         self.help_button = QPushButton(self.help_text)
                         self.help_button.clicked.connect(lambda: self.help_client.send_message("/help_request", ""))
-                        self.help_button.clicked.connect(self.__click_animation)
+                        self.help_button.clicked.connect(lambda: self.__click_animation(self.help_button))
                         self.navigation.addWidget(self.help_button)
                         self.navigation.addStretch()
                     elif (self.preview or not self.popup) and self.help_ip is not None and self.help_port is not None and self.help_text is not None:
@@ -412,10 +411,10 @@ class StackedWindowGui(QWidget):
                     self.setLayout(outerlayout)
                     if self.popup and not self.preview:
                         self.showFullScreen()
-                        if self.width() <= QDesktopWidget().availableGeometry().width():
-                            scroll.setHorizontalScrollBarPolicy(Qt.ScrollBarAlwaysOff)
-                        if self.height() <= QDesktopWidget().availableGeometry().height():
-                            scroll.setVerticalScrollBarPolicy(Qt.ScrollBarAlwaysOff)
+                        if self.width() <= QGuiApplication.primaryScreen().availableGeometry().width():
+                            scroll.setHorizontalScrollBarPolicy(Qt.ScrollBarPolicy.ScrollBarAlwaysOff)
+                        if self.height() <= QGuiApplication.primaryScreen().availableGeometry().height():
+                            scroll.setVerticalScrollBarPolicy(Qt.ScrollBarPolicy.ScrollBarAlwaysOff)
                         self.show()
                         self.on_current_changed(0)
                     else:
@@ -426,10 +425,10 @@ class StackedWindowGui(QWidget):
                                 self.disconnect_all(p.layout())
                         if self.preview and self.popup:
                             self.showFullScreen()
-                            if self.width() <= QDesktopWidget().availableGeometry().width():
-                                scroll.setHorizontalScrollBarPolicy(Qt.ScrollBarAlwaysOff)
-                            if self.height() <= QDesktopWidget().availableGeometry().height():
-                                scroll.setVerticalScrollBarPolicy(Qt.ScrollBarAlwaysOff)
+                            if self.width() <= QGuiApplication.primaryScreen().availableGeometry().width():
+                                scroll.setHorizontalScrollBarPolicy(Qt.ScrollBarPolicy.ScrollBarAlwaysOff)
+                            if self.height() <= QGuiApplication.primaryScreen().availableGeometry().height():
+                                scroll.setVerticalScrollBarPolicy(Qt.ScrollBarPolicy.ScrollBarAlwaysOff)
                             self.show()
 
     def osc_listener_reaper(self, port):
@@ -462,21 +461,21 @@ class StackedWindowGui(QWidget):
         self.osc_server = osc_server.OSCUDPServer((ip, port), dispatcher)
         self.osc_server.serve_forever()
 
-    def osc_reply(self, address, args):
+    def osc_reply(self, address, osc_args):
         """Monitor the incoming OSC messages from the default OSC listener.
 
             Parameters
             ----------
             address : string
                 OSC address of the message
-            args : tuple
+            osc_args : tuple
                 value(s) of the message
         """
-        print("Received", args)
-        self.global_osc_message = args
+        print("Received", osc_args)
+        self.global_osc_message = osc_args
         self.log += "\n{} - Received {} from global OSC".format(datetime.datetime.now().replace(microsecond=0).__str__(), self.global_osc_message)
 
-    def play_state(self, address, args):
+    def play_state(self, address, reap_args):
         """ Monitor the play state given by Reaper.
             Reaper will ping back any of the commands with either 0.0 or 1.0.
 
@@ -484,15 +483,15 @@ class StackedWindowGui(QWidget):
             ----------
             address : string
                 OSC address of the message
-            args : tuple
+            reap_args : tuple
                 value(s) of the message
         """
         if address in ["/play", "/pause", "/stop"]:
-            if address == "/play" and args[0] == 1.0:
+            if address == "/play" and reap_args[0] == 1.0:
                 self.global_play_state = "PLAY"
-            elif address == "/pause" and args[0] == 1.0:
+            elif address == "/pause" and reap_args[0] == 1.0:
                 self.global_play_state = "PAUSE"
-            elif address == "/stop" and args[0] == 1.0:
+            elif address == "/stop" and reap_args[0] == 1.0:
                 self.global_play_state = "STOP"
                 if not self.stop_initiated:
                     for player in self.Stack.currentWidget().players:
@@ -518,10 +517,16 @@ class StackedWindowGui(QWidget):
             if child.widget():
                 try:
                     if type(child.widget()) == LabeledSlider:
-                        child.widget().sl.disconnect()
+                        child.widget().sl.valueChanged.disconnect()
+                    if type(child.widget()) == Slider:
+                        child.widget().valueChanged.disconnect()
+                        if child.widget().receivers(Signal("mushra_stopped(str)")) > 0:
+                            child.widget().mushra_stopped.disconnect()
                     if type(child.widget()) == Button:
-                        child.widget().button.disconnect()
-                    child.widget().disconnect()
+                        child.widget().button.clicked.disconnect()
+                    if type(child.widget()) == CheckBox:
+                        child.widget().toggled.disconnect()
+                    #child.widget().clicked.disconnect()
                 except TypeError:
                     pass
             if child.layout() is not None:
@@ -529,14 +534,14 @@ class StackedWindowGui(QWidget):
 
     def disconnect_nav(self):
         """Disconnect the navigation."""
-        self.forwardbutton.disconnect()
+        self.forwardbutton.clicked.disconnect()
         if self.go_back:
-            self.backbutton.disconnect()
+            self.backbutton.clicked.disconnect()
         if self.help_client is not None:
-            self.help_button.disconnect()
+            self.help_button.clicked.disconnect()
 
-    def __click_animation(self):
-        __btn = self.sender()
+    def __click_animation(self, btn):
+        __btn = btn
         __btn.setDown(True)
         QTimer.singleShot(self.button_fade, lambda: __btn.setDown(False))
 
@@ -608,7 +613,6 @@ class StackedWindowGui(QWidget):
                         self.Stack.currentWidget().required[quest][1][1].play_button.setStyleSheet(self.css_data)
                     elif type(ans) is RadioMatrix:
                         for q in range(0, len(ans.questions)):
-                            not_answered = False
                             if ans.buttongroups[q].checkedId() == -1:
                                 self.Stack.currentWidget().required[quest][1][q].setObjectName("required")
                                 self.Stack.currentWidget().required[quest][1][q].setStyleSheet(self.css_data)
@@ -682,7 +686,7 @@ class StackedWindowGui(QWidget):
                 self.backbutton.setEnabled(True)
             if i == self.sections.index(self.save_after)+1:
                 answer = self.continue_message()
-                if answer == QMessageBox.AcceptRole:
+                if (answer == QMessageBox.ButtonRole.YesRole) or (answer == QMessageBox.ButtonRole.AcceptRole):
                     if self.video_client is not None:
                         self.video_client.send_message(self.video_player_commands['blue_screen'][0] if 'blue_screen' in self.video_player_commands.keys() else self.video_player_commands["stop"][0],
                                                        self.video_player_commands['blue_screen'][1] if 'blue_screen' in self.video_player_commands.keys() else self.video_player_commands["stop"][1])
@@ -787,13 +791,14 @@ class StackedWindowGui(QWidget):
             value of the button clicked (True if it is supposed to be saved)
         """
         msg = QMessageBox()
-        msg.setIcon(QMessageBox.Question)
+        msg.setIcon(QMessageBox.Icon.Question)
         msg.setText(self.save_message)
         msg.setWindowFlags(Qt.CustomizeWindowHint)  # removes title bar
-        msg.addButton(self.answer_pos, QMessageBox.AcceptRole)
-        msg.addButton(self.answer_neg, QMessageBox.RejectRole)
+        msg.addButton(self.answer_pos, QMessageBox.ButtonRole.AcceptRole)
+        msg.addButton(self.answer_neg, QMessageBox.ButtonRole.RejectRole)
         msg.setStyleSheet(self.css_data)
-        retval = msg.exec_()
+        msg.exec()
+        retval = msg.buttonRole(msg.clickedButton())
         return retval
 
     def collect_and_save_data(self):
@@ -814,10 +819,10 @@ class StackedWindowGui(QWidget):
                 print("Couldn't connect with Pupil Capture!")
                 
         emoji_pattern = re.compile("["
-                                u"\U0001F600-\U0001F64F" # emoticons
-                                u"\U0001F300-\U0001F5FF" # symbols & pictographs
-                                u"\U0001F680-\U0001F6FF" # transport & map symbols
-                                u"\U0001F1E0-\U0001F1FF" # flags (iOS)
+                                u"\U0001F600-\U0001F64F"  # emoticons
+                                u"\U0001F300-\U0001F5FF"  # symbols & pictographs
+                                u"\U0001F680-\U0001F6FF"  # transport & map symbols
+                                u"\U0001F1E0-\U0001F1FF"  # flags (iOS)
                                 u"\U00002500-\U000027B0"
                                 u"\U000024C2-\U0001F251"
                                 u"\U0001f926-\U0001f937"
@@ -908,7 +913,9 @@ class StackedWindowGui(QWidget):
                 writer = csv.writer(csvfile, delimiter=self.delimiter)
                 header = fields.keys()
                 writer.writerow(header)
-
+                print("wrote header")
+        print("resultsfile exists", os.path.exists(self.filepath_results))
+        time.sleep(2)
         try:
             headers = []
             with open(self.filepath_results, 'r', newline='', encoding='utf_8') as f:
@@ -973,10 +980,10 @@ class StackedWindowGui(QWidget):
                 msg = QMessageBox()
                 msg.setWindowTitle(self.connection_lost_title)
                 msg.setSizeGripEnabled(True)
-                msg.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Expanding)
-                msg.setIcon(QMessageBox.Information)
+                msg.setSizePolicy(QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Expanding)
+                msg.setIcon(QMessageBox.Icon.Information)
                 msg.setText(self.connection_lost_text)
-                msg.exec_()
+                msg.exec()
         if self.video_ip is not None:
             host = self.video_ip
             response = ping(host, timeout=TIMEOUT)
@@ -986,10 +993,10 @@ class StackedWindowGui(QWidget):
                 msg = QMessageBox()
                 msg.setWindowTitle(self.connection_lost_title)
                 msg.setSizeGripEnabled(True)
-                msg.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Expanding)
-                msg.setIcon(QMessageBox.Information)
+                msg.setSizePolicy(QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Expanding)
+                msg.setIcon(QMessageBox.Icon.Information)
                 msg.setText(self.connection_lost_text)
-                msg.exec_()
+                msg.exec()
         if self.pupil_ip is not None:
             host = self.pupil_ip
             response = ping(host, timeout=TIMEOUT)
@@ -999,10 +1006,10 @@ class StackedWindowGui(QWidget):
                 msg = QMessageBox()
                 msg.setWindowTitle(self.connection_lost_title)
                 msg.setSizeGripEnabled(True)
-                msg.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Expanding)
-                msg.setIcon(QMessageBox.Information)
+                msg.setSizePolicy(QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Expanding)
+                msg.setIcon(QMessageBox.Icon.Information)
                 msg.setText(self.connection_lost_text)
-                msg.exec_()
+                msg.exec()
 
 
 if __name__ == '__main__':
@@ -1012,4 +1019,4 @@ if __name__ == '__main__':
 
     app = QApplication(sys.argv)
     ex = StackedWindowGui(args.file)
-    sys.exit(app.exec_())
+    sys.exit(app.exec())

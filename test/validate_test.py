@@ -6,7 +6,12 @@ from context import *
 @pytest.fixture
 def gui_init():
     """Start GUI"""
-    gui = QApplication([])
+    if not QApplication.instance():
+        gui = QApplication([])
+    else:
+        while QApplication.instance():
+            QApplication.instance().shutdown()
+        gui = QApplication([])
     return gui
 
 
@@ -20,7 +25,7 @@ def test_global_settings(gui_init):
         dialog = QApplication.activeModalWidget()
         global text
         text = dialog.detailedText()
-        QTest.mouseClick(dialog.button(QMessageBox.Ok), Qt.LeftButton)
+        QTest.mouseClick(dialog.button(QMessageBox.StandardButton.Ok), Qt.MouseButton.LeftButton)
 
     structure = ConfigObj()
     structure["go_back"] = True
@@ -623,7 +628,7 @@ def test_question_settings(gui_init):
         dialog = QApplication.activeModalWidget()
         global text
         text = dialog.detailedText()
-        QTest.mouseClick(dialog.button(QMessageBox.Ok), Qt.LeftButton)
+        QTest.mouseClick(dialog.button(QMessageBox.StandardButton.Ok), Qt.MouseButton.LeftButton)
 
     structure = ConfigObj()
     structure["go_back"] = True

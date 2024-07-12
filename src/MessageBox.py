@@ -1,7 +1,7 @@
 """Customized MessageBox such that the errors and warnings are more easily readable."""
 
-from PyQt5.QtGui import QResizeEvent
-from PyQt5.QtWidgets import QMessageBox, QTextEdit
+from PySide6.QtGui import QResizeEvent
+from PySide6.QtWidgets import QMessageBox, QTextEdit
 
 
 class ResizeMessageBox(QMessageBox):

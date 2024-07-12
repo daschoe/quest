@@ -3,9 +3,9 @@ import os
 
 import keyboard
 import psutil
-from PyQt5.QtCore import Qt
-from PyQt5.QtTest import QTest
-from PyQt5.QtWidgets import QApplication, QMessageBox, QLineEdit, QWidgetItem, QHBoxLayout
+from PySide6.QtCore import Qt
+from PySide6.QtTest import QTest
+from PySide6.QtWidgets import QApplication, QMessageBox, QLineEdit, QWidgetItem, QHBoxLayout, QFormLayout
 
 PUPIL_PATH = "C:\\Program Files (x86)\\Pupil-Labs\\Pupil v3.5.1\\Pupil Capture v3.5.1\\pupil_capture.exe"
 
@@ -14,7 +14,7 @@ PUPIL_PATH = "C:\\Program Files (x86)\\Pupil-Labs\\Pupil v3.5.1\\Pupil Capture v
 def handle_dialog_sa():
     """Click 'No' on change save_after dialog."""
     dialog = QApplication.activeModalWidget()
-    QTest.mouseClick(dialog.buttons()[1], Qt.LeftButton)
+    QTest.mouseClick(dialog.buttons()[1], Qt.MouseButton.LeftButton)
 
 
 # noinspection PyArgumentList
@@ -37,28 +37,28 @@ def handle_dialog_q():
 def handle_dialog():
     """Click 'Yes' on save dialog."""
     dialog = QApplication.activeModalWidget()
-    QTest.mouseClick(dialog.buttons()[0], Qt.LeftButton)
+    QTest.mouseClick(dialog.buttons()[0], Qt.MouseButton.LeftButton)
 
 
 # noinspection PyArgumentList
 def handle_dialog_no_save():
     """Click 'No' on save dialog."""
     dialog = QApplication.activeModalWidget()
-    QTest.mouseClick(dialog.buttons()[1], Qt.LeftButton)
+    QTest.mouseClick(dialog.buttons()[1], Qt.MouseButton.LeftButton)
 
 
 # noinspection PyArgumentList
 def handle_dialog_error():
     """Click 'OK' on error dialog."""
     dialog = QApplication.activeModalWidget()
-    QTest.mouseClick(dialog.button(QMessageBox.Ok), Qt.LeftButton)
+    QTest.mouseClick(dialog.button(QMessageBox.StandardButton.Ok), Qt.MouseButton.LeftButton)
 
 
 # noinspection PyArgumentList
 def handle_dialog_warning():
     """Click 'Yes' on dialog and execute questionnaire."""
     dialog = QApplication.activeModalWidget()
-    QTest.mouseClick(dialog.button(QMessageBox.Yes), Qt.LeftButton)
+    QTest.mouseClick(dialog.button(QMessageBox.StandardButton.Yes), Qt.MouseButton.LeftButton)
 
 
 # noinspection PyArgumentList
@@ -91,12 +91,12 @@ def find_row_by_label(layout, label):
         row of the field
     """
     for row in range(layout.rowCount()):
-        if type(layout.itemAt(row, 1)) == QWidgetItem and layout.itemAt(row, 0).widget().text() == label:
+        if type(layout.itemAt(row, QFormLayout.ItemRole.FieldRole)) == QWidgetItem and layout.itemAt(row, QFormLayout.ItemRole.LabelRole).widget().text() == label:
             return row
-        elif type(layout.itemAt(row, 1)) == QHBoxLayout:
-            for child in range(layout.itemAt(row, 1).count()):
-                if type(layout.itemAt(row, 1).itemAt(child)) == QWidgetItem and \
-                        layout.itemAt(row, 1).itemAt(child).widget().objectName() == label:
+        elif type(layout.itemAt(row, QFormLayout.ItemRole.FieldRole)) == QHBoxLayout:
+            for child in range(layout.itemAt(row, QFormLayout.ItemRole.FieldRole).count()):
+                if type(layout.itemAt(row, QFormLayout.ItemRole.FieldRole).itemAt(child)) == QWidgetItem and \
+                        layout.itemAt(row, QFormLayout.ItemRole.FieldRole).itemAt(child).widget().objectName() == label:
                     return row, child
 
 

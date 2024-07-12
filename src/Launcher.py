@@ -3,7 +3,7 @@ Main entry point for the project.
 """
 import sys
 
-from PyQt5.QtWidgets import QApplication, QWidget, QPushButton, QHBoxLayout, QFileDialog, QMessageBox
+from PySide6.QtWidgets import QApplication, QWidget, QPushButton, QHBoxLayout, QFileDialog, QMessageBox
 
 from src.GUI import StackedWindowGui, VERSION
 from src.QEditGui import QEditGuiMain
@@ -36,17 +36,17 @@ class Launcher(QWidget):
     def run_questionnaire(self):
         """Get questionnaire file and run the GUI."""
         dlg = QFileDialog(self)
-        dlg.setFileMode(QFileDialog.ExistingFile)
+        dlg.setFileMode(QFileDialog.FileMode.ExistingFile)
         dlg.setNameFilter("Text files (*.txt)")
         dlg.setStyle(self.style())
 
-        if dlg.exec_():
+        if dlg.exec():
             file = dlg.selectedFiles()[0]
             self.questionnaire_window = StackedWindowGui(file)
 
     def run_questionnaire_editor(self):
         """Run the questionnaire editor GUI."""
-        editgui = QEditGuiMain(self)
+        editgui = QEditGuiMain()
         editgui.show()
 
     @staticmethod
@@ -54,15 +54,15 @@ class Launcher(QWidget):
         """Display basic information about the software and a link to the wiki."""
         msg = QMessageBox()
         msg.setWindowTitle("Help / About")
-        msg.setIcon(QMessageBox.Information)
+        msg.setIcon(QMessageBox.Icon.Information)
         msg.setText("This software was created by Daphne Schössow.")
         msg.setInformativeText("For detailed instructions on how to use this software, "
                                "have a look at the <a href=https://gitlab.uni-hannover.de/da.schoessow/quest/-/wikis/overview>wiki</a> of this project at gitlab. "
                                "For further problems, feature request, or feedback create an issue at gitlab or contact <a href=mailto:daphne.schoessow@ikt.uni-hannover.de> via mail</a>.")
-        msg.exec_()
+        msg.exec()
 
 
 if __name__ == '__main__':
     app = QApplication([])
     ex = Launcher()
-    sys.exit(app.exec_())
+    sys.exit(app.exec())

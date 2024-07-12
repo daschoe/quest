@@ -4,43 +4,15 @@ Audio/Video Player Control
 import datetime
 from time import time
 
-from PyQt5.QtCore import QTimer, QObject
-from PyQt5.QtWidgets import QWidget, QPushButton, QHBoxLayout, QStyle
+from PySide6.QtCore import QTimer
+from PySide6.QtWidgets import QWidget, QPushButton, QHBoxLayout, QStyle, QFormLayout
 
 from src.PupilCoreButton import Button
 from src.Video import madmapper, vlc
 
 
 class Player(QWidget):
-    """Multi-Media player unit.
-
-    Attributes
-    ----------
-    start_cue : int
-        cue/marker number on which to start playing (e.g. in REAPER)
-    track : int or list<int>
-        active tracks (e.g. in REAPER)
-    video : str, optional
-        filename+path to the video which should be played.
-    qid : str
-        id of the question
-    parent : QObject, optional
-        widget/layout this widget is embedded in
-    end_cue : int, optional
-        cue/marker on which to stop playing (e.g. in REAPER); might be removed in future versions
-    displayed_buttons : list<str>, default=["Play", "Pause", "Stop"]
-        list of buttons which should be displayed
-    icons : bool, optional, default=False
-        if True, icons according to the functionality are displayed on the buttons
-    pupil : str, optional
-        annotation text to send to Pupil Core when the play button is clicked
-    objectname : str, optional
-        name of the object, if it is supposed to be styled individually
-    timer : int, optional
-        time in msec after which succeeding questions on the page are displayed
-    play_button_text : str, optional
-        alternate text for the play button
-    """
+    """Multi-Media player unit."""
 
     def __init__(self, start_cue, track, qid, video=None, parent=None, end_cue=None,
                  displayed_buttons=["Play", "Pause", "Stop"], icons=False, pupil=None, objectname=None, timer=None,
@@ -51,7 +23,7 @@ class Player(QWidget):
         ----------
         start_cue : int
             cue/marker number on which to start playing (e.g. in REAPER)
-        track : int or list of int
+        track : Union(int, list of int)
             active tracks (e.g. in REAPER)
         video : str, optional
             filename+path / scene name to the video which should be played.
@@ -135,16 +107,16 @@ class Player(QWidget):
         if "Play" in self.buttons:
             self.play_button = QPushButton("Play" if play_button_text is None else play_button_text, None)
             if icons:
-                self.play_button.setIcon(self.style().standardIcon(QStyle.SP_MediaPlay))
+                self.play_button.setIcon(self.style().standardIcon(QStyle.StandardPixmap.SP_MediaPlay))
             self.play_button.setEnabled(True)
             self.play_button.clicked.connect(self.play)
-            self.play_button.clicked.connect(self.__click_animation)
+            self.play_button.clicked.connect(lambda: self.__click_animation(self.play_button))
             self.play_button.setObjectName(self.objectName())
             layout.addWidget(self.play_button)
         if "Pause" in self.buttons:
             self.pause_button = QPushButton("Pause", None)
             if icons:
-                self.pause_button.setIcon(self.style().standardIcon(QStyle.SP_MediaPause))
+                self.pause_button.setIcon(self.style().standardIcon(QStyle.StandardPixmap.SP_MediaPause))
             self.pause_button.setEnabled(False)
             self.pause_button.setCheckable(True)
             self.pause_button.clicked.connect(self.pause)
@@ -153,15 +125,15 @@ class Player(QWidget):
         if "Stop" in self.buttons:
             self.stop_button = QPushButton("Stop", None)
             if icons:
-                self.stop_button.setIcon(self.style().standardIcon(QStyle.SP_MediaStop))
+                self.stop_button.setIcon(self.style().standardIcon(QStyle.StandardPixmap.SP_MediaStop))
             self.stop_button.setEnabled(False)
             self.stop_button.clicked.connect(self.stop)
             self.stop_button.setObjectName(self.objectName())
             layout.addWidget(self.stop_button)
         self.setLayout(layout)
 
-    def __click_animation(self):
-        __btn = self.sender()
+    def __click_animation(self, btn):
+        __btn = btn
         if not self.play_once and self.button_fade > 0:
             __btn.setDown(True)
             QTimer.singleShot(self.button_fade, lambda: __btn.setDown(False))
@@ -253,19 +225,19 @@ class Player(QWidget):
         self.countdown = 0
         player_found = False
         for item in range(self.page.layout().rowCount()):
-            if player_found and self.page.layout().itemAt(item, 1).widget() is None:
-                if type(self.page.layout().itemAt(item, 1)) is QHBoxLayout:
-                    for box in range(self.page.layout().itemAt(item, 1).count()):
-                        self.page.layout().itemAt(item, 1).itemAt(box).widget().show()
-                if self.page.layout().itemAt(item, 0) is not None:
-                    self.page.layout().itemAt(item, 0).widget().show()
-            if player_found and self.page.layout().itemAt(item, 1).widget() is not None:
-                if self.page.layout().itemAt(item, 0) is not None:
-                    self.page.layout().itemAt(item, 0).widget().show()
-                self.page.layout().itemAt(item, 1).widget().show()
-                if type(self.page.layout().itemAt(item, 1).widget()) == Player and self.page.layout().itemAt(item, 1).widget() != self:
+            if player_found and self.page.layout().itemAt(item, QFormLayout.ItemRole.FieldRole).widget() is None:
+                if type(self.page.layout().itemAt(item, QFormLayout.ItemRole.FieldRole)) is QHBoxLayout:
+                    for box in range(self.page.layout().itemAt(item, QFormLayout.ItemRole.FieldRole).count()):
+                        self.page.layout().itemAt(item, QFormLayout.ItemRole.FieldRole).itemAt(box).widget().show()
+                if self.page.layout().itemAt(item, QFormLayout.ItemRole.LabelRole) is not None:
+                    self.page.layout().itemAt(item, QFormLayout.ItemRole.LabelRole).widget().show()
+            if player_found and self.page.layout().itemAt(item, QFormLayout.ItemRole.FieldRole).widget() is not None:
+                if self.page.layout().itemAt(item, QFormLayout.ItemRole.LabelRole) is not None:
+                    self.page.layout().itemAt(item, QFormLayout.ItemRole.LabelRole).widget().show()
+                self.page.layout().itemAt(item, QFormLayout.ItemRole.FieldRole).widget().show()
+                if type(self.page.layout().itemAt(item, QFormLayout.ItemRole.FieldRole).widget()) == Player and self.page.layout().itemAt(item, QFormLayout.ItemRole.FieldRole).widget() != self:
                     player_found = False
-            if self.page.layout().itemAt(item, 1).widget() == self:
+            if self.page.layout().itemAt(item, QFormLayout.ItemRole.FieldRole).widget() == self:
                 player_found = True
         # self.stop() # not needed anymore
 

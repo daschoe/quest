@@ -1,4 +1,4 @@
-# Created with QUEST version 1.0.6
+# Created with QUEST version 1.0.7
 go_back = True
 back_text = Zurück
 forward_text = Weiter
@@ -20,5 +20,5 @@ title = ""
 type = Text
 text = Enter some text:
 size = 1
-policy = None,
+policy = double, 1, 100, 2
 id = tf

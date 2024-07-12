@@ -5,9 +5,9 @@ import re
 from os import path
 
 from configobj import ConfigObj
-from PyQt5.QtGui import QIntValidator, QDoubleValidator, QRegExpValidator
-from PyQt5.QtWidgets import QSizePolicy, QMessageBox
-from PyQt5.QtCore import QRegExp
+from PySide6.QtGui import QIntValidator, QDoubleValidator, QRegularExpressionValidator
+from PySide6.QtWidgets import QSizePolicy, QMessageBox
+from PySide6.QtCore import QRegularExpression
 
 from src.MessageBox import ResizeMessageBox
 from src.tools import fields_per_type, player_buttons, policy_possibilities, randomize_options, image_positions, video_player
@@ -33,7 +33,7 @@ def validate_passwords(file, policy):
     elif policy[0] == "double":
         validator = QDoubleValidator(int(policy[1]), int(policy[2]), int(policy[3]))
     elif policy[0] == "regex":
-        validator = QRegExpValidator(QRegExp(policy[1]))
+        validator = QRegularExpressionValidator(QRegularExpression(policy[1]))
     else:
         # policy[0] == "None":
         return True
@@ -1580,5 +1580,5 @@ def validate_questionnaire(structure, suppress=False) -> (bool, bool, str):
                 error_string += warn + "\n"
         msg.setDetailedText(error_string)
     if not suppress or error_found:
-        msg.exec_()
+        msg.exec()
     return error_found, warning_found, warning_details

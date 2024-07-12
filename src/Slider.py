@@ -5,10 +5,9 @@ position - a function that's not possible with QSlider.
 The functionality is adapted from: https://www.queryxchange.com/q/27_52689047/moving-qslider-to-mouse-click-position/
 """
 from math import ceil
-
-from PyQt5.QtCore import Qt, QPoint, pyqtSignal
-from PyQt5.QtGui import QPainter, QColor, QPen, QPaintEvent, QMouseEvent
-from PyQt5.QtWidgets import QSlider, QStyle, QStyleOptionSlider
+from PySide6.QtCore import Qt, QPoint, Signal
+from PySide6.QtGui import QPainter, QColor, QPen, QPaintEvent, QMouseEvent
+from PySide6.QtWidgets import QSlider, QStyle, QStyleOptionSlider
 
 
 class Slider(QSlider):
@@ -38,8 +37,16 @@ class Slider(QSlider):
     strokewidth_disabled = None
     strokecolor_disabled = None
     moving = False
-    mushra_stopped = pyqtSignal()
+    mushra_stopped = Signal(str)
     moved = False
+    mouse_down = False
+    prev = None
+    _min = None
+    _max = None
+    start = None
+    step = None
+    sid = None
+    tick_dist = None
 
     def paintEvent(self, event):
         """
@@ -65,18 +72,15 @@ class Slider(QSlider):
         opt.initFrom(self)
         opt.orientation = self.orientation()
 
-        groove = self.style().subControlRect(QStyle.CC_Slider, opt, QStyle.SC_SliderGroove, self)
-        handle = self.style().subControlRect(QStyle.CC_Slider, opt, QStyle.SC_SliderHandle, self)
+        groove = self.style().subControlRect(QStyle.ComplexControl.CC_Slider, opt, QStyle.SubControl.SC_SliderGroove, self)
+        handle = self.style().subControlRect(QStyle.ComplexControl.CC_Slider, opt, QStyle.SubControl.SC_SliderHandle, self)
 
-        interval = self.tickInterval()
-        if self.tickPosition() != QSlider.NoTicks:
-            min_value = 0
-            max_value = int((self._max-self._min)/self.step) if self._max > self._min else - 1 * int((self._max-self._min)/self.step)
-            for i in range(0, max_value - min_value + 1, interval):
+        if self.tickPosition() != QSlider.TickPosition.NoTicks:
+            for i in range(0, self.maximum() - self.minimum() + 1, self.tickInterval()):
                 h = 10
                 magic_height = 4
-                if self.orientation() == Qt.Horizontal:
-                    x = round(i / (max_value - min_value) * self.width())
+                if self.orientation() == Qt.Orientation.Horizontal:
+                    x = round(i / (self.maximum() - self.minimum()) * self.width())
                     if x == 0:
                         x += ceil(0.5 * p.pen().width())
                         if p.pen().width() % 2 == 0:
@@ -85,16 +89,16 @@ class Slider(QSlider):
                         x = self.width() - ceil(0.5 * p.pen().width()) - 1
                     else:
                         x -= ceil(0.5 * p.pen().width())
-                    if (self.tickPosition() == QSlider.TicksBothSides) or (self.tickPosition() == QSlider.TicksAbove):
+                    if (self.tickPosition() == QSlider.TickPosition.TicksBothSides) or (self.tickPosition() == QSlider.TickPosition.TicksAbove):
                         y = groove.top() - ceil(0.5 * p.pen().width())
                         p.drawLine(x, y + h, x, y - magic_height)
-                    if (self.tickPosition() == QSlider.TicksBothSides) or (self.tickPosition() == QSlider.TicksBelow):
+                    if (self.tickPosition() == QSlider.TickPosition.TicksBothSides) or (self.tickPosition() == QSlider.TickPosition.TicksBelow):
                         y = groove.bottom()
                         if p.pen().width() > 1:
                             y += ceil(0.5 * p.pen().width())
                         p.drawLine(x, y + h, x, y - magic_height)
-                elif self.orientation() == Qt.Vertical:
-                    y = round(i / (max_value - min_value) * groove.height())
+                elif self.orientation() == Qt.Orientation.Vertical:
+                    y = round(i / (self.maximum() - self.minimum()) * groove.height())
                     if y == groove.height():  # lowest mark
                         y -= ceil(0.5 * p.pen().width()) - 1
                     elif y == 0:
@@ -103,12 +107,12 @@ class Slider(QSlider):
                             y += 1
                     else:
                         y -= ceil(0.5 * p.pen().width())
-                    if (self.tickPosition() == QSlider.TicksBothSides) or (self.tickPosition() == QSlider.TicksLeft):
+                    if (self.tickPosition() == QSlider.TickPosition.TicksBothSides) or (self.tickPosition() == QSlider.TickPosition.TicksLeft):
                         x = groove.left() + handle.width()
                         if p.pen().width() > 1:
                             x -= ceil(0.5 * p.pen().width())
                         p.drawLine(x, y, x - magic_height, y)
-                    if (self.tickPosition() == QSlider.TicksBothSides) or (self.tickPosition() == QSlider.TicksRight):
+                    if (self.tickPosition() == QSlider.TickPosition.TicksBothSides) or (self.tickPosition() == QSlider.TickPosition.TicksRight):
                         x = groove.right() - handle.width()
                         if p.pen().width() > 1:
                             x += ceil(0.5 * p.pen().width())
@@ -123,18 +127,19 @@ class Slider(QSlider):
         event : QMouseEvent
             event that occurred, only presses of the left mouse button are of relevance here
         """
-        if event.button() == Qt.LeftButton:
-            if self.orientation() == Qt.Horizontal:
+        if event.button() == Qt.MouseButton.LeftButton:
+            if self.orientation() == Qt.Orientation.Horizontal:
                 self.blockSignals(True)
             val = self.pixel_pos_to_range_value(event.pos())
             self.moved = True
+            self.mouse_down = True
             if self.value() != val:
                 self.setValue(val)
                 self.blockSignals(False)
                 # print("New val {} unblocked (press)".format(val))
-                self.valueChanged.emit(self.value())
-                self.mushra_stopped.emit()
-                if self.orientation() == Qt.Horizontal:
+                #self.valueChanged.emit(self.value())
+                #self.mushra_stopped.emit()
+                if self.orientation() == Qt.Orientation.Horizontal:
                     self.blockSignals(True)
 
     def mouseMoveEvent(self, event):
@@ -145,12 +150,13 @@ class Slider(QSlider):
         event : QMouseEvent
             event that occurred, only presses of the left mouse button are of relevance here
         """
-        if self.orientation() == Qt.Horizontal:
-            self.blockSignals(True)
-        val = self.pixel_pos_to_range_value(event.pos())
-        if self.value() != val:
-            self.setValue(val)
-            self.moving = True
+        if self.mouse_down:
+            if self.orientation() == Qt.Orientation.Horizontal:
+                self.blockSignals(True)
+            val = self.pixel_pos_to_range_value(event.pos())
+            if self.value() != val:
+                self.setValue(val)
+                self.moving = True
 
     def mouseReleaseEvent(self, event):
         """End of move event, populate new value.
@@ -160,17 +166,18 @@ class Slider(QSlider):
         event : QMouseEvent
             event that occurred, only presses of the left mouse button are of relevance here
         """
-        if self.orientation() == Qt.Horizontal:
+        if self.orientation() == Qt.Orientation.Horizontal:
             self.blockSignals(True)
+        self.mouse_down = False
         if self.moving:
             val = self.pixel_pos_to_range_value(event.pos())
             self.setValue(val)
             self.moving = False
             self.blockSignals(False)
-            # print("New val {} unblocked (move)".format(val))
+            print("New val {} unblocked (move)".format(val))
             self.valueChanged.emit(self.value())
-            self.mushra_stopped.emit()
-            if self.orientation() == Qt.Horizontal:
+            self.mushra_stopped.emit(self.sid)
+            if self.orientation() == Qt.Orientation.Horizontal:
                 self.blockSignals(True)
 
     def keyPressEvent(self, event):
@@ -181,9 +188,9 @@ class Slider(QSlider):
         event : QKeyEvent
             event that occurred, only presses of the arrow keys are relevant
         """
-        if self.orientation() == Qt.Horizontal:
+        if self.orientation() == Qt.Orientation.Horizontal:
             self.blockSignals(True)
-        if event.key() in [Qt.Key_Up, Qt.Key_Down, Qt.Key_Left, Qt.Key_Right]:
+        if event.key() in [Qt.Key.Key_Up, Qt.Key.Key_Down, Qt.Key.Key_Left, Qt.Key.Key_Right]:
             self.prev = self.value()
             super(Slider, self).keyPressEvent(event)
 
@@ -195,16 +202,16 @@ class Slider(QSlider):
         event : QKeyEvent
             event that occurred, only presses of the arrow keys are relevant
         """
-        if self.orientation() == Qt.Horizontal:
+        if self.orientation() == Qt.Orientation.Horizontal:
             self.blockSignals(True)
-        if event.key() in [Qt.Key_Up, Qt.Key_Down, Qt.Key_Left, Qt.Key_Right]:
+        if event.key() in [Qt.Key.Key_Up, Qt.Key.Key_Down, Qt.Key.Key_Left, Qt.Key.Key_Right]:
             super(Slider, self).keyReleaseEvent(event)
             if self.value() != self.prev:
                 self.blockSignals(False)
-                # print("New val {} unblocked (key)".format(self.value()))
+                print("New val {} unblocked (key)".format(self.value()))
                 self.valueChanged.emit(self.value())
-                self.mushra_stopped.emit()
-                if self.orientation() == Qt.Horizontal:
+                self.mushra_stopped.emit(self.sid)
+                if self.orientation() == Qt.Orientation.Horizontal:
                     self.blockSignals(True)
 
     def value(self):
@@ -214,7 +221,10 @@ class Slider(QSlider):
         -------
         int or float : current handle position in the range
         """
-        value = round(self._min + super(Slider, self).value() * (self.step if self._min < self._max else -1*self.step), str(self.step)[::-1].find('.'))
+        value = self.minimum() + self._min + super(Slider, self).value()*self.step
+        if int(self.step) != float(self.step):  # float step size
+            value = round(value, str(self.step)[::-1].find('.'))
+        # print("debug:",self._min, super(Slider, self).value(), self.step,  value)
         return value if int(self.step) != float(self.step) else int(value)
 
     def get_moved(self):
@@ -225,42 +235,7 @@ class Slider(QSlider):
         boolean - if the slider handle has been moved
         """
         return self.moved
-    '''
-    def setValue(self, value):
-        index = round((value - self._min) / self.step)
-        return super(Slider, self).setValue(index)
 
-    def value(self):
-        return self.index * self.step + self._min
-
-    @property
-    def index(self):
-        return super(Slider, self).value()
-
-    def setIndex(self, index):
-        return super(Slider, self).setValue(index)
-
-    def setMinimum(self, value):
-        self._min = value
-        self._range_adjusted()
-
-    def setMaximum(self, value):
-        self._max = value
-        self._range_adjusted()
-
-    def setInterval(self, value):
-        # To avoid division by zero
-        if not value:
-            raise ValueError('Interval of zero specified')
-        self.step = value
-        self._range_adjusted()
-
-    def _range_adjusted(self):
-        number_of_steps = int((self._max - self._min) / self.step)
-        print(number_of_steps, self._max, self._min, self.step)
-        super(Slider, self).setMaximum(max(number_of_steps, self._max))
-        print(self.minimum(), self.maximum(), self.value())
-    '''
     def pixel_pos_to_range_value(self, pos):
         """
         Helper to move the slider to the cursor independently of the OS and stylesheet.
@@ -277,10 +252,10 @@ class Slider(QSlider):
         """
         opt = QStyleOptionSlider()
         self.initStyleOption(opt)
-        gr = self.style().subControlRect(QStyle.CC_Slider, opt, QStyle.SC_SliderGroove, self)
-        sr = self.style().subControlRect(QStyle.CC_Slider, opt, QStyle.SC_SliderHandle, self)
+        gr = self.style().subControlRect(QStyle.ComplexControl.CC_Slider, opt, QStyle.SubControl.SC_SliderGroove, self)
+        sr = self.style().subControlRect(QStyle.ComplexControl.CC_Slider, opt, QStyle.SubControl.SC_SliderHandle, self)
 
-        if self.orientation() == Qt.Horizontal:
+        if self.orientation() == Qt.Orientation.Horizontal:
             slider_length = sr.width()
             slider_min = gr.x()
             slider_max = gr.right() - slider_length + 1
@@ -289,11 +264,11 @@ class Slider(QSlider):
             slider_min = gr.y()
             slider_max = gr.bottom() - slider_length + 1
         pr = pos - sr.center() + sr.topLeft()
-        p = pr.x() if self.orientation() == Qt.Horizontal else pr.y()
+        p = pr.x() if self.orientation() == Qt.Orientation.Horizontal else pr.y()
         return QStyle.sliderValueFromPosition(self.minimum(), self.maximum(), p - slider_min,
                                               slider_max - slider_min, opt.upsideDown)
 
-    def prepare_slider(self, min_val, max_val, start, step=1, tickpos=QSlider.TicksBelow):
+    def prepare_slider(self, min_val, max_val, start, step=1, tick_interval=1, tickpos=QSlider.TickPosition.TicksBelow, sid=None):
         """
         Set all parameters of the slider at once, to reduce repeating bulky code in the main gui class.
 
@@ -307,22 +282,26 @@ class Slider(QSlider):
             default starting point of the slider, if outside of min_val and max_val, it will be set to the closest of them
         step :  int, default=1
             step size of slider
+        tick_interval :  int, default=1
+            distance between visible ticks of slider
         tickpos : QSlider.TickPosition, default=QSlider.TicksBelow
-            position of tickmarks (if any), see also PyQt5.QtWidgets.QSlider
+            position of tickmarks (if any), see also PySide6.QtWidgets.QSlider
         """
         self._min = min_val
         self._max = max_val
         self.step = step
         self.start = start
         self.prev = None
-        if self.orientation() == Qt.Horizontal:
+        if self.orientation() == Qt.Orientation.Horizontal:
             self.blockSignals(True)  # don't spam new values on move, click and release
         self.setMinimum(0)
-        self.setMaximum(int((max_val-min_val)/self.step) if max_val > min_val else -1*int((max_val-min_val)/self.step))
-        self.setTickInterval(1)
+        self.setMaximum(int((max_val-min_val)/self.step))
+        self.setTickInterval(tick_interval)
+        #self.tick_dist = int(tick_interval)
         self.setSingleStep(1)
-        self.setValue(round(abs((start-self._min)/step)))
+        self.setValue(round(abs((start-self._min)/self.step)))
         self.setTickPosition(tickpos)
+        self.sid = sid
 
         if hasattr(self.parent(), "page_log"):  # awkward workaround to reference "Page"
             sheet = self.parent().parent().styleSheet()

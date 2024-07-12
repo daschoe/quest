@@ -106,7 +106,7 @@ The necessary python libraries are given in ```requirements.txt```.
 * [fpdf](https://pyfpdf.readthedocs.io/en/latest/) - Generate pdf file
 * [msgpack_python](https://pypi.org/project/msgpack/) - Communication
 * [ping3](https://github.com/kyan001/ping3) - Connection check
-* [PyQt5](https://pypi.org/project/PyQt5/) - GUI
+* [PySide6](https://pypi.org/project/PySide6/) - GUI
 * [python_osc](https://github.com/attwad/python-osc) - OSC communication
 * [pyzmq](https://docs.pupil-labs.com/developer/core/network-api/#pupil-remote) - Communication
 * [timeloop](https://github.com/sankalpjonn/timeloop) - Repeating jobs

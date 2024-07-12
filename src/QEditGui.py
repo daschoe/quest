@@ -6,12 +6,12 @@ from collections import deque
 from os.path import basename
 
 import configobj
-from PyQt5 import sip
-from PyQt5.QtCore import Qt, QModelIndex, QPoint
-from PyQt5.QtGui import QCloseEvent, QKeySequence, QPixmap
-from PyQt5.QtWidgets import QApplication, QTreeWidgetItem, QWidget, QHBoxLayout, QGroupBox, QSplitter, QFileDialog, \
-    QMainWindow, QAction, QLabel, QVBoxLayout, QFormLayout, QLineEdit, QPushButton, QGridLayout, QComboBox, QCheckBox, \
-    QRadioButton, QButtonGroup, QMenu, QInputDialog, QMessageBox, QLayout, QScrollArea, QDesktopWidget
+import shiboken6
+from PySide6.QtCore import Qt, QModelIndex, QPoint
+from PySide6.QtGui import QCloseEvent, QKeySequence, QAction
+from PySide6.QtWidgets import QApplication, QTreeWidgetItem, QWidget, QHBoxLayout, QGroupBox, QSplitter, QFileDialog, \
+    QMainWindow, QLabel, QVBoxLayout, QFormLayout, QLineEdit, QPushButton, QGridLayout, QComboBox, QCheckBox, \
+    QRadioButton, QButtonGroup, QMenu, QInputDialog, QMessageBox, QLayout, QScrollArea
 from configobj import ConfigObj, ConfigObjError
 from fpdf import FPDF
 
@@ -23,24 +23,11 @@ from src.tools import *
 
 
 class QEditGuiMain(QMainWindow):
-    """ Main Window, adds menu bar and status bar
-
-    Attributes
-    ----------
-    parent : QObject, optional
-        widget/layout this widget is embedded in
-    """
+    """ Main Window, adds menu bar and status bar."""
 
     # noinspection PyTypeChecker
-    def __init__(self, parent=None):
-        """
-
-        Parameters
-        ----------
-        parent : QObject, optional
-            widget/layout this widget is embedded in
-        """
-        QWidget.__init__(self, parent)
+    def __init__(self):
+        super().__init__()
         menu = self.menuBar()
         file = menu.addMenu("File")
         new = QAction("New", self)
@@ -126,12 +113,13 @@ class QEditGuiMain(QMainWindow):
             value of the button clicked (True if it is supposed to be saved)
         """
         msg = QMessageBox()
-        msg.setIcon(QMessageBox.Question)
+        msg.setIcon(QMessageBox.Icon.Question)
         msg.setText("The questionnaire file has changed. Do you want to save it?")
         msg.setWindowFlags(Qt.CustomizeWindowHint)  # removes title bar
-        msg.addButton("Yes", QMessageBox.AcceptRole)
-        msg.addButton("No", QMessageBox.RejectRole)
-        retval = msg.exec_()
+        msg.addButton("Yes", QMessageBox.ButtonRole.AcceptRole)
+        msg.addButton("No", QMessageBox.ButtonRole.RejectRole)
+        msg.exec()
+        retval = msg.buttonRole(msg.clickedButton())
         return retval
 
     def closeEvent(self, a0):
@@ -145,12 +133,13 @@ class QEditGuiMain(QMainWindow):
 
     def quit_editor(self):
         """Check for unsaved changes before quitting."""
-        QApplication.focusWidget().clearFocus()
+        if QApplication.focusWidget() is not None:
+            QApplication.focusWidget().clearFocus()
         if self.initial_structure is not None and self.initial_structure != copy.deepcopy(
                 dict(listify(self.structure))) and len(self.undo_stack) > 0 \
                 and not (
                 self.initial_structure == copy.deepcopy(dict(listify(self.structure))) and len(self.undo_stack) == 0):
-            if self.unsaved_message() == QMessageBox.AcceptRole:
+            if self.unsaved_message() == QMessageBox.ButtonRole.AcceptRole:
                 self.save()
         self.close()
 
@@ -165,11 +154,11 @@ class QEditGuiMain(QMainWindow):
             self.structure.write()
         self.status.showMessage("Exporting to pdf...", self.status_duration)
         exgui = StackedWindowGui(self.structure.filename, preview=True)
-        exgui.children()[1].setVerticalScrollBarPolicy(Qt.ScrollBarAlwaysOff)  # this is the ScrollArea
-        exgui.children()[1].setHorizontalScrollBarPolicy(Qt.ScrollBarAlwaysOff)  # this is the ScrollArea
+        exgui.children()[1].setVerticalScrollBarPolicy(Qt.ScrollBarPolicy.ScrollBarAlwaysOff)  # this is the ScrollArea
+        exgui.children()[1].setHorizontalScrollBarPolicy(Qt.ScrollBarPolicy.ScrollBarAlwaysOff)  # this is the ScrollArea
         rec_size = exgui.children()[1].children()[0].children()[0].children()[0].sizeHint()  # this is the Page object
         exgui.resize(max(exgui.width(), rec_size.width()), max(exgui.height(), rec_size.height()))
-        pdf = None#FPDF()
+        pdf = None
         for page in range(exgui.Stack.count()):
             exgui.Stack.setCurrentIndex(page)
             if page + 1 == exgui.Stack.count():  # last page
@@ -179,7 +168,7 @@ class QEditGuiMain(QMainWindow):
             h = p.height()
             p.save("./Page_{}.png".format(page))
             if pdf is None:
-                pdf = FPDF(format=(w,h))
+                pdf = FPDF(format=(w, h))
             '''if w > h:
                 pdf.add_page(orientation='L')
                 pdf.image("./Page_{}.png".format(page), x=0, y=0)#, w=297)
@@ -207,7 +196,7 @@ class QEditGuiMain(QMainWindow):
                 dict(listify(self.structure))) and len(self.undo_stack) > 0 \
                 and not (
                 self.initial_structure == copy.deepcopy(dict(listify(self.structure))) and len(self.undo_stack) == 0):
-            if self.unsaved_message() == QMessageBox.AcceptRole:
+            if self.unsaved_message() == QMessageBox.ButtonRole.AcceptRole:
                 self.save()
         self.undo_stack.clear()
         self.redo_stack.clear()
@@ -234,13 +223,13 @@ class QEditGuiMain(QMainWindow):
                 self.initial_structure != copy.deepcopy(dict(listify(self.structure))) and len(self.undo_stack) > 0) \
                 and not (
                 self.initial_structure == copy.deepcopy(dict(listify(self.structure))) and len(self.undo_stack) == 0):
-            if self.unsaved_message() == QMessageBox.AcceptRole:
+            if self.unsaved_message() == QMessageBox.ButtonRole.AcceptRole:
                 self.save()
         dlg = QFileDialog(self)
-        dlg.setFileMode(QFileDialog.ExistingFile)
+        dlg.setFileMode(QFileDialog.FileMode.ExistingFile)
         dlg.setNameFilter("Text files (*.txt)")
         dlg.setStyle(self.style())
-        if dlg.exec_():
+        if dlg.exec():
             file = dlg.selectedFiles()[0]
             self.filename = file
             try:
@@ -350,7 +339,7 @@ class EditGui(QWidget):
         self.treeview = Tree(self)
         self.treeview.clicked.connect(self.show_details)
         self.treeview.itemSelectionChanged.connect(self.change_active_buttons)
-        self.treeview.setContextMenuPolicy(Qt.CustomContextMenu)
+        self.treeview.setContextMenuPolicy(Qt.ContextMenuPolicy.CustomContextMenu)
         self.treeview.customContextMenuRequested.connect(self.open_tree_menu)
         self.treeview.tree_changed.connect(self.update_structure)
         self.treeview.error_message.connect(self.set_status_message)
@@ -443,7 +432,7 @@ class EditGui(QWidget):
         self.prev_refresh_layout = QHBoxLayout()
         self.refresh_button = QPushButton("Refresh Preview")
         self.refresh_button.clicked.connect(self.load_preview)
-        self.prev_refresh_layout.addWidget(self.refresh_button, alignment=Qt.AlignRight | Qt.AlignBottom)
+        self.prev_refresh_layout.addWidget(self.refresh_button, alignment=Qt.AlignmentFlag.AlignRight | Qt.AlignmentFlag.AlignBottom)
         self.automatic_refresh = QCheckBox("automatic refresh")
         self.prev_refresh_layout.addWidget(self.automatic_refresh)
         self.prev_layout.addLayout(self.prev_refresh_layout)
@@ -451,7 +440,7 @@ class EditGui(QWidget):
         scroll = QScrollArea()
         scroll.setWidget(edit)
         scroll.setWidgetResizable(True)
-        scroll.setHorizontalScrollBarPolicy(Qt.ScrollBarAlwaysOff)
+        scroll.setHorizontalScrollBarPolicy(Qt.ScrollBarPolicy.ScrollBarAlwaysOff)
         scroll.setStyleSheet("QScrollArea{border: 1px solid transparent;}")
         splitter.addWidget(structure_view)
         splitter.addWidget(scroll)
@@ -462,10 +451,10 @@ class EditGui(QWidget):
     def choose_qss(self):
         """Choose an existing qss/css file as stylesheet."""
         dlg = QFileDialog(self)
-        dlg.setFileMode(QFileDialog.ExistingFile)
+        dlg.setFileMode(QFileDialog.FileMode.ExistingFile)
         dlg.setNameFilter("QSS/CSS files (*.qss *.css)")
         dlg.setStyle(self.style())
-        if dlg.exec_():
+        if dlg.exec():
             self.qss_filename.setText(dlg.selectedFiles()[0])
             if self.parent().structure["stylesheet"] != self.qss_filename.text():
                 self.parent().undo_stack.append(copy.deepcopy(dict(self.parent().structure)))
@@ -479,10 +468,10 @@ class EditGui(QWidget):
     def choose_pwfile(self):
         """Choose an existing txt file as password file."""
         dlg = QFileDialog(self)
-        dlg.setFileMode(QFileDialog.ExistingFile)
+        dlg.setFileMode(QFileDialog.FileMode.ExistingFile)
         dlg.setNameFilter("Password files (*.txt)")
         dlg.setStyle(self.style())
-        if dlg.exec_():
+        if dlg.exec():
             self.pw_file.setText(dlg.selectedFiles()[0])
             page = self.treeview.selectedItems()[0].parent().text(0)
             question = self.treeview.selectedItems()[0].text(0)
@@ -496,10 +485,10 @@ class EditGui(QWidget):
     def choose_imgfile(self):
         """Choose an existing image file."""
         dlg = QFileDialog(self)
-        dlg.setFileMode(QFileDialog.ExistingFile)
+        dlg.setFileMode(QFileDialog.FileMode.ExistingFile)
         dlg.setNameFilter("Image files (*.png *.jpg *.jpeg *.gif)")
         dlg.setStyle(self.style())
-        if dlg.exec_():
+        if dlg.exec():
             self.img_file.setText(dlg.selectedFiles()[0])
             page = self.treeview.selectedItems()[0].parent().text(0)
             question = self.treeview.selectedItems()[0].text(0)
@@ -513,10 +502,10 @@ class EditGui(QWidget):
     def choose_randfile(self):
         """Choose an existing txt file as randomization order file."""
         dlg = QFileDialog(self)
-        dlg.setFileMode(QFileDialog.ExistingFile)
+        dlg.setFileMode(QFileDialog.FileMode.ExistingFile)
         dlg.setNameFilter("Randomization files (*.txt *.csv)")
         dlg.setStyle(self.style())
-        if dlg.exec_():
+        if dlg.exec():
             self.rand_file.setText(dlg.selectedFiles()[0])
             if self.parent().structure["randomization_file"] != self.rand_file.text():
                 self.parent().undo_stack.append(copy.deepcopy(dict(self.parent().structure)))
@@ -624,7 +613,7 @@ class EditGui(QWidget):
                 page = QTreeWidgetItem(root, [sec])
                 for q in structure[sec].sections:
                     quest = QTreeWidgetItem(page, [q])
-                    quest.setFlags(quest.flags() & ~Qt.ItemIsDropEnabled)
+                    quest.setFlags(quest.flags() & ~Qt.ItemFlag.ItemIsDropEnabled)
             self.treeview.addTopLevelItem(root)
         else:
             root = QTreeWidgetItem(self.treeview, ["<new questionnaire>"])
@@ -712,7 +701,7 @@ class EditGui(QWidget):
                                     type(self.parent().structure["go_back"]) is bool and not self.parent().structure["go_back"]))):
                                 val_field.setDisabled(True)
                         self.edit_layout.addRow(QLabel(field), val_field)
-                        if type(val_field) != QHBoxLayout:
+                        if type(val_field) is not QHBoxLayout:
                             val_field.setToolTip(tooltips[field])
             elif (val.parent().data() is not None) and (val.parent().parent().data() is None):  # page
                 if self.parent().structure[val.data()]:
@@ -764,9 +753,11 @@ class EditGui(QWidget):
                                         self.img_layout.addWidget(self.img_file)
                                 elif fields_per_type[question_data[k]][0][field] == "QPlainTextEdit":
                                     if field not in question_data.keys():
-                                        val_field = TextEdit("")
+                                        val_field = TextEdit()
+                                        val_field.setText("")
                                     else:
-                                        val_field = TextEdit(str(question_data[field]))
+                                        val_field = TextEdit()
+                                        val_field.setText(str(question_data[field]))
                                     val_field.editingFinished.connect(self.edit_done)
                                     if (field == "label") and ((question_data["labelled"] == "False") or (
                                             type(question_data["labelled"]) is bool and not question_data["labelled"])):
@@ -921,7 +912,7 @@ class EditGui(QWidget):
                                             bg.addButton(rb, cnt)
                                             bg.buttonClicked.connect(self.update_val)
                                             cnt += 1
-                                if type(val_field) != QHBoxLayout:
+                                if type(val_field) is not QHBoxLayout:
                                     val_field.setToolTip(tooltips[field])
                                 if field == "policy" or field == "annotation" or field == "recording_name" or field == "function" or field == "image_position":
                                     self.edit_layout.addRow(QLabel(field), val_field)
@@ -952,15 +943,15 @@ class EditGui(QWidget):
                     if self.sender().checkedId():  # multiline
                         pos = \
                             self.sender().parent().parent().layout().getLayoutPosition(self.sender().parent().layout())[0] + 1
-                        self.sender().parent().parent().layout().itemAt(pos, 1).widget().setEnabled(False)
-                        self.sender().parent().parent().layout().itemAt(pos, 1).widget().setCurrentIndex(0)
+                        self.sender().parent().parent().layout().itemAt(pos, QFormLayout.ItemRole.FieldRole).widget().setEnabled(False)
+                        self.sender().parent().parent().layout().itemAt(pos, QFormLayout.ItemRole.FieldRole).widget().setCurrentIndex(0)
                         self.clear_layout(self.policy_layout)
                     else:
                         pos = \
                             self.sender().parent().parent().layout().getLayoutPosition(self.sender().parent().layout())[0] + 1
-                        self.sender().parent().parent().layout().itemAt(pos, 1).widget().setEnabled(True)
+                        self.sender().parent().parent().layout().itemAt(pos, QFormLayout.ItemRole.FieldRole).widget().setEnabled(True)
                         self.parent().structure[self.treeview.currentItem().parent().text(0)][self.treeview.currentItem().text(0)]["policy"] = \
-                            self.sender().parent().parent().layout().itemAt(pos, 1).widget().currentText()
+                            self.sender().parent().parent().layout().itemAt(pos, QFormLayout.ItemRole.FieldRole).widget().currentText()
                     self.parent().structure[self.treeview.currentItem().parent().text(0)][self.treeview.currentItem().text(0)]["policy"] = ["None"]
                     new_val += 1
                 elif lbl == "buttons":
@@ -974,10 +965,10 @@ class EditGui(QWidget):
                 if (lbl == "go_back") or (lbl == "labelled"):
                     if new_val:
                         pos = self.sender().parent().layout().getWidgetPosition(self.sender())[0] + 1
-                        self.sender().parent().layout().itemAt(pos, 1).widget().setEnabled(True)
+                        self.sender().parent().layout().itemAt(pos, QFormLayout.ItemRole.FieldRole).widget().setEnabled(True)
                     else:
                         pos = self.sender().parent().layout().getWidgetPosition(self.sender())[0] + 1
-                        self.sender().parent().layout().itemAt(pos, 1).widget().setEnabled(False)
+                        self.sender().parent().layout().itemAt(pos, QFormLayout.ItemRole.FieldRole).widget().setEnabled(False)
             elif type(self.sender()) is QComboBox:
                 if self.sender().objectName() == "receiver":
                     self.sender().parent().layout().itemAt(1).widget().layout().itemAt(1).widget().setEnabled(False)
@@ -1181,12 +1172,13 @@ class EditGui(QWidget):
             value of the button clicked (True if it is supposed to be updated)
         """
         msg = QMessageBox()
-        msg.setIcon(QMessageBox.Question)
+        msg.setIcon(QMessageBox.Icon.Question)
         msg.setText('The current value of "save_after" is "{}". Do you want to change it to the new page ({})?'.format(self.save_after.currentText(), new_page))
         msg.setWindowFlags(Qt.CustomizeWindowHint)  # removes title bar
-        msg.addButton("Yes", QMessageBox.AcceptRole)
-        msg.addButton("No", QMessageBox.RejectRole)
-        retval = msg.exec_()
+        msg.addButton("Yes", QMessageBox.ButtonRole.AcceptRole)
+        msg.addButton("No", QMessageBox.ButtonRole.RejectRole)
+        msg.exec()
+        retval = msg.buttonRole(msg.clickedButton())
         return retval
 
     def clear_layout(self, layout):
@@ -1198,7 +1190,7 @@ class EditGui(QWidget):
             the layout to be cleared
         """
         while layout.count():
-            if type(layout) == QFormLayout:
+            if type(layout) is QFormLayout:
                 trr = layout.takeRow(0)
                 child = trr.fieldItem
                 lbl = trr.labelItem
@@ -1303,7 +1295,7 @@ class EditGui(QWidget):
                 paste_quest.triggered.connect(lambda: self.paste(self.treeview.itemAt(position)))
                 menu.addAction(paste_quest)
             if menu is not None:
-                menu.exec_(self.treeview.viewport().mapToGlobal(position))
+                menu.exec(self.treeview.viewport().mapToGlobal(position))
 
     def copy(self, node, copy_type):
         """Copy a page or question.
@@ -1372,10 +1364,10 @@ class EditGui(QWidget):
         data : configobj.Section, default=None
             not None when adding a page by copy+paste
         """
-        text, ok = QInputDialog.getText(self, "New page", "Name of the new page:", QLineEdit.Normal)
+        text, ok = QInputDialog.getText(self, "New page", "Name of the new page:", QLineEdit.EchoMode.Normal)
         if ok and text not in self.parent().structure.keys() and text != '':
             self.treeview.expandItem(self.treeview.itemAt(0, 0))
-            if data is None or type(data) != configobj.Section:
+            if data is None or type(data) is not configobj.Section:
                 self.parent().undo_stack.append(
                     copy.deepcopy(dict(self.parent().structure)))
                 self.parent().undoaction.setEnabled(True)
@@ -1390,7 +1382,7 @@ class EditGui(QWidget):
                     self.parent().structure["save_after"] = text
                 else:
                     new_val = self.change_save_after_message(text)
-                    if new_val == QMessageBox.AcceptRole:
+                    if new_val == QMessageBox.ButtonRole.AcceptRole:
                         self.parent().structure["save_after"] = text
             else:
                 page = QTreeWidgetItem(self.treeview.itemAt(0, 0), self.treeview.currentItem())
@@ -1404,12 +1396,12 @@ class EditGui(QWidget):
                 for quest in data.sections:
                     _ = QTreeWidgetItem(page, [quest])
                 new_val = self.change_save_after_message(text)
-                if new_val == QMessageBox.AcceptRole:
+                if new_val == QMessageBox.ButtonRole.AcceptRole:
                     self.parent().structure["save_after"] = text
                 self.update_structure()
             self.treeview.setCurrentItem(page)
             self.show_details(self.treeview.indexFromItem(page))
-            if self.automatic_refresh.isChecked() and (data is None or type(data) != configobj.Section):
+            if self.automatic_refresh.isChecked() and (data is None or type(data) is not configobj.Section):
                 self.load_preview()
         elif text in self.parent().structure.keys():
             if text in general_fields:
@@ -1430,7 +1422,7 @@ class EditGui(QWidget):
         data : configObj.Section, default=None
             not None when adding a page by copy+paste
         """
-        text, ok = QInputDialog.getText(self, "New question", "Name of the new question:", QLineEdit.Normal)
+        text, ok = QInputDialog.getText(self, "New question", "Name of the new question:", QLineEdit.EchoMode.Normal)
         if ok and text not in self.parent().structure[page.text(0)].keys() and text != '':
             self.treeview.expandItem(page)
             if data is None:
@@ -1440,13 +1432,13 @@ class EditGui(QWidget):
                 self.parent().redoaction.setEnabled(False)
                 self.parent().structure[page.text(0)][text] = {}
                 quest = QTreeWidgetItem(page, [text])
-                quest.setFlags(quest.flags() & ~Qt.ItemIsDropEnabled)
+                quest.setFlags(quest.flags() & ~Qt.ItemFlag.ItemIsDropEnabled)
                 new_question = {"type": "HLine"}
                 self.parent().structure[page.text(0)][text] = new_question
             else:
                 quest = QTreeWidgetItem(page, self.treeview.currentItem())
                 quest.setText(0, text)
-                quest.setFlags(quest.flags() & ~Qt.ItemIsDropEnabled)
+                quest.setFlags(quest.flags() & ~Qt.ItemFlag.ItemIsDropEnabled)
                 new_question = data.copy()
                 self.parent().structure[page.text(0)][text] = new_question  # data
                 self.update_structure()
@@ -1478,7 +1470,7 @@ class EditGui(QWidget):
         self.parent().structure.pop(item.text(0))
         if "save_after" in self.parent().structure.keys() and self.parent().structure["save_after"] == item.text(0):
             self.parent().structure["save_after"] = None
-        sip.delete(item)  # delete AFTER last ref!
+        shiboken6.delete(item)  # delete AFTER last ref!
         self.treeview.clearSelection()
         self.current_item = None
         self.clear_layout(self.edit_layout)
@@ -1498,7 +1490,7 @@ class EditGui(QWidget):
         self.parent().redo_stack.clear()
         self.parent().redoaction.setEnabled(False)
         self.parent().structure[item.parent().text(0)].pop(item.text(0))
-        sip.delete(item)  # delete AFTER last ref!
+        shiboken6.delete(item)  # delete AFTER last ref!
         self.clear_layout(self.edit_layout)
         self.treeview.clearSelection()
         self.current_item = None
@@ -1513,7 +1505,7 @@ class EditGui(QWidget):
         item : QTreeWidgetItem
             the page to be renamed
         """
-        text, ok = QInputDialog.getText(self, "Rename page", "New name for the page:", QLineEdit.Normal)
+        text, ok = QInputDialog.getText(self, "Rename page", "New name for the page:", QLineEdit.EchoMode.Normal)
         if ok and text not in self.parent().structure.keys() and text != '':
             self.parent().undo_stack.append(copy.deepcopy(dict(self.parent().structure)))
             self.parent().undoaction.setEnabled(True)
@@ -1540,7 +1532,7 @@ class EditGui(QWidget):
         item : QTreeWidgetItem
             the question to be renamed
         """
-        text, ok = QInputDialog.getText(self, "Rename question", "New name for the question:", QLineEdit.Normal)
+        text, ok = QInputDialog.getText(self, "Rename question", "New name for the question:", QLineEdit.EchoMode.Normal)
         if ok and text not in self.parent().structure[item.parent().text(0)].keys() and text != '':
             self.parent().undo_stack.append(copy.deepcopy(dict(self.parent().structure)))
             self.parent().undoaction.setEnabled(True)
@@ -1680,4 +1672,4 @@ class EditGui(QWidget):
 if __name__ == '__main__':
     app = QApplication([])
     ex = QEditGuiMain()
-    app.exec_()
+    app.exec()

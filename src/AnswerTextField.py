@@ -1,9 +1,9 @@
 """
 This class creates a Textfield.
 """
-from PyQt5.QtCore import QRegExp, QLocale
-from PyQt5.QtGui import QIntValidator, QDoubleValidator, QRegExpValidator
-from PyQt5.QtWidgets import QPlainTextEdit, QLineEdit
+from PySide6.QtCore import QRegularExpression, QLocale
+from PySide6.QtGui import QIntValidator, QDoubleValidator, QRegularExpressionValidator
+from PySide6.QtWidgets import QPlainTextEdit, QLineEdit
 
 
 def make_answers(size, qid, policy=None, parent=None, objectname=None):
@@ -42,13 +42,13 @@ def make_answers(size, qid, policy=None, parent=None, objectname=None):
                 text.setValidator(QIntValidator(bottom=int(policy[1]), top=int(policy[2])))
             elif policy[0].lower() == "double":
                 validator = QDoubleValidator(bottom=float(policy[1]), top=float(policy[2]), decimals=int(policy[3]))
-                validator.setNotation(QDoubleValidator.StandardNotation)
+                validator.setNotation(QDoubleValidator.Notation.StandardNotation)
                 # another parameter would be: notation (scientific 1.5E-2 or standard 0.015=default)
                 text.setValidator(validator)
                 if QLocale().decimalPoint() == ",":  # workaround: QDoubleValidator only registers "," but not "." (depending on locale)
                     text.textChanged.connect(lambda: text.setText(text.text().replace(".", ",")))
             elif policy[0].lower() == "regex":
-                text.setValidator(QRegExpValidator(QRegExp(policy[1])))
+                text.setValidator(QRegularExpressionValidator(QRegularExpression(policy[1])))
             else:
                 raise ValueError("Unknown validator found {}.".format(policy[0]))
     elif size > 1:
@@ -61,5 +61,5 @@ def make_answers(size, qid, policy=None, parent=None, objectname=None):
         # text.setFixedHeight(size * QFontMetrics(text.font()).lineSpacing()*2)
     else:
         raise ValueError("Size of text answer needs to be >= 1. Found {}.".format(size))
-    text.textChanged.connect(lambda: parent.log(qid))
+    text.textChanged.connect(lambda: parent.log(qid, text))
     return text

@@ -3,9 +3,9 @@ A TextEdit editor that sends editingFinished events when the text was changed an
 Original version (PyQt4): https://gist.github.com/hahastudio/4345418
 """
 
-from PyQt5.QtCore import pyqtSignal, QObject
-from PyQt5.QtGui import QFocusEvent
-from PyQt5.QtWidgets import QTextEdit
+from PySide6.QtCore import Signal, QObject
+from PySide6.QtGui import QFocusEvent
+from PySide6.QtWidgets import QTextEdit
 
 
 # noinspection PyUnresolvedReferences
@@ -29,15 +29,15 @@ class TextEdit(QTextEdit):
     .. [1] https://gist.github.com/hahastudio/4345418
     """
 
-    editingFinished = pyqtSignal()
-    receivedFocus = pyqtSignal()
+    editingFinished = Signal()
+    receivedFocus = Signal()
 
-    def __init__(self, parent):
+    def __init__(self, parent=None):
         """
 
         Parameters
         ----------
-        parent : QObject
+        parent : QObject, opt
             widget/layout this widget is embedded in
         """
         super(TextEdit, self).__init__(parent)

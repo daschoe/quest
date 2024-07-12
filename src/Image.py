@@ -1,7 +1,7 @@
 """A question type to display an image in the questionnaire."""
 
-from PyQt5.QtGui import QPixmap
-from PyQt5.QtWidgets import QLabel
+from PySide6.QtGui import QPixmap
+from PySide6.QtWidgets import QLabel
 
 
 class Image(QLabel):
@@ -15,9 +15,9 @@ class Image(QLabel):
         ----------
         file : str
             image file to display
-        x : int, opt
+        x : Union(int, None), opt
             x coordinate of top left corner (to the right)
-        y : int, opt
+        y : Union(int, None), opt
             y coordinate of top left corner (down)
         width : int, optional
             width in display
