@@ -5,7 +5,7 @@ import datetime
 from ping3 import ping
 from pythonosc import udp_client
 
-from PySide6.QtCore import QTimer, QObject
+from PySide6.QtCore import QTimer
 from PySide6.QtGui import QDoubleValidator
 from PySide6.QtWidgets import QPushButton, QWidget, QHBoxLayout, QMessageBox, QSizePolicy, QLineEdit, QPlainTextEdit
 
@@ -49,11 +49,11 @@ class OSCButton(QWidget):
                 if not skip and self.parent().parent().widget(s).evaluationvars is not None and \
                         var in self.parent().parent().widget(s).evaluationvars:
                     self.value = self.parent().parent().widget(s).evaluationvars[var]
-                    if type(self.value) is QLineEdit or type(self.value) is PasswordEntry:
-                        if type(self.value.validator()) == QDoubleValidator:
+                    if isinstance(self.value, (QLineEdit, PasswordEntry)):
+                        if isinstance(self.value.validator(), QDoubleValidator):
                             self.value.setText(self.value.text().replace(",", "."))
                         self.value = self.value.text()
-                    elif type(self.value) is QPlainTextEdit:
+                    elif isinstance(self.value, QPlainTextEdit):
                         self.value = self.value.toPlainText().replace("\n", " ")
                 if not skip and self.parent().parent().widget(s) == self.parent():
                     skip = True
@@ -84,7 +84,7 @@ class OSCButton(QWidget):
             msg.setSizeGripEnabled(True)
             msg.setSizePolicy(QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Expanding)
             msg.setIcon(QMessageBox.Icon.Information)
-            msg.setText("No connection to {}.".format(receiver[0]))
+            msg.setText(f'No connection to {receiver[0]}.')
             msg.exec_()
 
         if inscription is not None:
@@ -119,4 +119,4 @@ class OSCButton(QWidget):
 
     def log(self):
         """Log Action"""
-        self.parent().page_log += "\n\t{} - Pressed OSC-Button {} ".format(datetime.datetime.now().replace(microsecond=0).__str__(), self.id)
+        self.parent().page_log += f'\n\t{str(datetime.datetime.now().replace(microsecond=0))} - Pressed OSC-Button {self.id}'

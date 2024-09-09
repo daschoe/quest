@@ -18,7 +18,7 @@ class LabeledSlider(QtWidgets.QWidget):
     This functionality is from: https://stackoverflow.com/questions/47494305/python-pyqt4-slider-with-tick-labels
     """
 
-    def __init__(self, minimum, maximum, start, step=1, tick_interval=1, orientation=Qt.Orientation.Horizontal, labels=None, parent=None, objectname=None, sid=None):
+    def __init__(self, minimum, maximum, start, step=1, tick_interval=1, orientation=Qt.Orientation.Horizontal, labels=None, parent=None, objectname=None):
         """
 
         Parameters
@@ -41,8 +41,6 @@ class LabeledSlider(QtWidgets.QWidget):
                 the page the button is on
         objectname : str, optional
             name of the object, if it is supposed to be styled individually
-        sid : str, optional
-            id of the question
 
         Raises
         ------
@@ -54,8 +52,8 @@ class LabeledSlider(QtWidgets.QWidget):
         """
         super(LabeledSlider, self).__init__(parent=parent)
 
-        levels = range(int((maximum-minimum)/tick_interval)+1) if minimum < maximum \
-            else range((int((maximum-minimum)/tick_interval)*-1+1))
+        levels = range(int((maximum - minimum) / tick_interval) + 1) if minimum < maximum \
+            else range((int((maximum - minimum) / tick_interval) * -1 + 1))
         if labels is not None:
             if not isinstance(labels, (tuple, list)):
                 raise TypeError("<labels> is a list or tuple.")
@@ -66,12 +64,10 @@ class LabeledSlider(QtWidgets.QWidget):
             else:
                 new_labels = [""] * len(levels)
                 for pair in labels:
-                    new_labels[int(abs(pair[0]-minimum)/tick_interval)] = pair[1]
+                    new_labels[int(abs(pair[0] - minimum) / tick_interval)] = pair[1]
                 self.levels = list(zip(levels, new_labels))
         else:
             labels = self.create_range(minimum, maximum, tick_interval)
-            # levels = range(minimum, maximum + step, step) if minimum < maximum \
-            #    else range(minimum, maximum + step * -1, step * -1)
             self.levels = list(zip(levels, map(str, labels)))
 
         if orientation == Qt.Orientation.Horizontal:
@@ -132,50 +128,41 @@ class LabeledSlider(QtWidgets.QWidget):
         st_slider.initFrom(self.sl)
         st_slider.orientation = self.sl.orientation()
 
-        length = style.pixelMetric(QStyle.PixelMetric.PM_SliderLength, st_slider, self.sl)
         available = style.pixelMetric(QStyle.PixelMetric.PM_SliderSpaceAvailable, st_slider, self.sl)
 
         for v, v_str in self.levels:
 
             # get the size of the label
-            if type(v_str) is not str:
+            if not isinstance(v_str, str):
                 v_str = str(v_str)
             rect = painter.drawText(QRect(), Qt.TextFlag.TextDontPrint | Qt.TextFlag.TextDontClip, v_str)
-            rect.setHeight(int(rect.height()*1.5))
+            rect.setHeight(int(rect.height() * 1.5))
 
             if self.sl.orientation() == Qt.Orientation.Horizontal:
                 # I assume the offset is half the length of slider, therefore + length//2
-                x_loc = QStyle.sliderPositionFromValue(self.sl.minimum(), self.sl.maximum(), v, available, self.sl.invertedAppearance()) + length // 2
-                # left bound of the text = center - half of text width + L_margin
-                left = x_loc - int(rect.width() / 2) + self.left_margin
-                bottom = self.rect().bottom() - int(self.rect().height()/6)
+                x_loc = v * available / (len(self.levels) - 1)  # Because SOMEHOW sliderPositionFromValue does no like inverted sliders
 
+                left = int(x_loc - rect.width() / 2)
+                bottom = self.rect().bottom() - int(self.rect().height() / 7)
+                if v == 0 and left < 0:
+                    left = 0
+                
                 # enlarge margins if clipping
-                if v == self.sl.minimum():
-                    if left <= 0:
-                        self.left_margin = rect.width() // 2 - x_loc
-                    if self.bottom_margin <= rect.height():
-                        self.bottom_margin = rect.height()
+                if self.bottom_margin < rect.height():
+                    self.bottom_margin = rect.height()
 
-                    self.layout.setContentsMargins(self.left_margin, self.top_margin, self.right_margin, self.bottom_margin)
-
-                if v == self.sl.maximum() and rect.width() // 2 >= self.right_margin:
+                if v == len(self.levels) - 1 and rect.width() // 2 > self.right_margin and left + rect.width() > available:
                     self.right_margin = rect.width() // 2
-                    self.layout.setContentsMargins(self.left_margin, self.top_margin, self.right_margin, self.bottom_margin)
+                
+                self.layout.setContentsMargins(self.left_margin, self.top_margin, self.right_margin, self.bottom_margin)
 
             else:
-                y_loc = QStyle.sliderPositionFromValue(self.sl.minimum(), self.sl.maximum(), v, available, upsideDown=True)  # , self.sl.invertedAppearance() todo
+                y_loc = QStyle.sliderPositionFromValue(self.sl.minimum(), self.sl.maximum(), v, available, upsideDown=True)
 
-                bottom = y_loc + length // 2 + rect.height() // 2 + self.top_margin - 3
-                # there is a 3 px offset that I can't attribute to any metric
-
+                bottom = y_loc + rect.height()
                 left = self.left_margin - rect.width()
-                if left <= 0:
-                    self.left_margin = rect.width() + 2
-                    self.layout.setContentsMargins(self.left_margin, self.top_margin, self.right_margin, self.bottom_margin)
 
             pos = QPoint(left, bottom)
-            # print("Tick at:",pos, "named", v_str)
             painter.drawText(pos, str(v_str))
 
     def create_range(self, minimum, maximum, tick_step):
@@ -206,9 +193,8 @@ class LabeledSlider(QtWidgets.QWidget):
             tmp = None
             minimum = float(minimum)
             if minimum > maximum:
-                tmp = minimum
-                minimum = maximum
-                maximum = tmp
+                minimum, maximum = maximum, minimum
+                tmp = True
             while minimum <= maximum:
                 if int(minimum) == float(minimum):
                     vals.append(int(minimum))

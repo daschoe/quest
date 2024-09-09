@@ -50,19 +50,19 @@ class ABX(QWidget):
         else:
             self.name = None
         stimuli = []
-        for cue_no in range(len(start_cues)):
-            stimuli.append((int(start_cues[cue_no]), tracks[cue_no]))
+        for cue_no, cue in enumerate(start_cues):
+            stimuli.append((int(cue), tracks[cue_no]))
         shuffle(stimuli)
         self.page = parent
 
-        self.a_button = Player(stimuli[0][0], [stimuli[0][1]], parent=self.page, qid=qid + "_A", displayed_buttons=["Play"],
+        self.a_button = Player(stimuli[0][0], [stimuli[0][1]], parent=self.page, qid=f'{qid}_A', displayed_buttons=["Play"],
                                objectname=objectname, play_button_text=button_texts[0])
         player_layout.addWidget(self.a_button)
-        self.b_button = Player(stimuli[1][0], [stimuli[1][1]], parent=self.page, qid=qid + "_B", displayed_buttons=["Play"],
+        self.b_button = Player(stimuli[1][0], [stimuli[1][1]], parent=self.page, qid=f'{qid}_B', displayed_buttons=["Play"],
                                objectname=objectname, play_button_text=button_texts[1])
         player_layout.addWidget(self.b_button)
         if x:
-            self.x_button = Player(int(start_cues[0]), [tracks[0]], parent=self.page, qid=qid + "_X", displayed_buttons=["Play"],
+            self.x_button = Player(int(start_cues[0]), [tracks[0]], parent=self.page, qid=f'{qid}_X', displayed_buttons=["Play"],
                                    objectname=objectname, play_button_text=button_texts[2])
             player_layout.addWidget(self.x_button)
         else:

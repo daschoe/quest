@@ -37,17 +37,17 @@ class RadioMatrix(QWidget):
             self.name = None
         self.id = qid
 
-        if type(questions) is str:
+        if isinstance(questions, str):
             questions = [questions]
-        if type(answers) is str:
+        if isinstance(answers, str):
             answers = [answers]
 
-        if randomize is True:
+        if randomize:
             random.seed(self.parent().parent().start.__str__())  # uses starting time
-            self.id_order = [i+1 for i in range(0, len(questions))]
+            self.id_order = [i + 1 for i in range(0, len(questions))]
             random.shuffle(self.id_order)
         else:
-            self.id_order = [i+1 for i in range(0, len(questions))]
+            self.id_order = [i + 1 for i in range(0, len(questions))]
 
         layout = QFormLayout()
         headerlbl = QLabel("")
@@ -73,10 +73,8 @@ class RadioMatrix(QWidget):
         self.buttongroups = []
         self.questions = []
         for quest in self.id_order:
-            bg_layout, bg = make_answers([""]*len(answers), self,
-                                         qid+"_{0:02d}".format(quest) if len(questions) >= 10 else qid+"_{}".format(quest),
-                                         self.name, start_answer_id, log=False)
-            quest_label = QLabel(questions[quest-1])
+            bg_layout, bg = make_answers([""] * len(answers), self, f'{qid}_{quest:02d}' if len(questions) >= 10 else f'{qid}_{quest}', self.name, start_answer_id, log=False)
+            quest_label = QLabel(questions[quest - 1])
             layout.addRow(quest_label, bg_layout)
             self.buttongroups.append(bg)
             self.questions.append(quest_label)

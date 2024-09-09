@@ -8,6 +8,7 @@ from PySide6.QtCore import QTimer
 from PySide6.QtWidgets import QWidget, QPushButton, QHBoxLayout, QStyle, QFormLayout
 
 from src.PupilCoreButton import Button
+from src.tools import player_buttons
 from src.Video import madmapper, vlc
 
 
@@ -15,7 +16,7 @@ class Player(QWidget):
     """Multi-Media player unit."""
 
     def __init__(self, start_cue, track, qid, video=None, parent=None, end_cue=None,
-                 displayed_buttons=["Play", "Pause", "Stop"], icons=False, pupil=None, objectname=None, timer=None,
+                 displayed_buttons=player_buttons, icons=False, pupil=None, objectname=None, timer=None,
                  play_button_text=None, play_once=False, crossfade=False):
         """Create the layout of the player.
 
@@ -87,15 +88,15 @@ class Player(QWidget):
             self.timer.timeout.connect(self.timer_done)
         else:
             self.timer = None
-        if type(displayed_buttons) is str:
+        if isinstance(displayed_buttons, str):
             self.buttons = [displayed_buttons]  # to support just one button
         else:
             self.buttons = displayed_buttons
-        if type(track) is str:
+        if isinstance(track, str):
             track = [int(track)]
         else:
-            for t in range(0, len(track)):
-                track[t] = int(track[t])
+            for _, tra in enumerate(track):
+                tra = int(tra)
         self.track = track
         self.video = video
         self.start = 0
@@ -168,15 +169,15 @@ class Player(QWidget):
                 self.video_client.send_message(self.video_player["unpause"][0], self.video_player["unpause"][1])
             self.pause_button.setChecked(False)
             if str(type(self.page)) == "<class 'src.Page.Page'>":
-                self.page.page_log += "\n\t{} - Unpaused Player {} ".format(datetime.datetime.now().replace(microsecond=0).__str__(), self.id)
+                self.page.page_log += f'\n\t{str(datetime.datetime.now().replace(microsecond=0))} - Unpaused Player {self.id}'
             else:
-                self.gui.page_log += "\n\t{} - Unpaused Player {} ".format(datetime.datetime.now().replace(microsecond=0).__str__(), self.id)
+                self.gui.page_log += f'\n\t{str(datetime.datetime.now().replace(microsecond=0))} - Unpaused Player {self.id}'
         else:
             for i in range(1, self.audio_tracks + 1):
                 if i in self.track:
-                    self.audio_client.send_message("/track/{}/mute".format(i), 0)
+                    self.audio_client.send_message(f'/track/{i}/mute', 0)
                 else:
-                    self.audio_client.send_message("/track/{}/mute".format(i), 1)
+                    self.audio_client.send_message(f'/track/{i}/mute', 1)
             if not self.crossfade or (self.crossfade and self.start_cue != previous_start):
                 if int(self.start_cue) < 10:
                     self.audio_client.send_message("/action", 40160 + int(self.start_cue))  # goto cue
@@ -190,7 +191,7 @@ class Player(QWidget):
             elif self.crossfade and self.start_cue == previous_start and self.gui.global_play_state == "STOP":
                 self.audio_client.send_message("/play", 1)
             if (self.video is not None) and (self.video_client is not None):
-                if "select" in self.video_player.keys():
+                if "select" in self.video_player:
                     self.video_client.send_message(self.video_player["reset"][0], self.video_player["reset"][1])
                     self.video_client.send_message(self.video_player["select"][0].format(self.video), self.video_player["select"][1])
                     self.video_client.send_message(self.video_player["play"][0], self.video_player["play"][1])
@@ -198,10 +199,9 @@ class Player(QWidget):
                     self.video_client.send_message(self.video_player["play"][0], self.video_player["play"][1].format(self.video))
 
             if str(type(self.page)) == "<class 'src.Page.Page'>":
-                self.page.page_log += "\n\t{} - (Re-)Started Player {} ".format(datetime.datetime.now().replace(microsecond=0).__str__(), self.id)
+                self.page.page_log += f'\n\t{str(datetime.datetime.now().replace(microsecond=0))} - (Re-)Started Player {self.id}'
             else:
-                self.gui.page_log += "\n\t{} - (Re-)Started Player {} ".format(
-                    datetime.datetime.now().replace(microsecond=0).__str__(), self.id)
+                self.gui.page_log += f'\n\t{str(datetime.datetime.now().replace(microsecond=0))} - (Re-)Started Player {self.id}'
         if (self.start != 0) and self.playing:
             self.end = time()
             self.duration.append(self.end - self.start)
@@ -226,7 +226,7 @@ class Player(QWidget):
         player_found = False
         for item in range(self.page.layout().rowCount()):
             if player_found and self.page.layout().itemAt(item, QFormLayout.ItemRole.FieldRole).widget() is None:
-                if type(self.page.layout().itemAt(item, QFormLayout.ItemRole.FieldRole)) is QHBoxLayout:
+                if isinstance(self.page.layout().itemAt(item, QFormLayout.ItemRole.FieldRole), QHBoxLayout):
                     for box in range(self.page.layout().itemAt(item, QFormLayout.ItemRole.FieldRole).count()):
                         self.page.layout().itemAt(item, QFormLayout.ItemRole.FieldRole).itemAt(box).widget().show()
                 if self.page.layout().itemAt(item, QFormLayout.ItemRole.LabelRole) is not None:
@@ -235,7 +235,7 @@ class Player(QWidget):
                 if self.page.layout().itemAt(item, QFormLayout.ItemRole.LabelRole) is not None:
                     self.page.layout().itemAt(item, QFormLayout.ItemRole.LabelRole).widget().show()
                 self.page.layout().itemAt(item, QFormLayout.ItemRole.FieldRole).widget().show()
-                if type(self.page.layout().itemAt(item, QFormLayout.ItemRole.FieldRole).widget()) == Player and self.page.layout().itemAt(item, QFormLayout.ItemRole.FieldRole).widget() != self:
+                if isinstance(self.page.layout().itemAt(item, QFormLayout.ItemRole.FieldRole).widget(), Player) and self.page.layout().itemAt(item, QFormLayout.ItemRole.FieldRole).widget() != self:
                     player_found = False
             if self.page.layout().itemAt(item, QFormLayout.ItemRole.FieldRole).widget() == self:
                 player_found = True
@@ -250,9 +250,9 @@ class Player(QWidget):
                 self.video_client.send_message(self.video_player["pause"][0], self.video_player["pause"][1])
             self.pause_button.setChecked(True)
             if str(type(self.page)) == "<class 'src.Page.Page'>":
-                self.page.page_log += "\n\t{} - Paused Player {} ".format(datetime.datetime.now().replace(microsecond=0).__str__(), self.id)
+                self.page.page_log += f'\n\t{str(datetime.datetime.now().replace(microsecond=0))} - Paused Player {self.id}'
             else:
-                self.gui.page_log += "\n\t{} - Paused Player {} ".format(datetime.datetime.now().replace(microsecond=0).__str__(), self.id)
+                self.gui.page_log += f'\n\t{str(datetime.datetime.now().replace(microsecond=0))} - Paused Player {self.id}'
             self.end = time()
             self.duration.append(self.end - self.start)
             self.paused = True
@@ -266,9 +266,9 @@ class Player(QWidget):
                 self.video_client.send_message(self.video_player["unpause"][0], self.video_player["unpause"][1])
             self.pause_button.setChecked(False)
             if str(type(self.page)) == "<class 'src.Page.Page'>":
-                self.page.page_log += "\n\t{} - Unpaused Player {} ".format(datetime.datetime.now().replace(microsecond=0).__str__(), self.id)
+                self.page.page_log += f'\n\t{str(datetime.datetime.now().replace(microsecond=0))} - Unpaused Player {self.id}'
             else:
-                self.gui.page_log += "\n\t{} - Unpaused Player {} ".format(datetime.datetime.now().replace(microsecond=0).__str__(), self.id)
+                self.gui.page_log += f'\n\t{str(datetime.datetime.now().replace(microsecond=0))} - Unpaused Player {self.id}'
             self.start = time()
             self.end = 0
             self.paused = False
@@ -295,9 +295,8 @@ class Player(QWidget):
             self.pause_button.setEnabled(False)
             self.pause_button.setChecked(False)
         if str(type(self.page)) == "<class 'src.Page.Page'>":
-            self.page.page_log += "\n\t{} - Stopped Player {} ".format(datetime.datetime.now().replace(microsecond=0).__str__(), self.id)
-        else:
-            self.gui.page_log += "\n\t{} - Stopped Player {} ".format(datetime.datetime.now().replace(microsecond=0).__str__(), self.id)
+            self.page.page_log += f'\n\t{str(datetime.datetime.now().replace(microsecond=0))} - Stopped Player {self.id}'
+            # self.gui.page_log += f'\n\t{str(datetime.datetime.now().replace(microsecond=0))} - Stopped Player {self.id}'
         if self.timer is not None and self.timer.remainingTime() > 0 and self.countdown > 0:
             self.timer.stop()
         self.playing = False

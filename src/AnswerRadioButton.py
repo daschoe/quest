@@ -33,10 +33,10 @@ def make_answers(answer, parent, qid, objectname=None, start_answer_id=0, log=Tr
     hbox = QHBoxLayout()
     bg = QButtonGroup(hbox)
     cnt = start_answer_id
-    if type(answer) is str:
+    if isinstance(answer, str):
         answer = [answer]  # to support questions with just one answer
-    for a in range(0, len(answer)):
-        rb = QRadioButton(answer[a])
+    for a, answ in enumerate(answer):
+        rb = QRadioButton(answ)
         if objectname is not None:
             rb.setObjectName(objectname)
         if not log and a == 0:

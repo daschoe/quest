@@ -1,7 +1,7 @@
 """Customized QTreeWidget with drag&drop functionality according to the questionnaire structure."""
 from PySide6.QtCore import Qt, Signal
-from PySide6.QtGui import QDragMoveEvent, QDropEvent
-from PySide6.QtWidgets import QTreeWidget, QAbstractItemView, QInputDialog, QLineEdit, QTreeWidgetItem
+from PySide6.QtGui import QDragMoveEvent
+from PySide6.QtWidgets import QTreeWidget, QAbstractItemView, QInputDialog, QLineEdit
 
 
 # noinspection PyUnresolvedReferences
@@ -66,10 +66,10 @@ class Tree(QTreeWidget):
             if self.dropIndicatorPosition() == QAbstractItemView.OnViewport:
                 event.ignore()
             if self.dropIndicatorPosition() == QAbstractItemView.OnItem:
-                tree_target_item = self.itemAt(event.pos())
+                tree_target_item = self.itemAt(event.position())
                 target_children = []
-                for ch in range(self.itemAt(event.pos()).childCount()):
-                    target_children.append(self.itemAt(event.pos()).child(ch))
+                for ch in range(self.itemAt(event.position()).childCount()):
+                    target_children.append(self.itemAt(event.position()).child(ch))
                 if tree_target_item.parent() is None:  # something was dropped on root
                     if source.parent().data() == tree_target_item.text(0):
                         # root item only accepts pages
@@ -115,7 +115,7 @@ class Tree(QTreeWidget):
                 else:
                     event.ignore()
             else:  # move above/below item
-                tree_target_item = self.itemAt(event.pos())
+                tree_target_item = self.itemAt(event.position())
                 if tree_target_item.parent() is None:
                     event.ignore()  # don't move anything above/below root
                 elif (tree_target_item.parent().parent() is None and source.parent().parent().data() is not None) or \
@@ -187,8 +187,7 @@ class Tree(QTreeWidget):
             ok : bool
                 True if renaming was executed successfully
         """
-        text, ok = QInputDialog.getText(self, "Rename question",
-                                        "Rename the moved question (the name already existed):", QLineEdit.Normal)
+        text, ok = QInputDialog.getText(self, "Rename question", "Rename the moved question (the name already existed):", QLineEdit.Normal)
         if not ok:
             return None, ok
         else:

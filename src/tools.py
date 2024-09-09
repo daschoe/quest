@@ -126,7 +126,7 @@ types = list(fields_per_type.keys())
 
 policy_possibilities = ["None", "int", "double", "regex"]
 
-function_possibilites = ["Annotate", "Recording", "Stop", "Calibration"]
+function_possibilites = ["Annotate", "Recording", "Stop"]
 
 player_buttons = ["Play", "Pause", "Stop"]
 

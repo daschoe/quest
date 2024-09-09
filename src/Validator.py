@@ -4,8 +4,7 @@ import ast
 import re
 from os import path
 
-from configobj import ConfigObj
-from PySide6.QtGui import QIntValidator, QDoubleValidator, QRegularExpressionValidator
+from PySide6.QtGui import QIntValidator, QDoubleValidator, QRegularExpressionValidator, QValidator
 from PySide6.QtWidgets import QSizePolicy, QMessageBox
 from PySide6.QtCore import QRegularExpression
 
@@ -41,7 +40,7 @@ def validate_passwords(file, policy):
         passwords = f.read().splitlines()
     for password in passwords:
         res = validator.validate(password, 0)
-        if res[0] != 2:
+        if res[0] != QValidator.State.Acceptable:
             return False
     return True
 
@@ -126,130 +125,126 @@ def listify(structure, status=None, status_duration=None):
             if "label" in structure[page][quest].keys() and ("," in structure[page][quest]["label"] or
                                                              "[" in structure[page][quest]["label"] or
                                                              "]" in structure[page][quest]["label"] or
-                                                             type(structure[page][quest]["label"]) == list):
+                                                             isinstance(structure[page][quest]["label"], list)):
                 sublist = False
                 lblcpy = structure[page][quest]["label"]
                 labels = []
                 try:
-                    if type(lblcpy) == str:
+                    if isinstance(lblcpy, str):
                         if lblcpy[0] == "[" and lblcpy[1] == "[" and lblcpy[-1] == "]" and lblcpy[-2] == "]":
                             lblcpy = lblcpy.strip(' "')[1:-1]
                         elif lblcpy.count("[") == 1 and lblcpy.count("]") == 1 and lblcpy.count(",") == 0:
                             lblcpy = lblcpy.strip(' []"')
                         lblcpy = lblcpy.split(",")
-                    for t in range(0, len(lblcpy)):
-                        if type(lblcpy[t]) == str:
-                            if '[' in lblcpy[t]:  # t is list:
-                                if ('[' in lblcpy[t]) and (']' not in lblcpy[t]):
+                    for _, lblc in enumerate(lblcpy):
+                        if isinstance(lblc, str):
+                            if '[' in lblc:  # t is list:
+                                if ('[' in lblc) and (']' not in lblc):
                                     sublist = True
-                                if ',' not in lblcpy[t]:
-                                    labels.append([float(lblcpy[t].strip(" '][").strip('"'))])
+                                if ',' not in lblc:
+                                    labels.append([float(lblc.strip(" '][").strip('"'))])
                                 else:
-                                    if len(lblcpy[t].split(",")) == 2:
-                                        entry = lblcpy[t].split(",")
+                                    if len(lblc.split(",")) == 2:
+                                        entry = lblc.split(",")
                                         labels.append([float(entry[0].strip(" '[]").strip('"')), entry[1].strip(" '[]").strip('"')])
                                     else:
                                         labels[-1].append(float(entry.strip(" '[]").strip('"')))
                             elif sublist:
-                                if ']' in lblcpy[t]:
+                                if ']' in lblc:
                                     sublist = False
-                                    labels[-1].append(lblcpy[t].strip(" ]['").strip('"'))
+                                    labels[-1].append(lblc.strip(" ]['").strip('"'))
                                 else:
-                                    labels[-1].append(float(lblcpy[t]))
+                                    labels[-1].append(float(lblc))
                             elif not sublist:
-                                labels.append(lblcpy[t].strip(" '[]").strip('"'))
+                                labels.append(lblc.strip(" '[]").strip('"'))
                         else:
-                            if type(lblcpy[t]) == list or type(lblcpy[t]) == tuple:
-                                if len(lblcpy[t]) == 2:
-                                    labels.append([float(lblcpy[t][0]), lblcpy[t][1]])
+                            if isinstance(lblc, list) or isinstance(lblc, tuple):
+                                if len(lblc) == 2:
+                                    labels.append([float(lblc[0]), lblc[1]])
                                 else:
-                                    labels[-1].append(lblcpy[t])
+                                    labels[-1].append(lblc)
                     structure[page][quest]["label"] = labels
                 except (ValueError, SyntaxError) as e:
                     if status is not None:
-                        status.showMessage("Invalid value found in a 'label' field: {}".format(e), status_duration)
+                        status.showMessage(f'Invalid value found in a "label" field: {e}', status_duration)
 
             if "track" in structure[page][quest].keys() and ("," in structure[page][quest]["track"] or
                                                              "[" in structure[page][quest]["track"] or
                                                              "]" in structure[page][quest]["track"] or
-                                                             type(structure[page][quest]["track"]) == list):
+                                                             isinstance(structure[page][quest]["track"], list)):
                 sublist = False
                 trackscpy = structure[page][quest]["track"]
                 tracks = []
                 try:
-                    if type(trackscpy) == str:
+                    if isinstance(trackscpy, str):
                         if trackscpy[0] == "[" and trackscpy[-1] == "]":
                             trackscpy = trackscpy.strip(" []")
                         trackscpy = trackscpy.split(",")
-                    for t in range(0, len(trackscpy)):
-                        if type(trackscpy[t]) == str:
-                            if '[' in trackscpy[t]:  # t is list:
-                                if ('[' in trackscpy[t]) and (']' not in trackscpy[t]):
+                    for _, tcpy in enumerate(trackscpy):
+                        if isinstance(tcpy, str):
+                            if '[' in tcpy:  # t is list:
+                                if ('[' in tcpy) and (']' not in tcpy):
                                     sublist = True
-                                if ',' not in trackscpy[t]:
-                                    tracks.append([int(trackscpy[t].strip(" ']["))])
+                                if ',' not in tcpy:
+                                    tracks.append([int(tcpy.strip(" ']["))])
                                 else:
                                     tracks.append([])
-                                    for entry in trackscpy[t].split(","):
+                                    for entry in tcpy.split(","):
                                         tracks[-1].append(int(entry.strip(" '[]")))
                             elif sublist:
-                                if ']' in trackscpy[t]:
+                                if ']' in tcpy:
                                     sublist = False
-                                    tracks[-1].append(int(trackscpy[t].strip(" ]['")))
+                                    tracks[-1].append(int(tcpy.strip(" ]['")))
                                 else:
-                                    tracks[-1].append(int(trackscpy[t]))
+                                    tracks[-1].append(int(tcpy))
                             elif not sublist:
-                                tracks.append(int(trackscpy[t].strip(" '")))
+                                tracks.append(int(tcpy.strip(" '")))
                         else:
-                            if type(trackscpy[t]) == list:
+                            if isinstance(tcpy, list):
                                 tracks.append([])
-                                for s in range(len(trackscpy[t])):
-                                    tracks[-1].append(int(trackscpy[t][s]))
+                                for _, tcpys in enumerate(tcpy):
+                                    tracks[-1].append(int(tcpys))
                             else:
-                                tracks.append(trackscpy[t])
+                                tracks.append(tcpy)
                     structure[page][quest]["track"] = tracks
                 except (ValueError, SyntaxError) as e:
                     if status is not None:
-                        status.showMessage("Invalid value found in a 'track' field: {}".format(e), status_duration)
+                        status.showMessage(f'Invalid value found in a "track" field: {e}', status_duration)
             try:
                 if "answers" in structure[page][quest].keys():
                     if "," in structure[page][quest]["answers"]:
                         structure[page][quest]["answers"] = ast.literal_eval(structure[page][quest]["answers"])
-                    elif type(structure[page][quest]["answers"]) == str:
+                    elif isinstance(structure[page][quest]["answers"], str):
                         structure[page][quest]["answers"] = structure[page][quest]["answers"].strip("[] ")
                     else:  # list-like
                         for entry in range(len(structure[page][quest]["answers"])):
-                            if type(entry) == str:
-                                structure[page][quest]["answers"][entry] = structure[page][quest]["answers"][
-                                    entry].strip("[] ")
+                            if isinstance(entry, str):
+                                structure[page][quest]["answers"][entry] = structure[page][quest]["answers"][entry].strip("[] ")
                 if "button_texts" in structure[page][quest].keys():
                     if "," in structure[page][quest]["button_texts"]:
                         structure[page][quest]["button_texts"] = ast.literal_eval(
                             structure[page][quest]["button_texts"])
-                    elif type(structure[page][quest]["button_texts"]) == str:
+                    elif isinstance(structure[page][quest]["button_texts"], str):
                         structure[page][quest]["button_texts"] = structure[page][quest]["button_texts"].strip("[] ")
                     else:  # list-like
                         for entry in range(len(structure[page][quest]["button_texts"])):
-                            structure[page][quest]["button_texts"][entry] = structure[page][quest]["button_texts"][
-                                entry].strip("[] ")
+                            structure[page][quest]["button_texts"][entry] = structure[page][quest]["button_texts"][entry].strip("[] ")
                 if "header" in structure[page][quest].keys():
                     if "," in structure[page][quest]["header"]:
                         structure[page][quest]["header"] = ast.literal_eval(structure[page][quest]["header"])
-                    elif type(structure[page][quest]["header"]) == str:
+                    elif isinstance(structure[page][quest]["header"], str):
                         structure[page][quest]["header"] = structure[page][quest]["header"].strip("[] ")
                     else:  # list-like
                         for entry in range(len(structure[page][quest]["header"])):
-                            structure[page][quest]["header"][entry] = structure[page][quest]["header"][entry].strip(
-                                "[] ")
+                            structure[page][quest]["header"][entry] = structure[page][quest]["header"][entry].strip("[] ")
                 if "questions" in structure[page][quest].keys():
                     if "," in structure[page][quest]["questions"]:
                         structure[page][quest]["questions"] = ast.literal_eval(structure[page][quest]["questions"])
-                    elif type(structure[page][quest]["questions"]) == str:
+                    elif isinstance(structure[page][quest]["questions"], str):
                         structure[page][quest]["questions"] = structure[page][quest]["questions"].strip("[] ")
                     else:  # list-like
                         for entry in range(len(structure[page][quest]["questions"])):
-                            structure[page][quest]["questions"][entry] = structure[page][quest]["questions"][
-                                entry].strip("[] ")
+                            structure[page][quest]["questions"][entry] = structure[page][quest]["questions"][entry].strip("[] ")
             except (ValueError, SyntaxError):
                 if "answers" in structure[page][quest].keys() and "," in structure[page][quest]["answers"]:
                     structure[page][quest]["answers"] = string_to_list(structure[page][quest]["answers"])
@@ -316,7 +311,7 @@ def string_to_list(string):
         return result
 
 
-def validate_questionnaire(structure, suppress=False) -> (bool, bool, str):
+def validate_questionnaire(structure, suppress=False):
     """Check the questionnaire structure for duplicates in answer IDs.
 
     Parameters
@@ -369,7 +364,7 @@ def validate_questionnaire(structure, suppress=False) -> (bool, bool, str):
                     raise ValueError
             except ValueError:
                 error_found = True
-                error_details.append("Invalid audio port, couldn't be converted to a number 0-65535.\n")
+                error_details.append("Invalid audio port, could not be converted to a number 0-65535.\n")
         elif "audio_ip" in structure.keys():
             warning_found = True
             warning_details.append("No audio_port found, but IP. Audio will be disabled.\n")
@@ -385,7 +380,7 @@ def validate_questionnaire(structure, suppress=False) -> (bool, bool, str):
                     raise ValueError
             except ValueError:
                 error_found = True
-                error_details.append("Invalid audio receive port, couldn't be converted to a number 0-65535.\n")
+                error_details.append("Invalid audio receive port, could not be converted to a number 0-65535.\n")
 
     if "video_ip" in structure.keys():
         if structure["video_ip"] != "":
@@ -408,7 +403,7 @@ def validate_questionnaire(structure, suppress=False) -> (bool, bool, str):
                     raise ValueError
             except ValueError:
                 error_found = True
-                error_details.append("Invalid video port, couldn't be converted to a number 0-65535.\n")
+                error_details.append("Invalid video port, could not be converted to a number 0-65535.\n")
         elif "video_ip" in structure.keys():
             warning_found = True
             warning_details.append("No video_port found, but IP. Video will be disabled.\n")
@@ -448,7 +443,7 @@ def validate_questionnaire(structure, suppress=False) -> (bool, bool, str):
                     raise ValueError
             except ValueError:
                 error_found = True
-                error_details.append("Invalid pupil port, couldn't be converted to a number 0-65535.\n")
+                error_details.append("Invalid pupil port, could not be converted to a number 0-65535.\n")
         elif "pupil_ip" in structure.keys():
             warning_found = True
             warning_details.append("No pupil_port found, but IP. The connection to pupil will be disabled.\n")
@@ -477,7 +472,7 @@ def validate_questionnaire(structure, suppress=False) -> (bool, bool, str):
                     raise ValueError
             except ValueError:
                 error_found = True
-                error_details.append("Invalid help port, couldn't be converted to a number 0-65535.\n")
+                error_details.append("Invalid help port, could not be converted to a number 0-65535.\n")
         elif "help_ip" in structure.keys():
             warning_found = True
             warning_details.append("No help_port found, but IP. Calling help will be disabled.\n")
@@ -519,7 +514,7 @@ def validate_questionnaire(structure, suppress=False) -> (bool, bool, str):
                     raise ValueError
             except ValueError:
                 error_found = True
-                error_details.append("Invalid global_osc_send_port, couldn't be converted to a number 0-65535.\n")
+                error_details.append("Invalid global_osc_send_port, could not be converted to a number 0-65535.\n")
         elif "global_osc_ip" in structure.keys():
             warning_found = True
             warning_details.append("No global_osc_send_port found, but IP. Sending over global will be disabled.\n")
@@ -535,7 +530,7 @@ def validate_questionnaire(structure, suppress=False) -> (bool, bool, str):
                     raise ValueError
             except ValueError:
                 error_found = True
-                error_details.append("Invalid global_osc_recv_port, couldn't be converted to a number 0-65535.\n")
+                error_details.append("Invalid global_osc_recv_port, could not be converted to a number 0-65535.\n")
         elif "global_osc_ip" in structure.keys():
             warning_found = True
             warning_details.append("No global_osc_recv_port found, but IP. Receiving over global will be disabled.\n")
@@ -564,13 +559,11 @@ def validate_questionnaire(structure, suppress=False) -> (bool, bool, str):
             warning_found = True
             warning_details.append("Text for forward and backward button are the same.\n")
 
-    if "send_text" in structure.keys() and "forward_text" in structure.keys() and structure["send_text"] == structure[
-        "forward_text"]:
+    if "send_text" in structure.keys() and "forward_text" in structure.keys() and structure["send_text"] == structure["forward_text"]:
         warning_found = True
         warning_details.append("Text for forward and send button are the same.\n")
 
-    if "answer_pos" in structure.keys() and "answer_neg" in structure.keys() and structure["answer_pos"] == structure[
-        "answer_neg"]:
+    if "answer_pos" in structure.keys() and "answer_neg" in structure.keys() and structure["answer_pos"] == structure["answer_neg"]:
         warning_found = True
         warning_details.append("Text for positive and negative answer are the same.\n")
 
@@ -641,7 +634,7 @@ def validate_questionnaire(structure, suppress=False) -> (bool, bool, str):
     for page in structure.sections:
         if not structure[page].sections:
             warning_found = True
-            warning_details.append("There are no questions on page {}.\n".format(page))
+            warning_details.append(f'There are no questions on page {page}.\n')
 
         if "pupil_on_next" in structure[page].keys():
             if structure[page]["pupil_on_next"] == '' or structure[page]["pupil_on_next"] == 'None':
@@ -651,72 +644,59 @@ def validate_questionnaire(structure, suppress=False) -> (bool, bool, str):
                 warning_found = True
                 warning_details.append("Incomplete connection to pupil given. The connection to pupil will be disabled.\n")
 
-        if "randomgroup" in structure[page].keys() and ("randomization" not in structure.keys() or \
-            ("randomization" in structure.keys() and structure["randomization"] == "None")):
+        if "randomgroup" in structure[page].keys() and ("randomization" not in structure.keys() or ("randomization" in structure.keys() and structure["randomization"] == "None")):
             error_found = True
             error_details.append("Using randomgroup, but no randomization option was chosen.\n")
 
         for quest in structure[page].sections:
             if structure[page][quest] == {}:
                 warning_found = True
-                warning_details.append("There are no attributes for question '{}' on page '{}'.\n".format(quest, page))
+                warning_details.append(f'There are no attributes for question "{quest}" on page "{page}".\n')
 
             if "id" in structure[page][quest].keys():
                 if structure[page][quest]["id"] == "":
                     error_found = True
-                    error_details.append("No ID was given for question '{}' on page '{}'.\n".format(quest, page))
-                elif structure[page][quest]["id"] not in ids.keys():
+                    error_details.append(f'No ID was given for question "{quest}" on page "{page}".\n')
+                elif structure[page][quest]["id"] not in ids:
                     ids[structure[page][quest]["id"]] = (page, quest)
                 else:
                     error_found = True
                     error_details.append(
-                        "ID '{}' already used in question '{}' on page '{}'. Found again in question '{}' on page '{}'.\n".format(
-                            structure[page][quest]["id"], ids[structure[page][quest]["id"]][1],
-                            ids[structure[page][quest]["id"]][0], quest, page))
-            elif "id" not in structure[page][quest].keys() and "type" in structure[page][quest].keys() and \
-                    "id" in fields_per_type[structure[page][quest]["type"]][0].keys():
+                        f'ID "{structure[page][quest]["id"]}" already used in question "{ids[structure[page][quest]["id"]][1]}" on page "{ids[structure[page][quest]["id"]][0]}". Found again in question "{quest}" on page "{page}".\n')
+            elif "id" not in structure[page][quest].keys() and "type" in structure[page][quest].keys() and "id" in fields_per_type[structure[page][quest]["type"]][0].keys():
                 error_found = True
-                error_details.append("No ID was given for question '{}' on page '{}'.\n".format(quest, page))
+                error_details.append(f'No ID was given for question "{quest}" on page "{page}".\n')
 
             if "x" in structure[page][quest].keys():
                 try:
                     _ = structure[page][quest].as_bool("x")
                 except ValueError:
                     error_found = True
-                    error_details.append(
-                        "No valid value found for 'x' for question '{}' on page '{}'.\n".format(quest, page))
-                    structure[page][quest][
-                        "x"] = False  # This happens so the rest of the routine  where x is referenced doesn't have to catch errors
-            elif "type" in structure[page][quest].keys() and structure[page][quest]["type"] == "ABX" and \
-                    "x" not in structure[page][quest].keys():
+                    error_details.append(f'No valid value found for "x" for question "{quest}" on page "{page}".\n')
+                    structure[page][quest]["x"] = False  # This happens so the rest of the routine  where x is referenced does not have to catch errors
+            elif "type" in structure[page][quest].keys() and structure[page][quest]["type"] == "ABX" and "x" not in structure[page][quest].keys():
                 structure[page][quest]["x"] = False
                 warning_found = True
-                warning_details.append(
-                    "No option for 'x' found for question '{}' on page '{}', using False as default value.\n".format(quest, page))
+                warning_details.append(f'No option for "x" found for question "{quest}" on page "{page}", using False as default value.\n')
 
             if "play_once" in structure[page][quest].keys():
                 try:
                     _ = structure[page][quest].as_bool("play_once")
                 except ValueError:
                     error_found = True
-                    error_details.append(
-                        "No valid value found for 'play_once' for question '{}' on page '{}'.\n".format(quest, page))
+                    error_details.append(f'No valid value found for "play_once" for question "{quest}" on page "{page}".\n')
                     structure[page][quest]["play_once"] = False
-            elif "type" in structure[page][quest].keys() and structure[page][quest]["type"] == "Player" and \
-                    "play_once" not in structure[page][quest].keys():
+            elif "type" in structure[page][quest].keys() and structure[page][quest]["type"] == "Player" and "play_once" not in structure[page][quest].keys():
                 structure[page][quest]["play_once"] = False
                 warning_found = True
-                warning_details.append(
-                    "No option for 'play_once' found for question '{}' on page '{}', using False by default.\n".format(
-                        quest, page))
+                warning_details.append(f'No option for "play_once" found for question "{quest}" on page "{page}", using False by default.\n')
 
             if "required" in structure[page][quest].keys():
                 try:
                     _ = structure[page][quest].as_bool("required")
                 except ValueError:
                     error_found = True
-                    error_details.append(
-                        "No valid value found for 'required' for question '{}' on page '{}'.\n".format(quest, page))
+                    error_details.append(f'No valid value found for "required" for question "{quest}" on page "{page}".\n')
                     structure[page][quest]["required"] = False  # default value
 
             if "labelled" in structure[page][quest].keys():
@@ -724,205 +704,153 @@ def validate_questionnaire(structure, suppress=False) -> (bool, bool, str):
                     _ = structure[page][quest].as_bool("labelled")
                 except ValueError:
                     error_found = True
-                    error_details.append(
-                        "No valid value found for 'labelled' for question '{}' on page '{}'.\n".format(quest, page))
+                    error_details.append(f'No valid value found for "labelled" for question "{quest}" on page "{page}".\n')
                     structure[page][quest]["labelled"] = False  # default value
-            elif "type" in structure[page][quest].keys() and structure[page][quest]["type"] == "Slider" and \
-                    "labelled" not in structure[page][quest].keys():
+            elif "type" in structure[page][quest].keys() and structure[page][quest]["type"] == "Slider" and "labelled" not in structure[page][quest].keys():
                 structure[page][quest]["labelled"] = False
                 warning_found = True
-                warning_details.append(
-                    "No option for 'labelled' found for question '{}' on page '{}', setting it to False.\n".format(
-                        quest, page))
+                warning_details.append(f'No option for "labelled" found for question "{quest}" on page "{page}", setting it to False.\n')
 
             if "question_above" in structure[page][quest].keys():
                 try:
                     _ = structure[page][quest].as_bool("question_above")
                 except ValueError:
                     error_found = True
-                    error_details.append(
-                        "No valid value found for 'question_above' for question '{}' on page '{}'.\n".format(quest,
-                                                                                                             page))
+                    error_details.append(f'No valid value found for "question_above" for question "{quest}" on page "{page}".\n')
                     structure[page][quest]["question_above"] = False  # default value
 
             if "text" in structure[page][quest].keys() and structure[page][quest]["text"] == "":
                 warning_found = True
-                warning_details.append("No text was given for question '{}' on page '{}'.\n".format(quest, page))
+                warning_details.append(f'No text was given for question "{quest}" on page "{page}".\n')
             elif "text" not in structure[page][quest].keys() and "type" in structure[page][quest].keys() and \
                     "text" in fields_per_type[structure[page][quest]["type"]][0].keys():
                 structure[page][quest]["text"] = ""
                 warning_found = True
-                warning_details.append("No text was given for question '{}' on page '{}'.\n".format(quest, page))
+                warning_details.append(f'No text was given for question "{quest}" on page "{page}".\n')
 
             if "answers" in structure[page][quest].keys():
-                if structure[page][quest]["answers"] == "" and ("type" not in structure[page][quest].keys() or
-                                                                ("type" in structure[page][quest].keys() and not structure[page][quest]["type"] == "ABX")):
+                if structure[page][quest]["answers"] == "" and ("type" not in structure[page][quest].keys() or ("type" in structure[page][quest].keys() and not structure[page][quest]["type"] == "ABX")):
                     warning_found = True
-                    warning_details.append(
-                        "No answer possibilities were given for question '{}' on page '{}'.\n".format(quest, page))
+                    warning_details.append(f'No answer possibilities were given for question "{quest}" on page "{page}".\n')
                 if "type" in structure[page][quest].keys() and structure[page][quest]["type"] == "ABX":
-                    if ((type(structure[page][quest]["answers"]) != list and type(
-                            structure[page][quest]["answers"]) != tuple) and structure[page][quest]["answers"] != "") or \
-                            ((type(structure[page][quest]["answers"]) == list or type(
-                                structure[page][quest]["answers"]) == tuple) and len(
-                                structure[page][quest]["answers"]) != 2):
+                    if ((not isinstance(structure[page][quest]["answers"], list) and not isinstance(structure[page][quest]["answers"], tuple)) and
+                        structure[page][quest]["answers"] != "") or \
+                            (isinstance(structure[page][quest]["answers"], (list, tuple)) and len(structure[page][quest]["answers"]) != 2):
                         error_found = True
-                        error_details.append(
-                            "Please give two answer options for the ABX type question '{}' on page '{}' or leave this field empty.\n".format(
-                                quest, page))
+                        error_details.append(f'Please give two answer options for the ABX type question "{quest}" on page "{page}" or leave this field empty.\n')
                 elif "type" in structure[page][quest].keys() and structure[page][quest]["type"] == "AFC":
-                    if ((type(structure[page][quest]["answers"]) != list and type(
-                            structure[page][quest]["answers"]) != tuple) and structure[page][quest]["answers"] != "") or \
-                            ((type(structure[page][quest]["answers"]) == list or type(
-                                structure[page][quest]["answers"]) == tuple) and len(
-                                structure[page][quest]["answers"]) != structure[page][quest].as_int(
-                                "number_of_choices")):
+                    if ((not isinstance(structure[page][quest]["answers"], list) and not isinstance(structure[page][quest]["answers"], tuple)) and structure[page][quest]["answers"] != "") or (isinstance(structure[page][quest]["answers"], (list, tuple)) and len(structure[page][quest]["answers"]) != structure[page][quest].as_int("number_of_choices")):
                         error_found = True
-                        error_details.append(
-                            "Please give as many answer options for the AFC type question '{}' as number_of_choices on page '{}' or leave this field empty.\n".format(
-                                quest, page))
+                        error_details.append(f'Please give as many answer options for the AFC type question "{quest}" as number_of_choices on page "{page}" or leave this field empty.\n')
             elif "type" in structure[page][quest].keys() and \
                     (structure[page][quest]["type"] == "Radio" or structure[page][quest]["type"] == "Check" or
                      structure[page][quest]["type"] == "Matrix") and "answers" not in structure[page][quest].keys():
                 structure[page][quest]["answers"] = ""
                 warning_found = True
-                warning_details.append(
-                    "No answer possibilities were given for question '{}' on page '{}'.\n".format(quest, page))
+                warning_details.append(f'No answer possibilities were given for question "{quest}" on page "{page}".\n')
 
             if "start_answer_id" in structure[page][quest].keys():
                 try:
                     int(structure[page][quest]["start_answer_id"])
                     if int(structure[page][quest]["start_answer_id"]) < 0:
                         error_found = True
-                        error_details.append(
-                            "The start answer ID in question '{}' on page '{}' can't have a negative value.\n".format(
-                                quest, page))
+                        error_details.append(f'The start answer ID in question "{quest}" on page "{page}" can not have a negative value.\n')
                 except ValueError:
                     error_found = True
-                    error_details.append(
-                        "The start answer ID in question '{}' on page '{}' couldn't be interpreted as an integer.\n".format(
-                            quest, page))
+                    error_details.append(f'The start answer ID in question "{quest}" on page "{page}" could not be interpreted as an integer.\n')
 
             if "min" in structure[page][quest].keys():
                 if structure[page][quest]["min"] == "":
                     error_found = True
-                    error_details.append(
-                        "No minimum value was given for the slider in question '{}' on page '{}'.\n".format(quest,
-                                                                                                            page))
+                    error_details.append(f'No minimum value was given for the slider in question "{quest}" on page "{page}".\n')
                 else:
                     try:
                         float(structure[page][quest]["min"])
                     except ValueError:
                         error_found = True
-                        error_details.append(
-                            "The minimum value found for the slider in question '{}' on page '{}' couldn't be interpreted as a number.\n".format(
-                                quest, page))
-            elif "type" in structure[page][quest].keys() and structure[page][quest]["type"] == "Slider" and \
-                    "min" not in structure[page][quest].keys():
+                        error_details.append(f'The minimum value found for the slider in question "{quest}" on page "{page}" could not be interpreted as a number.\n')
+            elif "type" in structure[page][quest].keys() and structure[page][quest]["type"] == "Slider" and "min" not in structure[page][quest].keys():
                 error_found = True
-                error_details.append(
-                    "No minimum value was given for the slider in question '{}' on page '{}'.\n".format(quest, page))
+                error_details.append(f'No minimum value was given for the slider in question "{quest}" on page "{page}".\n')
 
             if "max" in structure[page][quest].keys():
                 if structure[page][quest]["max"] == "":
                     error_found = True
-                    error_details.append(
-                        "No maximum value was given for the slider in question '{}' on page '{}'.\n".format(quest,
-                                                                                                            page))
+                    error_details.append(f'No maximum value was given for the slider in question "{quest}" on page "{page}".\n')
                 else:
                     try:
                         float(structure[page][quest]["max"])
                     except ValueError:
                         error_found = True
-                        error_details.append(
-                            "The maximum value found for the slider in question '{}' on page '{}' couldn't be interpreted as a number.\n".format(
-                                quest, page))
+                        error_details.append(f'The maximum value found for the slider in question "{quest}" on page "{page}" could not be interpreted as a number.\n')
                 try:
                     if "min" in structure[page][quest].keys() and round(float(structure[page][quest]["max"]) - float(structure[page][quest]["min"]), 3) == 0.0:
                         error_found = True
-                        error_details.append(
-                            "Maximum and Minimum value for the slider in question '{}' on page '{}' are the same.\n".format(
-                                quest, page))
+                        error_details.append(f'Maximum and Minimum value for the slider in question "{quest}" on page "{page}" are the same.\n')
                 except ValueError:
                     pass
             elif "type" in structure[page][quest].keys() and structure[page][quest]["type"] == "Slider" and \
                     "max" not in structure[page][quest].keys():
                 error_found = True
-                error_details.append(
-                    "No maximum value was given for the slider in question '{}' on page '{}'.\n".format(quest, page))
+                error_details.append(f'"No maximum value was given for the slider in question "{quest}" on page "{page}".\n')
 
             if "start" in structure[page][quest].keys():
                 if structure[page][quest]["start"] == "":
                     error_found = True
-                    error_details.append(
-                        "No starting value was given for the slider in question '{}' on page '{}'.\n".format(quest,
-                                                                                                             page))
+                    error_details.append(f'No starting value was given for the slider in question "{quest}" on page "{page}".\n')
                 else:
                     try:
-                        float(structure[page][quest]["start"])
                         if "min" in structure[page][quest].keys() and "max" in structure[page][quest].keys():
-                            if float(structure[page][quest]["start"]) < float(structure[page][quest]["min"]) < float(structure[page][quest]["max"]) or \
-                                    float(structure[page][quest]["start"]) > float(structure[page][quest]["min"]) > float(structure[page][quest]["max"]):
-                                structure[page][quest]["start"] = float(structure[page][quest]["min"])
-                            elif float(structure[page][quest]["start"]) > float(structure[page][quest]["max"]) < float(structure[page][quest]["min"]) or \
-                                    float(structure[page][quest]["start"]) < float(structure[page][quest]["max"]) < float(structure[page][quest]["min"]):
-                                structure[page][quest]["start"] = float(structure[page][quest]["max"])
+                            if float(structure[page][quest]["min"]) < float(structure[page][quest]["max"]):
+                                if float(structure[page][quest]["start"]) < float(structure[page][quest]["min"]):
+                                    structure[page][quest]["start"] = float(structure[page][quest]["min"]) if float(structure[page][quest]["min"]) != int(structure[page][quest]["min"]) or float(structure[page][quest]["step"]) != int(structure[page][quest]["step"]) else int(structure[page][quest]["min"])
+                                elif float(structure[page][quest]["start"]) > float(structure[page][quest]["max"]):
+                                    structure[page][quest]["start"] = float(structure[page][quest]["max"]) if float(structure[page][quest]["max"]) != int(structure[page][quest]["max"]) or float(structure[page][quest]["step"]) != int(structure[page][quest]["step"]) else int(structure[page][quest]["max"])
+                            else: # decreasing numbers
+                                if float(structure[page][quest]["start"]) > float(structure[page][quest]["min"]):
+                                    structure[page][quest]["start"] = float(structure[page][quest]["min"]) if float(structure[page][quest]["min"]) != int(structure[page][quest]["min"]) or float(structure[page][quest]["step"]) != int(structure[page][quest]["step"]) else int(structure[page][quest]["min"])
+                                elif float(structure[page][quest]["start"]) < float(structure[page][quest]["max"]):
+                                    structure[page][quest]["start"] = float(structure[page][quest]["max"]) if float(structure[page][quest]["max"]) != int(structure[page][quest]["max"]) or float(structure[page][quest]["step"]) != int(structure[page][quest]["step"]) else int(structure[page][quest]["max"])
                     except ValueError:
                         error_found = True
-                        error_details.append(
-                            "The starting value found for the slider in question '{}' on page '{}' couldn't be interpreted as a number.\n".format(
-                                quest, page))
+                        error_details.append(f'The starting value found for the slider in question "{quest}" on page "{page}" could not be interpreted as a number.\n')
             elif "type" in structure[page][quest].keys() and structure[page][quest]["type"] == "Slider" and \
                     "start" not in structure[page][quest].keys():
                 error_found = True
-                error_details.append(
-                    "No starting value was given for the slider in question '{}' on page '{}'.\n".format(quest, page))
+                error_details.append(f'No starting value was given for the slider in question "{quest}" on page "{page}".\n')
 
             if "step" in structure[page][quest].keys():
                 if structure[page][quest]["step"] == "":
                     error_found = True
-                    error_details.append(
-                        "No step value was given for the slider in question '{}' on page '{}'.\n".format(quest,
-                                                                                                            page))
+                    error_details.append(f'No step value was given for the slider in question "{quest}" on page "{page}".\n')
                 else:
                     try:
                         if float(structure[page][quest]["step"]) <= 0:
                             error_found = True
-                            error_details.append(
-                                "The step value found for the slider in question '{}' on page '{}' needs to be bigger than 0.\n".format(
-                                    quest, page))
+                            error_details.append(f'The step value found for the slider in question "{quest}" on page "{page}" needs to be bigger than 0.\n')
                     except ValueError:
                         error_found = True
-                        error_details.append(
-                            "The step value found for the slider in question '{}' on page '{}' couldn't be interpreted as a number.\n".format(
-                                quest, page))
+                        error_details.append(f'The step value found for the slider in question "{quest}" on page "{page}" could not be interpreted as a number.\n')
                 try:
                     if "min" in structure[page][quest].keys() and "max" in structure[page][quest].keys() \
                             and abs(float(structure[page][quest]["max"]) - float(structure[page][quest]["min"])) < float(structure[page][quest]["step"]):
                         error_found = True
-                        error_details.append(
-                            "The step value for the slider in question '{}' on page '{}' is bigger than the range.\n".format(
-                                quest, page))
+                        error_details.append(f'The step value for the slider in question "{quest}" on page "{page}" is bigger than the range.\n')
                 except ValueError:
                     pass
-            elif "type" in structure[page][quest].keys() and structure[page][quest]["type"] == "Slider" and \
-                    "step" not in structure[page][quest].keys():
+            elif "type" in structure[page][quest].keys() and structure[page][quest]["type"] == "Slider" and "step" not in structure[page][quest].keys():
                 error_found = True
-                error_details.append(
-                    "No step value was given for the slider in question '{}' on page '{}'.\n".format(quest, page))
+                error_details.append(f'No step value was given for the slider in question "{quest}" on page "{page}".\n')
 
             if "label" in structure[page][quest].keys() and "labelled" in structure[page][quest].keys() and \
                     structure[page][quest].as_bool("labelled"):
-                if type(structure[page][quest]["label"][0]) != list and type(structure[page][quest]["label"][0]) != tuple:
-                    if len(structure[page][quest]["label"]) != (float(structure[page][quest]["max"]) - float(
-                            structure[page][quest]["min"])) / float(structure[page][quest]["step"]) + 1:
+                if not isinstance(structure[page][quest]["label"][0], list) and not isinstance(structure[page][quest]["label"][0], tuple):
+                    if len(structure[page][quest]["label"]) != (float(structure[page][quest]["max"]) - float(structure[page][quest]["min"])) / float(structure[page][quest]["step"]) + 1:
                         error_found = True
-                        error_details.append(
-                            "The number of given labels doesn't match the number of ticks for question '{}' on page '{}'.\n".format(
-                                quest, page))
+                        error_details.append(f'The number of given labels does not match the number of ticks for question "{quest}" on page "{page}".\n')
                 elif len(structure[page][quest]["label"][0]) != 2:
                     error_found = True
-                    error_details.append("No valid format for labels for question '{}' on page '{}'.\n".format(quest, page))
+                    error_details.append(f'No valid format for labels for question "{quest}" on page "{page}".\n')
                 else:  # list / tuple of single pairs
                     tick = []
                     try:
@@ -931,42 +859,38 @@ def validate_questionnaire(structure, suppress=False) -> (bool, bool, str):
                             if not (float(structure[page][quest]["max"]) <= float(pair[0]) <= float(structure[page][quest]["min"]) or
                                     float(structure[page][quest]["max"]) >= float(pair[0]) >= float(structure[page][quest]["min"])):
                                 error_found = True
-                                error_details.append("Tick value outside of slider range found for question '{}' on page '{}'.\n".format(quest, page))
+                                error_details.append(f'Tick value outside of slider range found for question "{quest}" on page "{page}".\n')
                         if len(tick) != len(set(tick)):
                             error_found = True
-                            error_details.append("Double definition of tick labels found for question '{}' on page '{}'.\n".format(quest, page))
+                            error_details.append(f'Double definition of tick labels found for question "{quest}" on page "{page}".\n')
                     except ValueError:
                         error_found = True
-                        error_details.append(
-                            "A label tick for the slider in question '{}' on page '{}' couldn't be interpreted as a number.\n".format(
-                                quest, page))
+                        error_details.append(f'A label tick for the slider in question "{quest}" on page "{page}" could not be interpreted as a number.\n')
 
             if "policy" in structure[page][quest].keys():
                 if structure[page][quest]["policy"] == "None" or structure[page][quest]["policy"] == "[None]":
                     structure[page][quest]["policy"] = ["None"]
-                if (type(structure[page][quest]["policy"]) == str and structure[page][quest]["policy"] not in policy_possibilities) or \
-                        (type(structure[page][quest]["policy"]) == list and structure[page][quest]["policy"][0] not in policy_possibilities):
+                if (isinstance(structure[page][quest]["policy"], str) and structure[page][quest]["policy"] not in policy_possibilities) or \
+                        (isinstance(structure[page][quest]["policy"], list) and structure[page][quest]["policy"][0] not in policy_possibilities):
                     error_found = True
-                    error_details.append("Invalid policy type in question '{}' on page '{}'.\n".format(quest, page))
-                if (type(structure[page][quest]["policy"]) == str and structure[page][quest]["policy"] == "int") or \
-                        (type(structure[page][quest]["policy"]) == list and structure[page][quest]["policy"][0] == 'int' and len(structure[page][quest]["policy"]) != 3):
+                    error_details.append(f'Invalid policy type in question "{quest}" on page "{page}".\n')
+                if (isinstance(structure[page][quest]["policy"], str) and structure[page][quest]["policy"] == "int") or \
+                        (isinstance(structure[page][quest]["policy"], list) and structure[page][quest]["policy"][0] == 'int' and len(structure[page][quest]["policy"]) != 3):
                     error_found = True
-                    error_details.append("Policy type 'int' takes two arguments, a different amount was given in question '{}' on page '{}'.\n".format(quest, page))
-                elif (type(structure[page][quest]["policy"]) == str and structure[page][quest]["policy"] == "double") or \
-                        (type(structure[page][quest]["policy"]) == list and structure[page][quest]["policy"][0] == 'double' and len(structure[page][quest]["policy"]) != 4):
+                    error_details.append(f'Policy type "int" takes two arguments, a different amount was given in question "{quest}" on page "{page}".\n')
+                elif (isinstance(structure[page][quest]["policy"], str) and structure[page][quest]["policy"] == "double") or \
+                        (isinstance(structure[page][quest]["policy"], list) and structure[page][quest]["policy"][0] == 'double' and len(structure[page][quest]["policy"]) != 4):
                     error_found = True
-                    error_details.append("Policy type 'double' takes three arguments, a different amount was given in question '{}' on page '{}'.\n".format(quest, page))
-                elif (type(structure[page][quest]["policy"]) == str and structure[page][quest]["policy"] == "regex") or \
-                        (type(structure[page][quest]["policy"]) == list and structure[page][quest]["policy"][0] == 'regex' and len(structure[page][quest]["policy"]) != 2):
+                    error_details.append(f'Policy type "double" takes three arguments, a different amount was given in question "{quest}" on page "{page}".\n')
+                elif (isinstance(structure[page][quest]["policy"], str) and structure[page][quest]["policy"] == "regex") or \
+                        (isinstance(structure[page][quest]["policy"], list) and structure[page][quest]["policy"][0] == 'regex' and len(structure[page][quest]["policy"]) != 2):
                     error_found = True
-                    error_details.append("Policy type 'regex' takes one argument, a different amount was given in question '{}' on page '{}'.\n".format(quest, page))
+                    error_details.append(f'Policy type "regex" takes one argument, a different amount was given in question "{quest}" on page "{page}".\n')
 
                 if (structure[page][quest]["policy"][0] == "int") or (structure[page][quest]["policy"][0] == "double"):
                     if structure[page][quest]["policy"][1] == "":
                         error_found = True
-                        error_details.append(
-                            "No minimum value was given for the policy in question '{}' on page '{}'.\n".format(quest,
-                                                                                                                page))
+                        error_details.append(f'No minimum value was given for the policy in question "{quest}" on page "{page}".\n"')
                     else:
                         try:
                             if structure[page][quest]["policy"][0] == "int":
@@ -975,14 +899,10 @@ def validate_questionnaire(structure, suppress=False) -> (bool, bool, str):
                                 float(structure[page][quest]["policy"][1])
                         except ValueError:
                             error_found = True
-                            error_details.append(
-                                "Minimum value given for the policy in question '{}' on page '{}' couldn't be converted to a valid number.\n".format(
-                                    quest, page))
+                            error_details.append(f'Minimum value given for the policy in question "{quest}" on page "{page}" could not be converted to a valid number.\n')
                     if structure[page][quest]["policy"][2] == "":
                         error_found = True
-                        error_details.append(
-                            "No maximum value was given for the policy in question '{}' on page '{}'.\n".format(quest,
-                                                                                                                page))
+                        error_details.append(f'No maximum value was given for the policy in question "{quest}" on page "{page}".\n')
                     else:
                         try:
                             if structure[page][quest]["policy"][0] == "int":
@@ -991,279 +911,206 @@ def validate_questionnaire(structure, suppress=False) -> (bool, bool, str):
                                 float(structure[page][quest]["policy"][2])
                         except ValueError:
                             error_found = True
-                            error_details.append(
-                                "Maximum value given for the policy in question '{}' on page '{}' couldn't be converted to a valid number.\n".format(
-                                    quest, page))
+                            error_details.append(f'Maximum value given for the policy in question "{quest}" on page "{page}" could not be converted to a valid number.\n')
                 if structure[page][quest]["policy"][0] == "double":
                     if structure[page][quest]["policy"][3] == "":
                         error_found = True
-                        error_details.append(
-                            "No number of decimals was given for the policy in question '{}' on page '{}'.\n".format(
-                                quest, page))
+                        error_details.append(f'No number of decimals was given for the policy in question "{quest}" on page "{page}".\n')
                     else:
                         try:
                             int(structure[page][quest]["policy"][3])
                         except ValueError:
                             error_found = True
-                            error_details.append(
-                                "Number of decimals given for the policy in question '{}' on page '{}' couldn't be converted to a number.\n".format(
-                                    quest, page))
+                            error_details.append(f'Number of decimals given for the policy in question "{quest}" on page "{page}" could not be converted to a number.\n')
                 if structure[page][quest]["policy"][0] == "regex":
                     if structure[page][quest]["policy"][1] == "":
                         error_found = True
-                        error_details.append(
-                            "No regex was given for the policy in question '{}' on page '{}'.\n".format(quest, page))
+                        error_details.append(f'No regex was given for the policy in question "{quest}" on page "{page}".\n')
                     else:
                         try:
                             re.compile(str(structure[page][quest]["policy"][1]))
                         except re.error:
                             error_found = True
-                            error_details.append(
-                                "An invalid regex was given for the policy in question '{}' on page '{}'.\n".format(
-                                    quest, page))
+                            error_details.append(f'An invalid regex was given for the policy in question "{quest}" on page "{page}".\n')
 
             if "start_cue" in structure[page][quest].keys():
                 if structure[page][quest]["start_cue"] == "":
                     error_found = True
-                    error_details.append(
-                        "No start cue was given in question '{}' on page '{}'.\n".format(quest, page))
+                    error_details.append(f'No start cue was given in question "{quest}" on page "{page}".\n')
                 else:
                     try:
                         int(structure[page][quest]["start_cue"])
                     except (ValueError, TypeError):
                         error_found = True
-                        error_details.append(
-                            "Start cue given in question '{}' on page '{}' couldn't be converted to a number.\n".format(
-                                quest, page))
+                        error_details.append(f'Start cue given in question "{quest}" on page "{page}" could not be converted to a number.\n')
             elif "type" in structure[page][quest].keys() and structure[page][quest]["type"] == "Player" \
                     and "start_cue" not in structure[page][quest].keys():
                 error_found = True
-                error_details.append(
-                    "No start cue was given in question '{}' on page '{}'.\n".format(quest, page))
+                error_details.append(f'No start cue was given in question "{quest}" on page "{page}".\n')
 
             if "end_cue" in structure[page][quest].keys():
                 try:
                     int(structure[page][quest]["end_cue"])
                     if "start_cue" in structure[page][quest].keys() and structure[page][quest]["start_cue"] == structure[page][quest]["end_cue"]:
                         error_found = True
-                        error_details.append(
-                            "The same cue ({}) was used as start- and end-cue for one condition in question '{}' on page '{}'.\n".format(
-                                structure[page][quest]["start_cue"], quest, page))
+                        error_details.append(f'The same cue ({structure[page][quest]["start_cue"]}) was used as start- and end-cue for one condition in question "{quest}" on page "{page}".\n')
                 except (ValueError, TypeError):
                     error_found = True
-                    error_details.append(
-                        "End cue given in question '{}' on page '{}' couldn't be converted to a number.\n".format(
-                            quest, page))
+                    error_details.append(f'End cue given in question "{quest}" on page "{page}" could not be converted to a number.\n')
 
             if "track" in structure[page][quest].keys():
                 if structure[page][quest]["track"] == "":
                     error_found = True
-                    error_details.append(
-                        "No track(s) was given for question '{}' on page '{}'.\n".format(quest, page))
+                    error_details.append(f'No track(s) was given for question "{quest}" on page "{page}".\n')
                 else:
                     try:
-                        if type(structure[page][quest]["track"]) == list or \
-                                type(structure[page][quest]["track"]) == tuple:
+                        if isinstance(structure[page][quest]["track"], (list, tuple)):
                             if "type" in structure[page][quest].keys() and structure[page][quest]["type"] == "ABX" and (
                                     len(structure[page][quest]["track"]) > 2 or len(structure[page][quest]["track"]) < 1):
                                 error_found = True
-                                error_details.append(
-                                    "There should be 1 or 2 tracks for AB(X)-tests, but {} were given in question '{}' on page '{}'.\n".format(
-                                        len(structure[page][quest]["track"]), quest, page))
+                                error_details.append(f'There should be 1 or 2 tracks for AB(X)-tests, but {len(structure[page][quest]["track"])} were given in question "{quest}" on page "{page}".\n')
                             elif "type" in structure[page][quest].keys() and structure[page][quest]["type"] == "MUSHRA" and \
                                     len(structure[page][quest]["track"]) != len(structure[page][quest]["start_cues"]) and \
                                     len(structure[page][quest]["track"]) > 1:
                                 error_found = True
-                                error_details.append(
-                                    "The number of tracks given doesn't equal the number of cues given in question '{}' on page '{}'.\n".format(
-                                        quest, page))
+                                error_details.append(f'The number of tracks given does not equal the number of cues given in question "{quest}" on page "{page}".\n')
 
                             elif "type" in structure[page][quest].keys() and structure[page][quest]["type"] == "ABX" and len(structure[page][quest]["track"]) == 1:
                                 structure[page][quest]["track"].append(structure[page][quest]["track"][0])
                             for entry in range(len(structure[page][quest]["track"])):
-                                if type(structure[page][quest]["track"][entry]) == str:
-                                    if type(structure[page][quest]["track"]) == tuple:
+                                if isinstance(structure[page][quest]["track"][entry], str):
+                                    if isinstance(structure[page][quest]["track"], tuple):
                                         structure[page][quest]["track"] = list(structure[page][quest]["track"])
-                                    structure[page][quest]["track"][entry] = structure[page][quest]["track"][
-                                        entry].strip("' \"")
+                                    structure[page][quest]["track"][entry] = structure[page][quest]["track"][entry].strip("' \"")
                                     int(structure[page][quest]["track"][entry])
                                     if int(structure[page][quest]["track"][entry]) < 1:
                                         error_found = True
-                                        error_details.append(
-                                            "Tracks given for question '{}' on page '{}' needs to be greater than 0.\n".format(
-                                                quest, page))
-                                elif type(structure[page][quest]["track"][entry]) == list:
+                                        error_details.append(f'Tracks given for question "{quest}" on page "{page}" needs to be greater than 0.\n')
+                                elif isinstance(structure[page][quest]["track"][entry], list):
                                     if "type" in structure[page][quest].keys() and structure[page][quest]["type"] != "MUSHRA":
                                         error_found = True
-                                        error_details.append("Tracks given for question '{}' on page '{}' need to be one or more integers, not lists.\n".format(
-                                                quest, page))
+                                        error_details.append(f'Tracks given for question "{quest}" on page "{page}" need to be one or more integers, not lists.\n')
                                     for entry2 in range(len(structure[page][quest]["track"][entry])):
-                                        if type(structure[page][quest]["track"][entry][entry2]) != int:
-                                            structure[page][quest]["track"][entry][entry2] = \
-                                                structure[page][quest]["track"][entry][entry2].strip("' \"")
+                                        if not isinstance(structure[page][quest]["track"][entry][entry2], int):
+                                            structure[page][quest]["track"][entry][entry2] = structure[page][quest]["track"][entry][entry2].strip("' \"")
                                         int(structure[page][quest]["track"][entry][entry2])
                                         if int(structure[page][quest]["track"][entry][entry2]) < 1:
                                             error_found = True
-                                            error_details.append(
-                                                "Tracks given for question '{}' on page '{}' needs to be greater than 0.\n".format(
-                                                    quest, page))
+                                            error_details.append(f'Tracks given for question "{quest}" on page "{page}" needs to be greater than 0.\n')
                                 else:  # int
                                     if structure[page][quest]["track"][entry] < 1:
                                         error_found = True
-                                        error_details.append(
-                                            "Track given for question '{}' on page '{}' needs to be greater than 0.\n".format(
-                                                quest, page))
+                                        error_details.append(f'Track given for question "{quest}" on page "{page}" needs to be greater than 0.\n')
                         else:
                             int(structure[page][quest]["track"])
 
                             if int(structure[page][quest]["track"]) < 1:
                                 error_found = True
-                                error_details.append(
-                                    "Track given for question '{}' on page '{}' needs to be greater than 0.\n".format(
-                                        quest, page))
+                                error_details.append(f'Track given for question "{quest}" on page "{page}" needs to be greater than 0.\n')
                             if "type" in structure[page][quest].keys() and structure[page][quest]["type"] == "ABX":
-                                structure[page][quest]["track"] = [structure[page][quest]["track"],
-                                                                   structure[page][quest]["track"]]
+                                structure[page][quest]["track"] = [structure[page][quest]["track"], structure[page][quest]["track"]]
                     except ValueError:
                         error_found = True
-                        error_details.append(
-                            "Track(s) given for question '{}' on page '{}' couldn't be converted to a number or list of numbers.\n".format(
-                                quest, page))
+                        error_details.append(f'Track(s) given for question "{quest}" on page "{page}" could not be converted to a number or list of numbers.\n')
             elif "type" in structure[page][quest].keys() and \
                     (structure[page][quest]["type"] == "Player" or structure[page][quest]["type"] == "MUSHRA" or
                      structure[page][quest]["type"] == "ABX" or structure[page][quest]["type"] == "AFC") \
                     and "track" not in structure[page][quest].keys():
                 error_found = True
-                error_details.append(
-                    "No track(s) was given for question '{}' on page '{}'.\n".format(quest, page))
+                error_details.append(f'No track(s) was given for question "{quest}" on page "{page}".\n')
 
             if "buttons" in structure[page][quest].keys():
                 if len(structure[page][quest]["buttons"]) == 0:
                     warning_found = True
-                    warning_details.append(
-                        "No buttons are displayed for the player in question '{}' on page '{}'. It will play when this page is loaded.\n".format(
-                            quest, page))
+                    warning_details.append(f'No buttons are displayed for the player in question "{quest}" on page "{page}". It will play when this page is loaded.\n')
                 else:
                     try:
-                        if type(structure[page][quest]["buttons"]) is list or type(
-                                structure[page][quest]["buttons"]) is tuple:
+                        if isinstance(structure[page][quest]["buttons"], (list, tuple)):
                             for button in structure[page][quest]["buttons"]:
                                 if button not in player_buttons:
                                     raise ValueError
                             if "Play" not in structure[page][quest]["buttons"]:
                                 warning_found = True
-                                warning_details.append(
-                                    "No Play button is displayed for the player in question '{}' on page '{}'. It will play when this page is loaded.\n".format(
-                                        quest, page))
-                        elif type(structure[page][quest]["buttons"]) is str:
+                                warning_details.append(f'No Play button is displayed for the player in question "{quest}" on page "{page}". It will play when this page is loaded.\n')
+                        elif isinstance(structure[page][quest]["buttons"], str):
                             if structure[page][quest]["buttons"] not in player_buttons:
                                 raise ValueError
                             elif "Play" != structure[page][quest]["buttons"]:
                                 warning_found = True
-                                warning_details.append(
-                                    "No Play button is displayed for the player in question '{}' on page '{}'. It will play when this page is loaded.\n".format(
-                                        quest, page))
+                                warning_details.append(f'No Play button is displayed for the player in question "{quest}" on page "{page}". It will play when this page is loaded.\n')
                         else:
                             raise ValueError
                     except ValueError:
                         error_found = True
-                        error_details.append(
-                            "Invalid value found for 'buttons' for question '{}' on page '{}'.\n".format(quest, page))
-            elif "type" in structure[page][quest].keys() and structure[page][quest][
-                "type"] == "Player" and "buttons" not in structure[page][quest].keys():
+                        error_details.append(f'Invalid value found for "buttons" for question "{quest}" on page "{page}".\n')
+            elif "type" in structure[page][quest].keys() and structure[page][quest]["type"] == "Player" and "buttons" not in structure[page][quest].keys():
                 warning_found = True
-                warning_details.append(
-                    "No buttons are displayed for the player in question '{}' on page '{}'. It will play when this page is loaded.\n".format(
-                        quest, page))
+                warning_details.append(f'No buttons are displayed for the player in question "{quest}" on page "{page}". It will play when this page is loaded.\n')
 
             if "start_cues" in structure[page][quest].keys():
                 if structure[page][quest]["start_cues"] == "":
                     error_found = True
-                    error_details.append(
-                        "No start cues were given for question '{}' on page '{}'.\n".format(quest, page))
+                    error_details.append(f'No start cues were given for question "{quest}" on page "{page}".\n')
                 else:
                     try:
-                        if type(structure[page][quest]["start_cues"]) == list or \
-                                type(structure[page][quest]["start_cues"]) == tuple:
+                        if isinstance(structure[page][quest]["start_cues"], (list, tuple)):
                             for entry in range(len(structure[page][quest]["start_cues"])):
-                                if type(structure[page][quest]["start_cues"][entry]) == str:
-                                    if type(structure[page][quest]["start_cues"]) == tuple:
+                                if isinstance(structure[page][quest]["start_cues"][entry], str):
+                                    if isinstance(structure[page][quest]["start_cues"], tuple):
                                         structure[page][quest]["start_cues"] = list(structure[page][quest]["start_cues"])
                                     structure[page][quest]["start_cues"][entry] = structure[page][quest]["start_cues"][entry].strip("' \"")
                                     int(structure[page][quest]["start_cues"][entry])
                             if "type" in structure[page][quest].keys() and structure[page][quest]["type"] == "ABX" and (len(structure[page][quest]["start_cues"]) != 2):
                                 error_found = True
-                                error_details.append(
-                                    "There should be exactly 2 start_cues for AB(X)-tests, but {} were given in question '{}' on page '{}'.\n".format(
-                                        1 if type(structure[page][quest]["start_cues"]) == int else len(
-                                            structure[page][quest]["start_cues"]), quest, page))
+                                error_details.append(f'There should be exactly 2 start_cues for AB(X)-tests, but {1 if isinstance(structure[page][quest]["start_cues"], int) else len(structure[page][quest]["start_cues"])} were given in question "{quest}" on page "{page}".\n')
                         else:
                             int(structure[page][quest]["start_cues"])
                             if structure[page][quest]["type"] == "ABX":
                                 error_found = True
-                                error_details.append(
-                                    "There should be exactly 2 start_cues for AB(X)-tests, but {} were given in question '{}' on page '{}'.\n".format(
-                                        1 if type(structure[page][quest]["start_cues"]) == int else len(
-                                            structure[page][quest]["start_cues"]), quest, page))
+                                error_details.append(f'There should be exactly 2 start_cues for AB(X)-tests, but {1 if isinstance(structure[page][quest]["start_cues"], int) else len(structure[page][quest]["start_cues"])} were given in question "{quest}" on page "{page}".\n')
+
                     except ValueError:
                         error_found = True
-                        error_details.append(
-                            "Start cues given for question '{}' on page '{}' couldn't be converted to a list of numbers.\n".format(
-                                quest, page))
+                        error_details.append(f'Start cues given for question "{quest}" on page "{page}" could not be converted to a list of numbers.\n')
             elif "type" in structure[page][quest].keys() and (structure[page][quest]["type"] == "MUSHRA" or
                                                               structure[page][quest]["type"] == "ABX" or
                                                               structure[page][quest]["type"] == "AFC") \
                     and "start_cues" not in structure[page][quest].keys():
                 error_found = True
-                error_details.append("No start cues were given for question '{}' on page '{}'.\n".format(quest, page))
+                error_details.append(f'No start cues were given for question "{quest}" on page "{page}".\n')
 
             if "end_cues" in structure[page][quest].keys():
                 if structure[page][quest]["end_cues"] == "":
                     error_found = True
-                    error_details.append("No end cues were given for question '{}' on page '{}'.\n".format(quest, page))
+                    error_details.append(f'No end cues were given for question "{quest}" on page "{page}".\n')
                 else:
                     try:
-                        if type(structure[page][quest]["end_cues"]) == list or type(
-                                structure[page][quest]["end_cues"]) == tuple:
+                        if isinstance(structure[page][quest]["end_cues"], (list, tuple)):
                             for entry in range(len(structure[page][quest]["end_cues"])):
-                                if type(structure[page][quest]["end_cues"][entry]) == str:
-                                    if type(structure[page][quest]["end_cues"]) == tuple:
+                                if isinstance(structure[page][quest]["end_cues"][entry], str):
+                                    if isinstance(structure[page][quest]["end_cues"], tuple):
                                         structure[page][quest]["end_cues"] = list(structure[page][quest]["end_cues"])
-                                    structure[page][quest]["end_cues"][entry] = structure[page][quest]["end_cues"][
-                                        entry].strip("' \"")
+                                    structure[page][quest]["end_cues"][entry] = structure[page][quest]["end_cues"][entry].strip("' \"")
                                     int(structure[page][quest]["end_cues"][entry])
                         else:
                             int(structure[page][quest]["end_cues"])
                     except ValueError:
                         error_found = True
-                        error_details.append(
-                            "End cues given for question '{}' on page '{}' couldn't be converted to a list of numbers.\n".format(
-                                quest, page))
-                    if "start_cues" not in structure[page][quest].keys() or \
-                            len(structure[page][quest]["end_cues"]) != len(structure[page][quest]["start_cues"]):
+                        error_details.append(f'End cues given for question "{quest}" on page "{page}" could not be converted to a list of numbers.\n')
+                    if "start_cues" not in structure[page][quest].keys() or len(structure[page][quest]["end_cues"]) != len(structure[page][quest]["start_cues"]):
                         error_found = True
-                        error_details.append(
-                            "The number of start- and end-cues in question '{}' on page '{}' doesn't match.\n".format(
-                                quest, page))
-            elif "type" in structure[page][quest].keys() and structure[page][quest]["type"] == "MUSHRA" \
-                    and "end_cues" not in structure[page][quest].keys():
+                        error_details.append(f'The number of start- and end-cues in question "{quest}" on page "{page}" does not match.\n')
+            elif "type" in structure[page][quest].keys() and structure[page][quest]["type"] == "MUSHRA" and "end_cues" not in structure[page][quest].keys():
                 error_found = True
-                error_details.append(
-                    "No end cues were given for question '{}' on page '{}'.\n".format(quest, page))
+                error_details.append(f'No end cues were given for question "{quest}" on page "{page}".\n')
 
             if "start_cues" in structure[page][quest].keys() and "end_cues" in structure[page][quest].keys():
-                if (type(structure[page][quest]["end_cues"]) == list or type(
-                        structure[page][quest]["end_cues"]) == tuple) and (
-                        type(structure[page][quest]["start_cues"]) == list or
-                        type(structure[page][quest]["start_cues"]) == tuple) and (
+                if isinstance(structure[page][quest]["end_cues"], (list, tuple)) and isinstance(structure[page][quest]["start_cues"], (list, tuple)) and (
                         len(structure[page][quest]["start_cues"]) == len(structure[page][quest]["end_cues"])):
                     for entry in range(len(structure[page][quest]["start_cues"])):
-                        if int(structure[page][quest]["start_cues"][entry]) == int(
-                                structure[page][quest]["end_cues"][entry]):
+                        if int(structure[page][quest]["start_cues"][entry]) == int(structure[page][quest]["end_cues"][entry]):
                             error_found = True
-                            error_details.append(
-                                "The same cue ({}) was used as start- and end-cue for one condition in question '{}' on page '{}'.\n".format(
-                                    structure[page][quest]["start_cues"][entry], quest, page))
+                            error_details.append(f'The same cue ({structure[page][quest]["start_cues"][entry]}) was used as start- and end-cue for one condition in question "{quest}" on page "{page}".\n')
 
             if "xfade" in structure[page][quest].keys():
                 try:
@@ -1277,48 +1124,38 @@ def validate_questionnaire(structure, suppress=False) -> (bool, bool, str):
                                 all_same_marker = False
                         if not all_same_marker:
                             error_found = True
-                            error_details.append(
-                                "Xfade is only applicable if all start- and end-markers are the same each in question '{}' on page '{}'.\n".format(
-                                    quest, page))
-                        if (type(structure[page][quest]["track"]) == int or type(structure[page][quest]["track"]) == str) or \
-                                ((type(structure[page][quest]["track"]) == list or type(structure[page][quest]["track"]) == tuple) and \
-                                 (type(structure[page][quest]["track"][0]) == list and len(set(structure[page][quest]["track"][0])) == 1 or len(set(structure[page][quest]["track"])) == 1)):
+                            error_details.append(f'Xfade is only applicable if all start- and end-markers are the same each in question "{quest}" on page "{page}".\n')
+                        if isinstance(structure[page][quest]["track"], (int, str)) or \
+                                (isinstance(structure[page][quest]["track"], (list, tuple)) and
+                                 (isinstance(structure[page][quest]["track"][0], list) and len(set(structure[page][quest]["track"][0])) == 1 or len(set(structure[page][quest]["track"])) == 1)):
                             error_found = True
-                            error_details.append(
-                                "For xfade stimuli need to be placed on different tracks in question '{}' on page '{}'.\n".format(
-                                    quest, page))
+                            error_details.append(f'For xfade stimuli need to be placed on different tracks in question "{quest}" on page "{page}".\n')
                 except ValueError:
                     error_found = True
-                    error_details.append(
-                        "No valid value found for 'xfade' for question '{}' on page '{}'.\n".format(quest, page))
-                    structure[page][quest][
-                        "xfade"] = False  # This happens so the rest of the routine where xfade is referenced doesn't have to catch errors
+                    error_details.append(f'No valid value found for "xfade" for question "{quest}" on page "{page}".\n')
+                    structure[page][quest]["xfade"] = False  # This happens so the rest of the routine where xfade is referenced does not have to catch errors
 
             if "crossfade" in structure[page][quest].keys():
                 try:
                     structure[page][quest].as_bool("crossfade")
                 except ValueError:
                     error_found = True
-                    error_details.append(
-                        "No valid value found for 'crossfade' for question '{}' on page '{}'.\n".format(quest, page))
-                    structure[page][quest]["crossfade"] = False  # This happens so the rest of the routine where crossfade is referenced doesn't have to catch errors
+                    error_details.append(f'No valid value found for "crossfade" for question "{quest}" on page "{page}".\n')
+                    structure[page][quest]["crossfade"] = False  # This happens so the rest of the routine where crossfade is referenced does not have to catch errors
 
             if "inscription" in structure[page][quest].keys():
                 if structure[page][quest]["inscription"] == "":
                     warning_found = True
-                    warning_details.append(
-                        "No inscription for the button in question '{}' on page '{}'.\n".format(quest, page))
+                    warning_details.append(f'No inscription for the button in question "{quest}" on page "{page}".\n')
                 elif structure[page][quest]["inscription"] == "None":
                     warning_found = True
-                    warning_details.append(
-                        "Internally used inscription 'None' used in question '{}' on page '{}'.\n".format(quest, page))
+                    warning_details.append(f'Internally used inscription "None" used in question "{quest}" on page "{page}".\n')
             elif "type" in structure[page][quest].keys() and (structure[page][quest]["type"] == "Button"
                                                               or structure[page][quest]["type"] == "OSCButton") and \
                     "inscription" not in structure[page][quest].keys():
                 structure[page][quest]["inscription"] = ""
                 warning_found = True
-                warning_details.append(
-                    "No inscription for the button in question '{}' on page '{}'.\n".format(quest, page))
+                warning_details.append(f'No inscription for the button in question "{quest}" on page "{page}".\n')
 
             if "type" in structure[page][quest].keys() and structure[page][quest]["type"] is not None:
                 if structure[page][quest]["type"] == "Button" and (
@@ -1331,22 +1168,18 @@ def validate_questionnaire(structure, suppress=False) -> (bool, bool, str):
                                                                    structure["audio_ip"] == "" or
                                                                    structure["audio_port"] == ""):
                     warning_found = True
-                    warning_details.append(
-                        "This questionnaire uses MUSHRA, but no valid address for an audio-application is set.\n")
+                    warning_details.append("This questionnaire uses MUSHRA, but no valid address for an audio-application is set.\n")
                 if (structure[page][quest]["type"] == "Player" or structure[page][quest]["type"] == "ABX" or
                     structure[page][quest]["type"] == "AFC") and \
                         ("audio_ip" not in structure.keys() or "audio_port" not in structure.keys() or
                          structure["audio_ip"] == "" or structure["audio_port"] == ""):
                     warning_found = True
-                    warning_details.append(
-                        "This questionnaire uses an audio player, but no valid address for an audio-application is set.\n")
+                    warning_details.append("This questionnaire uses an audio player, but no valid address for an audio-application is set.\n")
                 if structure[page][quest]["type"] == "Player" and "video" in structure[page][quest].keys() \
                         and ("video_ip" not in structure.keys() or "video_port" not in structure.keys() or
                              structure["video_ip"] == "" or structure["video_port"] == ""):
                     warning_found = True
-                    warning_details.append(
-                        "This questionnaire uses a video in question '{}' on page '{}', but no valid address for a video-application is set.\n".format(
-                            quest, page))
+                    warning_details.append(f'This questionnaire uses a video in question "{quest}" on page "{page}", but no valid address for a video-application is set.\n')
                 if (structure[page][quest]["type"] == "Button" or "pupil" in structure[page][quest].keys() and structure[page][quest]["pupil"] != "") and \
                         ("pupil_ip" not in structure.keys() or "pupil_port" not in structure.keys() or
                          structure["pupil_ip"] == "" or structure["pupil_port"] == ""):
@@ -1358,144 +1191,123 @@ def validate_questionnaire(structure, suppress=False) -> (bool, bool, str):
                         structure[page][quest]["objectName"] == "headline" or \
                         structure[page][quest]["objectName"] == "SliderHeader":
                     warning_found = True
-                    warning_details.append(
-                        "The objectName in question '{}' on page '{}' uses a predefined name.\n".format(quest, page))
+                    warning_details.append(f'The objectName in question "{quest}" on page "{page}" uses a predefined name.\n')
 
             if "timer" in structure[page][quest].keys() and structure[page][quest]["timer"] != "":
                 try:
                     if int(structure[page][quest]["timer"]) < 0:
                         warning_found = True
-                        warning_details.append(
-                            "The timer in question '{}' on page '{}' needs to be greater than or equal to 0. Setting it to 0 by default.\n".format(quest, page))
+                        warning_details.append(f'The timer in question "{quest}" on page "{page}" needs to be greater than or equal to 0. Setting it to 0 by default.\n')
                         structure[page][quest]["timer"] = 0
                 except ValueError:
                     error_found = True
-                    error_details.append(
-                        "The timer in question '{}' on page '{}' needs to be a numeric value.\n".format(quest, page))
+                    error_details.append(f'The timer in question "{quest}" on page "{page}" needs to be a numeric value.\n')
 
             if "password_file" in structure[page][quest].keys():
                 if structure[page][quest]["password_file"] == "":
                     warning_found = True
-                    warning_details.append(
-                        "No password_file found for question '{}' on page '{}'.\n".format(quest, page))
+                    warning_details.append(f'No password_file found for question "{quest}" on page "{page}".\n')
                 elif not path.isfile(structure[page][quest]["password_file"]):
                     error_found = True
-                    error_details.append(
-                        "No valid password_file for question '{}' on page '{}'.\n".format(quest, page))
+                    error_details.append(f'No valid password_file for question "{quest}" on page "{page}".\n')
                 elif not validate_passwords(structure[page][quest]["password_file"], structure[page][quest]["policy"]):
                     warning_found = True
-                    warning_details.append(
-                        "Passwords in file do not match policy of field for question '{}' on page '{}'.\n".format(quest,
-                                                                                                                  page))
+                    warning_details.append(f'Passwords in file do not match policy of field for question "{quest}" on page "{page}".\n')
             elif "type" in structure[page][quest].keys() and structure[page][quest]["type"] == "Password" and \
                     "password_file" not in structure[page][quest].keys():
                 structure[page][quest]["password_file"] = ""
                 warning_found = True
-                warning_details.append(
-                    "No password_file found for question '{}' on page '{}'.\n".format(quest, page))
+                warning_details.append(f'No password_file found for question "{quest}" on page "{page}".\n')
 
             if "button_texts" in structure[page][quest].keys():
-                if ((type(structure[page][quest]["button_texts"]) != list and type(
-                        structure[page][quest]["button_texts"]) != tuple) and structure[page][quest][
-                        "button_texts"] != "") or \
-                        ((type(structure[page][quest]["button_texts"]) == list or type(
-                            structure[page][quest]["button_texts"]) == tuple) and
-                         ((len(structure[page][quest]["button_texts"]) != 2 and structure[page][quest].as_bool(
-                             "x") == False) or
-                          (len(structure[page][quest]["button_texts"]) != 3 and structure[page][quest].as_bool(
-                              "x") == True))):
+                if (not isinstance(structure[page][quest]["button_texts"], list) and not isinstance(structure[page][quest]["button_texts"], tuple) and
+                        structure[page][quest]["button_texts"] != "") or \
+                        (isinstance(structure[page][quest]["button_texts"], (list, tuple)) and
+                        ((len(structure[page][quest]["button_texts"]) != 2 and not structure[page][quest].as_bool("x")) or
+                        (len(structure[page][quest]["button_texts"]) != 3 and structure[page][quest].as_bool("x")))):
                     error_found = True
-                    error_details.append(
-                        "Please give no, two or three (if option X is used) button_texts for the ABX type question '{}' on page '{}'.\n".format(
-                            quest, page))
+                    error_details.append(f'Please give no, two or three (if option X is used) button_texts for the ABX type question "{quest}" on page "{page}".\n')
 
             if "randomize" in structure[page][quest].keys():
                 try:
                     _ = structure[page][quest].as_bool("randomize")
                 except ValueError:
                     error_found = True
-                    error_details.append(
-                        "No valid value found for 'randomize' for question '{}' on page '{}'.\n".format(quest, page))
+                    error_details.append(f'No valid value found for "randomize" for question "{quest}" on page "{page}".\n')
             elif "type" in structure[page][quest].keys() and structure[page][quest]["type"] == "Matrix" and \
                     "randomize" not in structure[page][quest].keys():
                 structure[page][quest]["randomize"] = False
                 warning_found = True
-                warning_details.append(
-                    "No option for 'randomize' found for question '{}' on page '{}'.\n".format(quest, page))
+                warning_details.append(f'No option for "randomize" found for question "{quest}" on page "{page}".\n')
 
             if "questions" in structure[page][quest].keys():
                 if structure[page][quest]["questions"] == "" or len(structure[page][quest]["questions"]) == 0:
                     warning_found = True
-                    warning_details.append(
-                        "No questions for the matrix in question '{}' on page '{}' found.\n".format(quest, page))
+                    warning_details.append(f'No questions for the matrix in question "{quest}" on page "{page}" found.\n')
             elif "type" in structure[page][quest].keys() and structure[page][quest]["type"] == "Matrix" and \
                     "questions" not in structure[page][quest].keys():
                 structure[page][quest]["questions"] = ""
                 warning_found = True
-                warning_details.append(
-                    "No questions for the matrix in question '{}' on page '{}' found.\n".format(quest, page))
+                warning_details.append(f'No questions for the matrix in question "{quest}" on page "{page}" found.\n')
 
             if "image_file" in structure[page][quest].keys():
                 if structure[page][quest]["image_file"] == "":
                     warning_found = True
-                    warning_details.append(
-                        "No image_file found for question '{}' on page '{}'.\n".format(quest, page))
+                    warning_details.append(f'No image_file found for question "{quest}" on page "{page}".\n')
                 elif not path.isfile(structure[page][quest]["image_file"]):
                     error_found = True
-                    error_details.append(
-                        "No valid image_file for question '{}' on page '{}'.\n".format(quest, page))
+                    error_details.append(f'No valid image_file for question "{quest}" on page "{page}".\n')
             elif "type" in structure[page][quest].keys() and structure[page][quest]["type"] == "Image" and \
                     "image_file" not in structure[page][quest].keys():
                 structure[page][quest]["image_file"] = ""
                 warning_found = True
-                warning_details.append(
-                    "No image_file found for question '{}' on page '{}'.\n".format(quest, page))
+                warning_details.append(f'No image_file found for question "{quest}" on page "{page}".\n')
 
             if "image_position" in structure[page][quest].keys():
                 if structure[page][quest]["image_position"] not in image_positions:
                     error_found = True
-                    error_details.append("Invalid image position found for question '{}' on page '{}'.\n".format(quest, page))
+                    error_details.append(f'Invalid image position found for question "{quest}" on page "{page}".\n')
                 elif structure[page][quest]["image_position"] == "free" and ("x_pos" not in structure[page][quest].keys() and "y_pos" not in structure[page][quest].keys()):
                     warning_found = True
-                    warning_details.append("Image '{}' on page '{}' is chosen to be positioned freely, but no coordinates were given.\n".format(quest, page))
+                    warning_details.append(f'Image "{quest}" on page "{page}" is chosen to be positioned freely, but no coordinates were given.\n')
                     structure[page][quest]["x_pos"] = 0 if "x_pos" not in structure[page][quest].keys() else structure[page][quest]["x_pos"]
                     structure[page][quest]["y_pos"] = 0 if "y_pos" not in structure[page][quest].keys() else structure[page][quest]["y_pos"]
             elif "image_position" not in structure[page][quest].keys() and "type" in structure[page][quest].keys() and structure[page][quest]["type"] == "Image":
                 error_found = True
-                error_details.append("No image_position found for question '{}' on page '{}'.\n".format(quest, page))
+                error_details.append(f'No image_position found for question "{quest}" on page "{page}".\n')
 
             if "width" in structure[page][quest].keys():
                 try:
                     int(structure[page][quest]["width"])
                     if int(structure[page][quest]["width"]) <= 0:
                         error_found = True
-                        error_details.append("Width needs to be bigger than 0 for question '{}' on page '{}'.\n".format(quest, page))
+                        error_details.append(f'Width needs to be bigger than 0 for question "{quest}" on page "{page}".\n')
                 except ValueError:
                     error_found = True
-                    error_details.append("Invalid value for width for question '{}' on page '{}'.\n".format(quest, page))
+                    error_details.append(f'Invalid value for width for question "{quest}" on page "{page}".\n')
 
             if "height" in structure[page][quest].keys():
                 try:
                     int(structure[page][quest]["height"])
                     if int(structure[page][quest]["height"]) <= 0:
                         error_found = True
-                        error_details.append("Height needs to be bigger than 0 for question '{}' on page '{}'.\n".format(quest, page))
+                        error_details.append(f'Height needs to be bigger than 0 for question "{quest}" on page "{page}".\n')
                 except ValueError:
                     error_found = True
-                    error_details.append("Height value for width for question '{}' on page '{}'.\n".format(quest, page))
+                    error_details.append(f'Height value for width for question "{quest}" on page "{page}".\n')
 
             if "x_pos" in structure[page][quest].keys():
                 try:
                     int(structure[page][quest]["x_pos"])
                     if int(structure[page][quest]["x_pos"]) < 0:
                         error_found = True
-                        error_details.append("X position needs to be bigger or equal to 0 for question '{}' on page '{}'.\n".format(quest, page))
+                        error_details.append(f'X position needs to be bigger or equal to 0 for question "{quest}" on page "{page}".\n')
                 except ValueError:
                     error_found = True
-                    error_details.append("Invalid value for x position for question '{}' on page '{}'.\n".format(quest, page))
+                    error_details.append(f'Invalid value for x position for question "{quest}" on page "{page}".\n')
             elif "image_position" in structure[page][quest].keys() and structure[page][quest]["image_position"] == "free":
                 warning_found = True
-                warning_details.append("No x position given for the question '{}' on page '{}'.\n".format(quest, page))
+                warning_details.append(f'No x position given for the question "{quest}" on page "{page}".\n')
                 structure[page][quest]["x_pos"] = 0
 
             if "y_pos" in structure[page][quest].keys():
@@ -1503,53 +1315,52 @@ def validate_questionnaire(structure, suppress=False) -> (bool, bool, str):
                     int(structure[page][quest]["y_pos"])
                     if int(structure[page][quest]["y_pos"]) < 0:
                         error_found = True
-                        error_details.append("Y position needs to be bigger or equal to than 0 for question '{}' on page '{}'.\n".format(quest, page))
+                        error_details.append(f'Y position needs to be bigger or equal to than 0 for question "{quest}" on page "{page}".\n')
                 except ValueError:
                     error_found = True
-                    error_details.append("Invalid value for y position for question '{}' on page '{}'.\n".format(quest, page))
+                    error_details.append(f'Invalid value for y position for question "{quest}" on page "{page}".\n')
             elif "image_position" in structure[page][quest].keys() and structure[page][quest]["image_position"] == "free":
                 warning_found = True
-                warning_details.append("No y position given for the question '{}' on page '{}'.\n".format(quest, page))
+                warning_details.append(f'No y position given for the question "{quest}" on page "{page}".\n')
                 structure[page][quest]["y_pos"] = 0
 
             if "address" in structure[page][quest].keys():
                 if structure[page][quest]["address"] == "":
                     error_found = True
-                    error_details.append(
-                        "No OSC-address for question '{}' on page '{}' was given.\n".format(quest, page))
+                    error_details.append(f'No OSC-address for question "{quest}" on page "{page}" was given.\n')
                 elif not structure[page][quest]["address"].startswith("/"):
                     warning_found = True
-                    warning_details.append("The OSC-address of question '{}' on page '{}' should start with '/'.\n".format(quest, page))
+                    warning_details.append(f'The OSC-address of question "{quest}" on page "{page}" should start with "/".\n')
             elif "type" in structure[page][quest].keys() and structure[page][quest]["type"] == "OSCButton" and \
                     "address" not in structure[page][quest].keys():
                 error_found = True
-                error_details.append("No OSC-address for question '{}' on page '{}' was given.\n".format(quest, page))
+                error_details.append(f'No OSC-address for question "{quest}" on page "{page}" was given.\n')
 
             if "type" in structure[page][quest].keys() and structure[page][quest]["type"] == "OSCButton" and \
                     "value" not in structure[page][quest].keys():
                 error_found = True
-                error_details.append("No value for question '{}' on page '{}' was given.\n".format(quest, page))
+                error_details.append(f'No value for question "{quest}" on page "{page}" was given.\n')
 
             if "receiver" in structure[page][quest].keys():
-                if type(structure[page][quest]["receiver"]) is not list and type(structure[page][quest]["receiver"]) is not tuple:
+                if not isinstance(structure[page][quest]["receiver"], list) and not isinstance(structure[page][quest]["receiver"], tuple):
                     error_found = True
-                    error_details.append("The receiver of question '{}' on page '{}' needs to have the format (IP, Port).\n".format(quest, page))
+                    error_details.append(f'The receiver of question "{quest}" on page "{page}" needs to have the format (IP, Port).\n')
                 elif len(structure[page][quest]["receiver"]) > 0:
                     match = re.match(ip_mask, structure[page][quest]["receiver"][0])
                     if match is None or match.span()[1] < len(structure[page][quest]["receiver"][0]):
                         error_found = True
-                        error_details.append("No valid IP address given for the receiver in question '{}' on page '{}'.\n".format(quest, page))
+                        error_details.append(f'No valid IP address given for the receiver in question "{quest}" on page "{page}".\n')
                     try:
                         int(structure[page][quest]["receiver"][1])
                         if int(structure[page][quest]["receiver"][1]) < 0 or int(structure[page][quest]["receiver"][1]) > 65535:
                             raise ValueError
                     except ValueError:
                         error_found = True
-                        error_details.append("Invalid receiver port in question '{}' on page '{}', couldn't be converted to a number 0-65535.\n".format(quest, page))
+                        error_details.append(f'Invalid receiver port in question "{quest}" on page "{page}", could not be converted to a number 0-65535.\n')
             elif "type" in structure[page][quest].keys() and structure[page][quest]["type"] == "OSCButton" and \
                     "receiver" not in structure[page][quest].keys():
                 error_found = True
-                error_details.append("No receiver found for question '{}' on page '{}'.\n".format(quest, page))
+                error_details.append(f'No receiver found for question "{quest}" on page "{page}".\n')
 
     # remove duplicate errors/warnings
     warning_details = list(dict.fromkeys(warning_details))

@@ -91,11 +91,11 @@ def find_row_by_label(layout, label):
         row of the field
     """
     for row in range(layout.rowCount()):
-        if type(layout.itemAt(row, QFormLayout.ItemRole.FieldRole)) == QWidgetItem and layout.itemAt(row, QFormLayout.ItemRole.LabelRole).widget().text() == label:
+        if isinstance(layout.itemAt(row, QFormLayout.ItemRole.FieldRole), QWidgetItem) and layout.itemAt(row, QFormLayout.ItemRole.LabelRole).widget().text() == label:
             return row
-        elif type(layout.itemAt(row, QFormLayout.ItemRole.FieldRole)) == QHBoxLayout:
+        elif isinstance(layout.itemAt(row, QFormLayout.ItemRole.FieldRole), QHBoxLayout):
             for child in range(layout.itemAt(row, QFormLayout.ItemRole.FieldRole).count()):
-                if type(layout.itemAt(row, QFormLayout.ItemRole.FieldRole).itemAt(child)) == QWidgetItem and \
+                if isinstance(layout.itemAt(row, QFormLayout.ItemRole.FieldRole).itemAt(child), QWidgetItem) and \
                         layout.itemAt(row, QFormLayout.ItemRole.FieldRole).itemAt(child).widget().objectName() == label:
                     return row, child
 
@@ -104,3 +104,4 @@ def open_pupil():
     """Checks if Pupil Capture is open and if not starts it."""
     if "pupil_capture.exe" not in (i.name() for i in psutil.process_iter()):
         os.startfile(PUPIL_PATH)  # subprocess.call([PUPIL_PATH]) ?
+        QTest.qWait(2000)

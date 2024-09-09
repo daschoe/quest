@@ -1,4 +1,4 @@
-# Created with QUEST version 1.0.7
+# Created with QUEST version 1.1.0.
 video_player = None
 go_back = True
 back_text = Zurück
@@ -10,7 +10,7 @@ save_message = Sind Sie bereit den Fragebogen zu beenden und somit Ihre Angaben 
 pagecount_text = Seite {} von {}
 filepath_results = ./results/results.csv
 delimiter = ;
-stylesheet = ./stylesheets/minimal.qss
+stylesheet = C:/Users/Administrator/Desktop/Daphne/GIT/quest/src/stylesheets/LimeSurvey_Dark_bootswatch_bigger.qss
 button_fade = 100
 randomization = None
 save_after = 1
@@ -24,7 +24,7 @@ type = Slider
 id = sl1
 min = -1
 max = 4
-start = -1
+start = 0
 step = 1
 labelled = True
 label = "", 1, 2, 3, 4, 5
@@ -34,7 +34,16 @@ type = Slider
 id = sl2
 min = -1
 max = 1
-start = 0
+start = 0.1
+step = 0.1
+labelled = True
+text = float
+[[invsl2]]
+type = Slider
+id = sl2inv
+min = 1
+max = -1
+start = -0.9
 step = 0.1
 labelled = True
 text = float
@@ -46,7 +55,7 @@ min = 10
 max = 30
 start = 10
 step = 10
-labelled = False
+labelled = True
 [[sl3]]
 type = MUSHRA
 id = m1

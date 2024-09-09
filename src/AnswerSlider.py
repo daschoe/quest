@@ -45,8 +45,8 @@ def make_answers(labelled, qid, smin, smax, sstart=0, sstep=1, tiv=1, header=Non
             the slider object itself
     """
     if labelled:
-        tiv=sstep # TODO integrieren
-        slider = LabeledSlider(minimum=smin, maximum=smax, start=sstart, step=sstep, tick_interval=tiv, labels=label, parent=parent, objectname=objectname, sid=qid)
+        tiv = sstep  # TODO integrieren
+        slider = LabeledSlider(minimum=smin, maximum=smax, start=sstart, step=sstep, tick_interval=tiv, labels=label, parent=parent, objectname=objectname)
         slider.sl.valueChanged.connect(lambda: parent.log(qid, slider))
     else:
         slider = Slider(Qt.Orientation.Horizontal, parent=parent)
@@ -57,7 +57,7 @@ def make_answers(labelled, qid, smin, smax, sstart=0, sstep=1, tiv=1, header=Non
     if header is not None:
         layout = QVBoxLayout()
         header_layout = QHBoxLayout()
-        for h in range(0, len(header)-1):
+        for h in range(0, len(header) - 1):
             lbl = QLabel()
             lbl.setText(header[h])
             lbl.setAlignment(Qt.AlignmentFlag.AlignHCenter)

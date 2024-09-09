@@ -75,7 +75,7 @@ class MUSHRA(QWidget):
         self.id = qid
         self.start_cues = start_cues
         self.end_cues = end_cues
-        if type(tracks) is str and ("[" not in tracks and "]" not in tracks and "," not in tracks):
+        if isinstance(tracks, str) and ("[" not in tracks and "]" not in tracks and "," not in tracks):
             tracks = [int(tracks)]
         self.tracks = tracks
         self.start = 0
@@ -148,16 +148,16 @@ class MUSHRA(QWidget):
                 slider = Slider(Qt.Orientation.Vertical, parent=parent)
                 slider.setObjectName(self.objectName())
                 slider.setMinimumHeight(self.slider_height)
-                slider.prepare_slider(min_val=0, max_val=100, start=100, step=1, tick_interval=20, tickpos=QSlider.TickPosition.TicksLeft, sid=self.id+"_{}".format(len(self.sliders)+1))
+                slider.prepare_slider(min_val=0, max_val=100, start=100, step=1, tick_interval=20, tickpos=QSlider.TickPosition.TicksLeft, sid=f'{self.id}_{len(self.sliders) + 1}')
                 slider.setEnabled(False)
                 self.sliders.append(slider)
                 slider.mushra_stopped.connect(self.raise_log)
-                lbl = QLabel("{}".format(slider.value()))
+                lbl = QLabel(f'{slider.value()}')
                 lbl.setObjectName(self.objectName())
                 lbl.setAlignment(Qt.AlignmentFlag.AlignHCenter)
                 self.labels.append(lbl)
                 slider.valueChanged.connect(self.update_label)
-                start_button = QPushButton("{}".format(m))
+                start_button = QPushButton(f'{m}')
                 start_button.setObjectName(self.objectName())
                 self.buttons.append(start_button)
                 start_button.clicked.connect(mapper.map)
@@ -228,42 +228,49 @@ class MUSHRA(QWidget):
                 for i in range(1, self.audio_tracks + 1):
                     if len(self.tracks) < len(self.buttons) + 1:  # only one track
                         if i in self.tracks:  # single track
-                            self.audio_client.send_message("/track/{}/mute".format(i), 0)
+                            self.audio_client.send_message(f'/track/{i}/mute', 0)
                         else:
-                            self.audio_client.send_message("/track/{}/mute".format(i), 1)
+                            self.audio_client.send_message(f'/track/{i}/mute', 1)
                     elif (len(self.tracks) == len(self.buttons) + 1) and (
-                            type(self.tracks[self.last_sender]) is not list):  # 1 track per button
+                            not isinstance(self.tracks[self.last_sender], list)):  # 1 track per button
                         if i == self.tracks[self.last_sender]:
-                            self.audio_client.send_message("/track/{}/mute".format(i), 0)
+                            self.audio_client.send_message(f'/track/{i}/mute', 0)
                         else:
-                            self.audio_client.send_message("/track/{}/mute".format(i), 1)
+                            self.audio_client.send_message(f'/track/{i}/mute', 1)
                     elif (len(self.tracks) == len(self.buttons) + 1) and (
-                            type(self.tracks[self.last_sender]) is list):  # more than one track per stimulus
+                            not isinstance(self.tracks[self.last_sender], list)):  # more than one track per stimulus
                         if i in self.tracks[self.last_sender]:
-                            self.audio_client.send_message("/track/{}/mute".format(i), 0)
+                            self.audio_client.send_message(f'/track/{i}/mute', 0)
                         else:
-                            self.audio_client.send_message("/track/{}/mute".format(i), 1)
+                            self.audio_client.send_message(f'/track/{i}/mute', 1)
 
     def update_label(self):
         """Update the label above the slider that indicates the handle position, when the handle was moved."""
-        for s in range(0, len(self.sliders)):
-            if self.labels[s].text() != str(self.sliders[s].value()):
-                self.labels[s].setText("{}".format(self.sliders[s].value()))
+        for s, sli in enumerate(self.sliders):
+            if self.labels[s].text() != str(sli.value()):
+                self.labels[s].setText(f'{sli.value()}')
                 self.labels[s].setFixedWidth(QLabel("100").maximumWidth())
 
     def raise_log(self, who):
-        self.parent().log(who, self.sliders[int(who.split('_')[1])-1])
+        '''Make a log entry.
+
+        Parameters
+        ----------
+        who : Slider
+            The Slider whose signal that trigged a change in value.
+        '''
+        self.parent().log(who, self.sliders[int(who.split('_')[1]) - 1])
 
     def loop(self):
         """Toggle looping."""
         self.looped = not self.looped
         if self.looped:
             self.loop_button.setChecked(True)
-            self.parent().page_log += "\n\t{} - Loop on {} ".format(datetime.datetime.now().replace(microsecond=0).__str__(), self.id)
+            self.parent().page_log += f'\n\t{str(datetime.datetime.now().replace(microsecond=0))} - Loop on {self.id}'
             self.audio_client.send_message("/action", self.loop_on_command)
         else:
             self.loop_button.setChecked(False)
-            self.parent().page_log += "\n\t{} - Loop off {} ".format(datetime.datetime.now().replace(microsecond=0).__str__(), self.id)
+            self.parent().page_log += f'\n\t{str(datetime.datetime.now().replace(microsecond=0))} - Loop off {self.id}'
             self.audio_client.send_message("/action", self.loop_off_command)
 
     def pause(self):
@@ -273,7 +280,7 @@ class MUSHRA(QWidget):
             self.paused = True
             self.audio_client.send_message("/pause", 1)
             self.pause_button.setChecked(True)
-            self.parent().page_log += "\n\t{} - Paused MUSHRA-player {} ".format(datetime.datetime.now().replace(microsecond=0).__str__(), self.id)
+            self.parent().page_log += f'\n\t{str(datetime.datetime.now().replace(microsecond=0))} - Paused MUSHRA-player {self.id}'
             self.end = time()
             self.duration[self.current].append(self.end - self.start)
         else:
@@ -281,7 +288,7 @@ class MUSHRA(QWidget):
             self.paused = False
             self.audio_client.send_message("/pause", 1)
             self.pause_button.setChecked(False)
-            self.parent().page_log += "\n\t{} - Unpaused MUSHRA-player {} ".format(datetime.datetime.now().replace(microsecond=0).__str__(), self.id)
+            self.parent().page_log += f'\n\t{str(datetime.datetime.now().replace(microsecond=0))} - Unpaused MUSHRA-player {self.id}'
             self.start = time()
             self.end = 0
 
@@ -297,44 +304,42 @@ class MUSHRA(QWidget):
                 button which initiated play
         """
         for player in self.parent().players:
-            if player.playing and (not player == self and not self.conditionsUseSameMarker or
-                                   (self.conditionsUseSameMarker and not self.xfade.isChecked())):
+            if player.playing and (not player == self and not self.conditionsUseSameMarker or (self.conditionsUseSameMarker and not self.xfade.isChecked())):
                 player.stop()
         self.pause_button.setEnabled(True)
         self.pause_button.setChecked(False)
         self.stop_button.setEnabled(True)
-        
+
         if self.paused and self.current == cue:
             print("pause")
             self.audio_client.send_message("/pause", 1)
-            self.parent().page_log += "\n\t{} - Unpaused Player {} ".format(datetime.datetime.now().replace(microsecond=0).__str__(),
-                                                                            self.id)
+            self.parent().page_log += f'\n\t{str(datetime.datetime.now().replace(microsecond=0))} - Unpaused Player {self.id}'
         else:
             if btn != self.refbutton:
                 if self.sender().sender() in self.buttons:
-                    for s in range(0, len(self.sliders)):
+                    for s, sli in enumerate(self.sliders):
                         if s != self.buttons.index(self.sender().sender()):
-                            self.sliders[s].setEnabled(False)
+                            sli.setEnabled(False)
                         else:
-                            self.sliders[s].setEnabled(True)
+                            sli.setEnabled(True)
 
-                sender = 0 if self.sender().sender() not in self.buttons else self.buttons.index(self.sender().sender())+1
+                sender = 0 if self.sender().sender() not in self.buttons else self.buttons.index(self.sender().sender()) + 1
             else:
                 sender = 0
-            
+
             self.audio_client.send_message("/action", 40297)  # unselect all
-            if type(self.tracks) is list and len(self.tracks) == len(self.buttons) + 1 and type(self.tracks[sender]) is list:
+            if isinstance(self.tracks, list) and len(self.tracks) == len(self.buttons) + 1 and isinstance(self.tracks[sender], list):
                 for t in self.tracks[sender]:
-                    self.audio_client.send_message("/track/{}/select".format(t), 1)  # add t to selection
+                    self.audio_client.send_message(f'/track/{t}/select', 1)  # add t to selection
             self.audio_client.send_message("/action", 40341)  # mute all
-            if type(self.tracks) is int:
-                self.audio_client.send_message("/track/{}/mute".format(self.tracks), 0)
-            elif type(self.tracks) is list and len(self.tracks) < len(self.buttons) + 1:
+            if isinstance(self.tracks, int):
+                self.audio_client.send_message(f'/track/{self.tracks}/mute', 0)
+            elif isinstance(self.tracks, list) and len(self.tracks) < len(self.buttons) + 1:
                 for t in self.tracks:
-                    self.audio_client.send_message("/track/{}/select".format(t), 1)  # add t to selection
+                    self.audio_client.send_message(f'/track/{t}/select', 1)  # add t to selection
                 self.audio_client.send_message("/action", 40280)  # toggle mute for selected tracks
-            elif type(self.tracks[sender]) is int:
-                self.audio_client.send_message("/track/{}/mute".format(self.tracks[sender]), 0)
+            elif isinstance(self.tracks[sender], int):
+                self.audio_client.send_message(f'/track/{self.tracks[sender]}/mute', 0)
             else:
                 self.audio_client.send_message("/action", 40280)  # toggle mute for selected tracks
 
@@ -414,8 +419,7 @@ class MUSHRA(QWidget):
         self.playing = True
         self.paused = False
         self.loop_button.setDisabled(True)
-        self.parent().page_log += "\n\t{} - (Re-)Started MUSHRA-player for cue {} {} ".format(
-            datetime.datetime.now().replace(microsecond=0).__str__(), self.start_cues[cue], self.id + "_" + str(cue))
+        self.parent().page_log += f'\n\t{str(datetime.datetime.now().replace(microsecond=0))} - (Re-)Started MUSHRA-player for cue {self.start_cues[cue]} {self.id}_{str(cue)}'
 
     def stop(self):
         """
@@ -433,4 +437,4 @@ class MUSHRA(QWidget):
         self.stop_button.setEnabled(False)
         self.pause_button.setEnabled(False)
         self.pause_button.setChecked(False)
-        self.parent().page_log += "\n\t{} - Stopped MUSHRA playback {} ".format(datetime.datetime.now().replace(microsecond=0).__str__(), self.id)
+        self.parent().page_log += f'\n\t{str(datetime.datetime.now().replace(microsecond=0))} - Stopped MUSHRA playback {self.id}'

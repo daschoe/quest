@@ -1,6 +1,6 @@
 """Test if the listify function in Validator.py is working correctly."""
 
-from context import *
+from context import listify, ConfigObj
 
 
 # fields: "answers", "button_texts", "header", "label", "questions"

@@ -3,8 +3,7 @@ A TextEdit editor that sends editingFinished events when the text was changed an
 Original version (PyQt4): https://gist.github.com/hahastudio/4345418
 """
 
-from PySide6.QtCore import Signal, QObject
-from PySide6.QtGui import QFocusEvent
+from PySide6.QtCore import Signal
 from PySide6.QtWidgets import QTextEdit
 
 

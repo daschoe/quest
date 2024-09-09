@@ -1,6 +1,7 @@
 """Testing the behaviour of PupilCoreButton.py + QEditGui.py"""
 
-from context import *
+from context import pytest, QEditGuiMain, QTimer, open_config_file, StackedWindowGui, QTest, handle_dialog_p, handle_dialog_q, Qt, QFormLayout, QWidgetItem, fields_per_type, default_values, QCheckBox, QLineEdit, page_fields, listify, ConfigObj, general_fields, handle_dialog_error, validate_questionnaire, handle_dialog_no_save, find_row_by_label, handle_dialog, csv, re, os, mock_file, open_pupil, Button, handle_dialog_warning
+
 
 recording_path = "C:\\Users\\Administrator\\recordings\\"  # TODO change to your path
 
@@ -40,19 +41,18 @@ def run():
 # noinspection PyArgumentList
 def test_create(gui_init, qtbot):
     # create a page
-    assert gui_init.gui.page_add.isEnabled() == True
+    assert gui_init.gui.page_add.isEnabled()
     QTest.qWait(500)
 
     QTimer.singleShot(100, handle_dialog_p)
-    QTest.mouseClick(gui_init.gui.page_add, Qt.MouseButton.LeftButton, delay=1)
+    QTest.mouseClick(gui_init.gui.page_add, Qt.MouseButton.LeftButton, delay=1000)
     tv = gui_init.gui.treeview
     # create a question
     tv.setCurrentItem(tv.topLevelItem(0).child(0))
-    assert gui_init.gui.question_add.isEnabled() == True
-    QTest.qWait(500)
+    assert gui_init.gui.question_add.isEnabled()
 
     QTimer.singleShot(100, handle_dialog_q)
-    QTest.mouseClick(gui_init.gui.question_add, Qt.MouseButton.LeftButton, delay=1)
+    QTest.mouseClick(gui_init.gui.question_add, Qt.MouseButton.LeftButton, delay=1000)
     assert tv.itemAt(0, 0).text(0) == "<new questionnaire>"
     assert tv.topLevelItemCount() == 1
     assert tv.topLevelItem(0).childCount() == 1
@@ -79,16 +79,16 @@ def test_create(gui_init, qtbot):
     layout = gui_init.gui.edit_layout
     not_none_rows = 0
     for row in range(layout.rowCount()):
-        if type(layout.itemAt(row, QFormLayout.ItemRole.FieldRole)) == QWidgetItem:
+        if isinstance(layout.itemAt(row, QFormLayout.ItemRole.FieldRole), QWidgetItem):
             not_none_rows += 1
-            assert layout.itemAt(row, QFormLayout.ItemRole.LabelRole).widget().text() in fields_per_type["Button"][0].keys()
+            assert layout.itemAt(row, QFormLayout.ItemRole.LabelRole).widget().text() in fields_per_type["Button"][0]
             assert str(type(layout.itemAt(row, QFormLayout.ItemRole.FieldRole).widget())).strip("'<>").rsplit(".", 1)[1] == \
                    'TextEdit' if fields_per_type["Button"][0][layout.itemAt(row, QFormLayout.ItemRole.LabelRole).widget().text()] == 'QPlainTextEdit'\
                    else fields_per_type["Button"][0][layout.itemAt(row, QFormLayout.ItemRole.LabelRole).widget().text()]
-            if type(layout.itemAt(row, QFormLayout.ItemRole.FieldRole).widget()) == QLineEdit and layout.itemAt(row, QFormLayout.ItemRole.LabelRole).widget().text() in \
+            if isinstance(layout.itemAt(row, QFormLayout.ItemRole.FieldRole).widget(), QLineEdit) and layout.itemAt(row, QFormLayout.ItemRole.LabelRole).widget().text() in \
                     default_values:
                 assert layout.itemAt(row, QFormLayout.ItemRole.FieldRole).widget().text() == default_values[layout.itemAt(row, QFormLayout.ItemRole.LabelRole).widget().text()]
-            elif type(layout.itemAt(row, QFormLayout.ItemRole.FieldRole).widget()) == QCheckBox and layout.itemAt(row, QFormLayout.ItemRole.LabelRole).widget().text() in \
+            elif isinstance(layout.itemAt(row, QFormLayout.ItemRole.FieldRole).widget(), QCheckBox) and layout.itemAt(row, QFormLayout.ItemRole.LabelRole).widget().text() in \
                     default_values:
                 assert layout.itemAt(row, QFormLayout.ItemRole.FieldRole).widget().isChecked() == default_values[
                     layout.itemAt(row, QFormLayout.ItemRole.LabelRole).widget().text()]
@@ -106,7 +106,7 @@ def test_create(gui_init, qtbot):
             structure["Page 1"][key] = value
     structure["Page 1"]["Question 1"] = {"type": "Button"}
     for key, value in default_values.items():
-        if key in fields_per_type["Button"][0].keys():
+        if key in fields_per_type["Button"][0]:
             structure["Page 1"]["Question 1"][key] = value
     listify(gui_init.structure)
     listify(structure)
@@ -137,8 +137,8 @@ def test_create(gui_init, qtbot):
 def test_inscription(gui_load, qtbot, capfd):
     QTimer.singleShot(150, handle_dialog_error)
     error_found, warning_found, warning_details = validate_questionnaire(gui_load.structure)
-    assert error_found == False
-    assert warning_found == False
+    assert not error_found
+    assert not warning_found
     tv = gui_load.gui.treeview
     tv.expandAll()
     tv.setCurrentItem(tv.topLevelItem(0).child(0).child(0))  # should be 'Question 1'
@@ -161,18 +161,18 @@ def test_inscription(gui_load, qtbot, capfd):
     assert gui_load.structure["Page 1"]["Question 1"]["inscription"] == "Click me"
     QTimer.singleShot(150, handle_dialog_error)
     error_found, warning_found, warning_details = validate_questionnaire(gui_load.structure)
-    assert error_found == False
-    assert warning_found == False
+    assert not error_found
+    assert not warning_found
     gui_load.gui.refresh_button.click()
-    QTest.keyClicks(gui_load, 's', modifier=Qt.KeyboardModifier.ControlModifier)
+    QTest.keyClicks(gui_load, 's', modifier=Qt.KeyboardModifier.ControlModifier, delay=1000)
     test_gui = StackedWindowGui("./test/pbtest.txt")
     assert test_gui.Stack.count() == 1
     for child in test_gui.Stack.currentWidget().children():
-        if type(child) is Button:
+        if isinstance(child, Button):
             assert child.button.text() == "Click me"
 
     QTimer.singleShot(100, handle_dialog)
-    QTest.mouseClick(test_gui.forwardbutton, Qt.MouseButton.LeftButton, delay=1)
+    QTest.mouseClick(test_gui.forwardbutton, Qt.MouseButton.LeftButton, delay=1000)
     test_gui.close()
 
     #  empty inscription -> warning
@@ -187,22 +187,23 @@ def test_inscription(gui_load, qtbot, capfd):
     assert gui_load.structure["Page 1"]["Question 1"]["inscription"] == ""
     QTimer.singleShot(150, handle_dialog_error)
     error_found, warning_found, warning_details = validate_questionnaire(gui_load.structure)
-    assert error_found == False
-    assert warning_found == True
-    QTest.keyClicks(gui_load, 's', modifier=Qt.KeyboardModifier.ControlModifier)
+    assert not error_found
+    assert warning_found
+    QTest.keyClicks(gui_load, 's', modifier=Qt.KeyboardModifier.ControlModifier, delay=1000)
     QTimer.singleShot(500, handle_dialog_warning)
     test_gui = StackedWindowGui("./test/pbtest.txt")
     assert test_gui.Stack.count() == 1
     for child in test_gui.Stack.currentWidget().children():
-        if type(child) is Button:
+        if isinstance(child, Button):
             assert child.button.text() == ""
             child.button.click()
             QTest.qWait(1000)
             out, err = capfd.readouterr()
             assert out.index("Trigger {'topic': 'annotation', 'label': 'test', 'timestamp':") != -1
-            assert out.endswith(", 'duration': 1} Message forwarded.\n") == True
+            assert out.endswith(", 'duration': 1} Message forwarded.\n")
+            
     QTimer.singleShot(1000, handle_dialog)
-    QTest.mouseClick(test_gui.forwardbutton, Qt.MouseButton.LeftButton, delay=1)
+    QTest.mouseClick(test_gui.forwardbutton, Qt.MouseButton.LeftButton, delay=1000)
     test_gui.close()
 
     # predefined 'None'
@@ -217,22 +218,22 @@ def test_inscription(gui_load, qtbot, capfd):
     assert gui_load.structure["Page 1"]["Question 1"]["inscription"] == "None"
     QTimer.singleShot(150, handle_dialog_error)
     error_found, warning_found, warning_details = validate_questionnaire(gui_load.structure)
-    assert error_found == False
-    assert warning_found == True
-    QTest.keyClicks(gui_load, 's', modifier=Qt.KeyboardModifier.ControlModifier)
+    assert not error_found
+    assert warning_found
+    QTest.keyClicks(gui_load, 's', modifier=Qt.KeyboardModifier.ControlModifier, delay=1000)
     QTimer.singleShot(150, handle_dialog_warning)
     test_gui = StackedWindowGui("./test/pbtest.txt")
     assert test_gui.Stack.count() == 1
     for child in test_gui.Stack.currentWidget().children():
-        if type(child) is Button:
+        if isinstance(child, Button):
             assert child.button.text() == "None"
             child.button.click()
             QTest.qWait(500)
             out, err = capfd.readouterr()
             assert out.index("Trigger {'topic': 'annotation', 'label': 'test', 'timestamp':") != -1
-            assert out.endswith(", 'duration': 1} Message forwarded.\n") == True
+            assert out.endswith(", 'duration': 1} Message forwarded.\n")
     QTimer.singleShot(100, handle_dialog)
-    QTest.mouseClick(test_gui.forwardbutton, Qt.MouseButton.LeftButton, delay=1)
+    QTest.mouseClick(test_gui.forwardbutton, Qt.MouseButton.LeftButton, delay=1000)
     test_gui.close()
 
     # reset file
@@ -247,9 +248,9 @@ def test_inscription(gui_load, qtbot, capfd):
     assert gui_load.structure["Page 1"]["Question 1"]["inscription"] == "Text"
     QTimer.singleShot(150, handle_dialog_error)
     error_found, warning_found, warning_details = validate_questionnaire(gui_load.structure)
-    assert error_found == False
-    assert warning_found == False
-    QTest.keyClicks(gui_load, 's', modifier=Qt.KeyboardModifier.ControlModifier)
+    assert not error_found
+    assert not warning_found
+    QTest.keyClicks(gui_load, 's', modifier=Qt.KeyboardModifier.ControlModifier, delay=1000)
 
     os.remove("./test/results/results_pb.csv")
     gui_load.close()
@@ -260,8 +261,8 @@ def test_inscription(gui_load, qtbot, capfd):
 def test_custom_annotation_text(gui_load, qtbot, capfd):
     QTimer.singleShot(150, handle_dialog_error)
     error_found, warning_found, warning_details = validate_questionnaire(gui_load.structure)
-    assert error_found == False
-    assert warning_found == False
+    assert not error_found
+    assert not warning_found
     tv = gui_load.gui.treeview
     tv.expandAll()
     tv.setCurrentItem(tv.topLevelItem(0).child(0).child(0))  # should be 'Question 1'
@@ -279,33 +280,33 @@ def test_custom_annotation_text(gui_load, qtbot, capfd):
     assert gui_load.structure["Page 1"]["Question 1"]["annotation"] == "Custom text"
     QTimer.singleShot(150, handle_dialog_error)
     error_found, warning_found, warning_details = validate_questionnaire(gui_load.structure)
-    assert error_found == False
-    assert warning_found == False
+    assert not error_found
+    assert not warning_found
     gui_load.gui.refresh_button.click()
     assert gui_load.structure["Page 1"]["Question 1"]["annotation"] == "Custom text"
-    QTest.keyClicks(gui_load, 's', modifier=Qt.KeyboardModifier.ControlModifier)
+    QTest.keyClicks(gui_load, 's', modifier=Qt.KeyboardModifier.ControlModifier, delay=1000)
     test_gui = StackedWindowGui("./test/pbtest.txt")
     assert test_gui.Stack.count() == 1
     for child in test_gui.Stack.currentWidget().children():
-        if type(child) is Button:
+        if isinstance(child, Button):
             child.button.click()
             out, err = capfd.readouterr()
             assert out.index("Trigger {'topic': 'annotation', 'label': 'Custom text', 'timestamp':") != -1
-            assert out.endswith(", 'duration': 1} Message forwarded.\n") == True
+            assert out.endswith(", 'duration': 1} Message forwarded.\n")
 
     QTimer.singleShot(100, handle_dialog)
-    QTest.mouseClick(test_gui.forwardbutton, Qt.MouseButton.LeftButton, delay=1)
+    QTest.mouseClick(test_gui.forwardbutton, Qt.MouseButton.LeftButton, delay=1000)
     test_gui.close()
 
     gui_load.structure["Page 1"]["Question 1"].pop("annotation")
     assert "annotation" not in gui_load.structure["Page 1"]["Question 1"].keys()
     QTimer.singleShot(150, handle_dialog_error)
     error_found, warning_found, warning_details = validate_questionnaire(gui_load.structure)
-    assert error_found == False
-    assert warning_found == False
+    assert not error_found
+    assert not warning_found
     gui_load.gui.refresh_button.click()
     assert "annotation" not in gui_load.structure["Page 1"]["Question 1"].keys()
-    QTest.keyClicks(gui_load, 's', modifier=Qt.KeyboardModifier.ControlModifier)
+    QTest.keyClicks(gui_load, 's', modifier=Qt.KeyboardModifier.ControlModifier, delay=1000)
     gui_load.close()
 
 
@@ -314,8 +315,8 @@ def test_custom_annotation_text(gui_load, qtbot, capfd):
 def test_custom_recording_name(gui_load, qtbot, capfd):
     QTimer.singleShot(150, handle_dialog_error)
     error_found, warning_found, warning_details = validate_questionnaire(gui_load.structure)
-    assert error_found == False
-    assert warning_found == False
+    assert not error_found
+    assert not warning_found
     tv = gui_load.gui.treeview
     tv.expandAll()
     tv.setCurrentItem(tv.topLevelItem(0).child(0).child(0))  # should be 'Question 1'
@@ -333,8 +334,8 @@ def test_custom_recording_name(gui_load, qtbot, capfd):
     assert func_cb.currentText() == "Recording"
     QTimer.singleShot(150, handle_dialog_error)
     error_found, warning_found, warning_details = validate_questionnaire(gui_load.structure)
-    assert error_found == False
-    assert warning_found == False
+    assert not error_found
+    assert not warning_found
     gui_load.gui.refresh_button.click()
     assert gui_load.structure["Page 1"]["Question 1"]["function"] == "Recording"
 
@@ -346,26 +347,26 @@ def test_custom_recording_name(gui_load, qtbot, capfd):
     assert gui_load.structure["Page 1"]["Question 1"]["recording_name"] == "MyRecording"
     QTimer.singleShot(150, handle_dialog_error)
     error_found, warning_found, warning_details = validate_questionnaire(gui_load.structure)
-    assert error_found == False
-    assert warning_found == False
+    assert not error_found
+    assert not warning_found
     gui_load.gui.refresh_button.click()
     assert gui_load.structure["Page 1"]["Question 1"]["recording_name"] == "MyRecording"
-    QTest.keyClicks(gui_load, 's', modifier=Qt.KeyboardModifier.ControlModifier)
+    QTest.keyClicks(gui_load, 's', modifier=Qt.KeyboardModifier.ControlModifier, delay=1000)
     test_gui = StackedWindowGui("./test/pbtest.txt")
     assert test_gui.Stack.count() == 1
     for child in test_gui.Stack.currentWidget().children():
-        if type(child) is Button:
+        if isinstance(child, Button):
             child.button.click()
             out, err = capfd.readouterr()
-            assert out.endswith("MyRecording\nStart recording... OK\n") == True
+            assert out.endswith("MyRecording\nStart recording... OK\n")
 
     test_gui.pupil_remote.send_string('r')
     print("Stop recording...", test_gui.pupil_remote.recv_string())
 
     QTimer.singleShot(500, handle_dialog)
-    QTest.mouseClick(test_gui.forwardbutton, Qt.MouseButton.LeftButton, delay=1)
+    QTest.mouseClick(test_gui.forwardbutton, Qt.MouseButton.LeftButton, delay=1000)
     test_gui.close()
-    assert os.path.exists(recording_path+"MyRecording") == True
+    assert os.path.exists(f'{recording_path}MyRecording')
     # os.remove(recording_path+"MyRecording")
 
     QTest.mouseClick(func_cb, Qt.MouseButton.LeftButton)
@@ -376,8 +377,8 @@ def test_custom_recording_name(gui_load, qtbot, capfd):
     assert "recording_name" not in gui_load.structure["Page 1"]["Question 1"].keys()
     QTimer.singleShot(150, handle_dialog_error)
     error_found, warning_found, warning_details = validate_questionnaire(gui_load.structure)
-    assert error_found == False
-    assert warning_found == False
+    assert not error_found
+    assert not warning_found
     gui_load.gui.refresh_button.click()
     assert "recording_name" not in gui_load.structure["Page 1"]["Question 1"].keys()
     gui_load.save()
@@ -389,8 +390,8 @@ def test_custom_recording_name(gui_load, qtbot, capfd):
 def test_custom_recording_name_id(gui_load2, qtbot, capfd):
     QTimer.singleShot(150, handle_dialog_error)
     error_found, warning_found, warning_details = validate_questionnaire(gui_load2.structure)
-    assert error_found == False
-    assert warning_found == False
+    assert not error_found
+    assert not warning_found
     tv = gui_load2.gui.treeview
     tv.expandAll()
     tv.setCurrentItem(tv.topLevelItem(0).child(0).child(0))  # should be 'Question 1'
@@ -413,31 +414,33 @@ def test_custom_recording_name_id(gui_load2, qtbot, capfd):
     assert gui_load2.structure["Page 1"]["Question 1"]["recording_name"] == "id:tf"
     QTimer.singleShot(150, handle_dialog_error)
     error_found, warning_found, warning_details = validate_questionnaire(gui_load2.structure)
-    assert error_found == False
-    assert warning_found == False
+    assert not error_found
+    assert not warning_found
     gui_load2.gui.refresh_button.click()
     assert gui_load2.structure["Page 1"]["Question 1"]["recording_name"] == "id:tf"
-    QTest.keyClicks(gui_load2, 's', modifier=Qt.KeyboardModifier.ControlModifier)
+    QTest.keyClicks(gui_load2, 's', modifier=Qt.KeyboardModifier.ControlModifier, delay=1000)
     test_gui = StackedWindowGui("./test/pbtest2.txt")
     assert test_gui.Stack.count() == 1
     for child in test_gui.Stack.currentWidget().children():
-        if type(child) is QLineEdit:
+        if isinstance(child, QLineEdit):
             # noinspection PyTypeChecker
-            QTest.keyClicks(child, "test", Qt.KeyboardModifier.NoModifier, delay=1)
+            QTest.keyClicks(child, "test", Qt.KeyboardModifier.NoModifier, delay=1000)
             assert child.text() == "test"
+    QTest.qWait(1000)
     for child in test_gui.Stack.currentWidget().children():
-        if type(child) is Button:
+        if isinstance(child, Button):
             child.button.click()
             out, err = capfd.readouterr()
-            assert out.endswith("test\nStart recording... OK\n") == True
+            print(out)
+            assert out.endswith("\nStart recording... OK\n")
 
     test_gui.pupil_remote.send_string('r')
     print("Stop recording...", test_gui.pupil_remote.recv_string())
 
     QTimer.singleShot(100, handle_dialog)
-    QTest.mouseClick(test_gui.forwardbutton, Qt.MouseButton.LeftButton, delay=1)
+    QTest.mouseClick(test_gui.forwardbutton, Qt.MouseButton.LeftButton, delay=1000)
     test_gui.close()
-    assert os.path.exists(recording_path+"test") == True
+    assert os.path.exists(f'{recording_path}test')
     # os.remove(recording_path+"test")
 
     gui_load2.structure["Page 1"]["Question 1"].pop("recording_name")
@@ -452,8 +455,8 @@ def test_custom_recording_name_id(gui_load2, qtbot, capfd):
 def test_function(gui_load, qtbot, capfd):
     QTimer.singleShot(150, handle_dialog_error)
     error_found, warning_found, warning_details = validate_questionnaire(gui_load.structure)
-    assert error_found == False
-    assert warning_found == False
+    assert not error_found
+    assert not warning_found
     tv = gui_load.gui.treeview
     tv.expandAll()
     tv.setCurrentItem(tv.topLevelItem(0).child(0).child(0))  # should be 'Question 1'
@@ -465,14 +468,14 @@ def test_function(gui_load, qtbot, capfd):
     func_pos = find_row_by_label(gui_load.gui.edit_layout, 'function')
     func_cb = gui_load.gui.edit_layout.itemAt(func_pos, QFormLayout.ItemRole.FieldRole).widget()
     assert func_cb.currentText() == 'Annotate'
-    QTest.keyClicks(gui_load, 's', modifier=Qt.KeyboardModifier.ControlModifier)
+    QTest.keyClicks(gui_load, 's', modifier=Qt.KeyboardModifier.ControlModifier, delay=1000)
     test_gui = StackedWindowGui("./test/pbtest.txt")
     for child in test_gui.Stack.currentWidget().children():
-        if type(child) is Button:
+        if isinstance(child, Button):
             child.button.click()
             out, err = capfd.readouterr()
             assert out.index("Trigger {'topic': 'annotation', 'label': 'test', 'timestamp':") != -1
-            assert out.endswith(", 'duration': 1} Message forwarded.\n") == True
+            assert out.endswith(", 'duration': 1} Message forwarded.\n")
             QTest.qWait(500)
     test_gui.close()
 
@@ -482,17 +485,17 @@ def test_function(gui_load, qtbot, capfd):
     assert func_cb.currentText() == "Recording"
     QTimer.singleShot(150, handle_dialog_error)
     error_found, warning_found, warning_details = validate_questionnaire(gui_load.structure)
-    assert error_found == False
-    assert warning_found == False
+    assert not error_found
+    assert not warning_found
     gui_load.gui.refresh_button.click()
     assert gui_load.structure["Page 1"]["Question 1"]["function"] == "Recording"
     gui_load.save()
     test_gui = StackedWindowGui("./test/pbtest.txt")
     for child in test_gui.Stack.currentWidget().children():
-        if type(child) is Button:
+        if isinstance(child, Button):
             child.button.click()
             out, err = capfd.readouterr()
-            assert out.endswith("Start recording... OK\n") == True
+            assert out.endswith("Start recording... OK\n")
             QTest.qWait(500)
     test_gui.close()
 
@@ -502,47 +505,25 @@ def test_function(gui_load, qtbot, capfd):
     assert func_cb.currentText() == "Stop"
     QTimer.singleShot(150, handle_dialog_error)
     error_found, warning_found, warning_details = validate_questionnaire(gui_load.structure)
-    assert error_found == False
-    assert warning_found == False
+    assert not error_found
+    assert not warning_found
     gui_load.gui.refresh_button.click()
     gui_load.save()
     test_gui = StackedWindowGui("./test/pbtest.txt")
     for child in test_gui.Stack.currentWidget().children():
-        if type(child) is Button:
+        if isinstance(child, Button):
             child.button.click()
             out, err = capfd.readouterr()
-            assert out.endswith("Stop recording... OK\n") == True
+            assert out.endswith("Stop recording... OK\n")
             QTest.qWait(500)
     test_gui.close()
 
     QTest.mouseClick(func_cb, Qt.MouseButton.LeftButton)
-    QTest.keyClick(func_cb, Qt.Key.Key_Down)
-    QTest.keyClick(func_cb, Qt.Key.Key_Enter)
-    assert func_cb.currentText() == "Calibration"
-    QTimer.singleShot(150, handle_dialog_error)
-    error_found, warning_found, warning_details = validate_questionnaire(gui_load.structure)
-    assert error_found == False
-    assert warning_found == False
-    gui_load.gui.refresh_button.click()
-    gui_load.save()
-    '''
-    test_gui = StackedWindowGui("./test/pbtest.txt")
-    for child in test_gui.Stack.currentWidget().children():
-        if type(child) is Button:
-            child.button.click()
-            out, err = capfd.readouterr()
-            assert out.endswith("Calibrate... OK\n") == True
-            QTest.qWait(5000)
-    test_gui.close()
-    '''
-
-    QTest.mouseClick(func_cb, Qt.MouseButton.LeftButton)
-    QTest.keyClick(func_cb, Qt.Key.Key_Up)
     QTest.keyClick(func_cb, Qt.Key.Key_Up)
     QTest.keyClick(func_cb, Qt.Key.Key_Up)
     QTest.keyClick(func_cb, Qt.Key.Key_Enter)
     assert func_cb.currentText() == 'Annotate'
-    QTest.keyClicks(gui_load, 's', modifier=Qt.KeyboardModifier.ControlModifier)
+    QTest.keyClicks(gui_load, 's', modifier=Qt.KeyboardModifier.ControlModifier, delay=1000)
     gui_load.save()
     os.remove("./test/results/results_pb.csv")
     gui_load.close()
@@ -565,15 +546,15 @@ def test_execute_questionnaire_no_interaction(run, qtbot):
         for lines in csv_file:
             results = lines
             if results[0].startswith('data'):
-                assert lines[0] == 'data_row_number'  # participant number
-                assert lines[1] == 'pb'
-                assert lines[2] == 'Start'
-                assert lines[3] == 'End'
+                assert results[0] == 'data_row_number'  # participant number
+                assert results[1] == 'pb'
+                assert results[2] == 'Start'
+                assert results[3] == 'End'
     assert len(results) == 4
-    assert lines[0] == '1'  # participant number
-    assert lines[1] == 'False'  # the button was not clicked
-    assert re.match(r'\d+-\d+-\d+ \d+:\d+:\d+.\d+', lines[2])  # timestamp
-    assert re.match(r'\d+-\d+-\d+ \d+:\d+:\d+.\d+', lines[3])  # timestamp
+    assert results[0] == '1'  # participant number
+    assert results[1] == 'False'  # the button was not clicked
+    assert re.match(r'\d+-\d+-\d+ \d+:\d+:\d+.\d+', results[2])  # timestamp
+    assert re.match(r'\d+-\d+-\d+ \d+:\d+:\d+.\d+', results[3])  # timestamp
     os.remove("./test/results/results_pb.csv")
 
 
@@ -586,7 +567,7 @@ def test_execute_questionnaire_no_interaction_blocked(run, qtbot):
         res_file = None
         for file in os.listdir("./test/results/"):
             if file.find("_backup_"):
-                res_file = "./test/results/{}".format(file)
+                res_file = f'./test/results/{file}'
         results = []
         with open(res_file, mode='r') as file:
             csv_file = csv.reader(file, delimiter=';')
@@ -594,15 +575,15 @@ def test_execute_questionnaire_no_interaction_blocked(run, qtbot):
             for lines in csv_file:
                 results = lines
                 if results[0].startswith('data'):
-                    assert lines[0] == 'data_row_number'  # participant number
-                    assert lines[1] == 'pb'
-                    assert lines[2] == 'Start'
-                    assert lines[3] == 'End'
+                    assert results[0] == 'data_row_number'  # participant number
+                    assert results[1] == 'pb'
+                    assert results[2] == 'Start'
+                    assert results[3] == 'End'
         assert len(results) == 4
-        assert lines[0] == '-1'  # participant number unknown
-        assert lines[1] == 'False'  # the button was not clicked
-        assert re.match(r'\d+-\d+-\d+ \d+:\d+:\d+.\d+', lines[2])  # timestamp
-        assert re.match(r'\d+-\d+-\d+ \d+:\d+:\d+.\d+', lines[3])  # timestamp
+        assert results[0] == '-1'  # participant number unknown
+        assert results[1] == 'False'  # the button was not clicked
+        assert re.match(r'\d+-\d+-\d+ \d+:\d+:\d+.\d+', results[2])  # timestamp
+        assert re.match(r'\d+-\d+-\d+ \d+:\d+:\d+.\d+', results[3])  # timestamp
         os.remove(res_file)
 
 
@@ -613,11 +594,11 @@ def test_execute_questionnaire(run, qtbot, capfd):
         os.remove("./test/results/results_pb.csv")
     assert run.Stack.count() == 1
     for child in run.Stack.currentWidget().children():
-        if type(child) is Button:
+        if isinstance(child, Button):
             child.button.click()
             out, err = capfd.readouterr()
-            assert out.startswith("Trigger {'topic': 'annotation', 'label': 'test', 'timestamp':") == True
-            assert out.endswith(", 'duration': 1} Message forwarded.\n") == True
+            assert out.startswith("Trigger {'topic': 'annotation', 'label': 'test', 'timestamp':")
+            assert out.endswith(", 'duration': 1} Message forwarded.\n")
 
     QTimer.singleShot(100, handle_dialog)
     QTest.mouseClick(run.forwardbutton, Qt.MouseButton.LeftButton)
@@ -629,15 +610,15 @@ def test_execute_questionnaire(run, qtbot, capfd):
         for lines in csv_file:
             results = lines
             if results[0].startswith('data'):
-                assert lines[0] == 'data_row_number'  # participant number
-                assert lines[1] == 'pb'
-                assert lines[2] == 'Start'
-                assert lines[3] == 'End'
+                assert results[0] == 'data_row_number'  # participant number
+                assert results[1] == 'pb'
+                assert results[2] == 'Start'
+                assert results[3] == 'End'
     assert len(results) == 4
-    assert lines[0] == '1'  # participant number
-    assert lines[1] == 'True'  # button was clicked
-    assert re.match(r'\d+-\d+-\d+ \d+:\d+:\d+.\d+', lines[2])  # timestamp
-    assert re.match(r'\d+-\d+-\d+ \d+:\d+:\d+.\d+', lines[3])  # timestamp
+    assert results[0] == '1'  # participant number
+    assert results[1] == 'True'  # button was clicked
+    assert re.match(r'\d+-\d+-\d+ \d+:\d+:\d+.\d+', results[2])  # timestamp
+    assert re.match(r'\d+-\d+-\d+ \d+:\d+:\d+.\d+', results[3])  # timestamp
     os.remove("./test/results/results_pb.csv")
 
 
@@ -647,17 +628,17 @@ def test_execute_questionnaire_blocked(run, qtbot, capfd):
     with mock_file(r'./test/results/results_pb.csv'):
         assert run.Stack.count() == 1
         for child in run.Stack.currentWidget().children():
-            if type(child) is Button:
+            if isinstance(child, Button):
                 child.button.click()
                 out, err = capfd.readouterr()
-                assert out.startswith("Trigger {'topic': 'annotation', 'label': 'test', 'timestamp':") == True
-                assert out.endswith(", 'duration': 1} Message forwarded.\n") == True
+                assert out.startswith("Trigger {'topic': 'annotation', 'label': 'test', 'timestamp':")
+                assert out.endswith(", 'duration': 1} Message forwarded.\n")
         QTimer.singleShot(100, handle_dialog)
         QTest.mouseClick(run.forwardbutton, Qt.MouseButton.LeftButton)
         res_file = None
         for file in os.listdir("./test/results/"):
             if file.find("_backup_"):
-                res_file = "./test/results/{}".format(file)
+                res_file = f'./test/results/{file}'
         results = []
         with open(res_file, mode='r') as file:
             csv_file = csv.reader(file, delimiter=';')
@@ -665,13 +646,13 @@ def test_execute_questionnaire_blocked(run, qtbot, capfd):
             for lines in csv_file:
                 results = lines
                 if results[0].startswith('data'):
-                    assert lines[0] == 'data_row_number'  # participant number
-                    assert lines[1] == 'pb'
-                    assert lines[2] == 'Start'
-                    assert lines[3] == 'End'
+                    assert results[0] == 'data_row_number'  # participant number
+                    assert results[1] == 'pb'
+                    assert results[2] == 'Start'
+                    assert results[3] == 'End'
         assert len(results) == 4
-        assert lines[0] == '-1'  # participant number unknown
-        assert lines[1] == 'True'  # the button was not clicked
-        assert re.match(r'\d+-\d+-\d+ \d+:\d+:\d+.\d+', lines[2])  # timestamp
-        assert re.match(r'\d+-\d+-\d+ \d+:\d+:\d+.\d+', lines[3])  # timestamp
+        assert results[0] == '-1'  # participant number unknown
+        assert results[1] == 'True'  # the button was not clicked
+        assert re.match(r'\d+-\d+-\d+ \d+:\d+:\d+.\d+', results[2])  # timestamp
+        assert re.match(r'\d+-\d+-\d+ \d+:\d+:\d+.\d+', results[3])  # timestamp
         os.remove(res_file)

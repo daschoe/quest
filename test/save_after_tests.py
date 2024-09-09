@@ -1,6 +1,6 @@
 """Testing the behaviour of save_after"""
 
-from context import *
+from context import pytest, QEditGuiMain, QTimer, StackedWindowGui, QTest, Qt, handle_dialog, os
 
 
 @pytest.fixture
@@ -38,7 +38,7 @@ def test_execute_questionnaire_1(run, qtbot):
     QTimer.singleShot(100, handle_dialog)
     QTest.mouseClick(run.forwardbutton, Qt.MouseButton.LeftButton)
     assert run.forwardbutton.text() == "Absenden"
-    assert run.forwardbutton.isEnabled() == False
+    assert not run.forwardbutton.isEnabled()
 
     os.remove("./test/results/results.csv")
 
@@ -55,8 +55,7 @@ def test_execute_questionnaire_2(run2, qtbot):
     assert run2.forwardbutton.isEnabled()
     QTimer.singleShot(100, handle_dialog)
     QTest.mouseClick(run2.forwardbutton, Qt.MouseButton.LeftButton)
-    assert run2.forwardbutton.isEnabled() == False
-
+    assert not run2.forwardbutton.isEnabled()
     os.remove("./test/results/results.csv")
 
 
@@ -73,6 +72,6 @@ def test_execute_questionnaire_3(run3, qtbot):
     assert run3.forwardbutton.isEnabled()
     QTest.mouseClick(run3.forwardbutton, Qt.MouseButton.LeftButton)
     assert run3.forwardbutton.text() == "Weiter"
-    assert run3.forwardbutton.isEnabled() == False
+    assert not run3.forwardbutton.isEnabled()
 
     os.remove("./test/results/results.csv")

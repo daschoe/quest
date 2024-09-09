@@ -1,4 +1,4 @@
-# Created with QUEST version 1.0.6
+# Created with QUEST version 1.1.0.
 audio_ip = 127.0.0.1
 audio_port = 8000
 video_ip = 127.0.0.1

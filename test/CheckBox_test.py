@@ -1,6 +1,6 @@
 """Testing the behaviour of Answer_Checkbox.py + QEditGui.py"""
 
-from context import *
+from context import pytest, QEditGuiMain, QTimer, open_config_file, StackedWindowGui, QTest, handle_dialog_p, handle_dialog_q, Qt, QFormLayout, QWidgetItem, fields_per_type, default_values, QCheckBox, QLineEdit, page_fields, listify, ConfigObj, general_fields, handle_dialog_error, validate_questionnaire, handle_dialog_no_save, find_row_by_label, handle_dialog, csv, re, os, mock_file, make_answers_cb
 
 
 @pytest.fixture
@@ -27,19 +27,19 @@ def run():
 # noinspection PyArgumentList
 def test_create(gui_init, qtbot):
     # create a page
-    assert gui_init.gui.page_add.isEnabled() == True
+    assert gui_init.gui.page_add.isEnabled()
     QTest.qWait(500)
 
     QTimer.singleShot(100, handle_dialog_p)
-    QTest.mouseClick(gui_init.gui.page_add, Qt.MouseButton.LeftButton, delay=1)
+    QTest.mouseClick(gui_init.gui.page_add, Qt.MouseButton.LeftButton, delay=1000)
     tv = gui_init.gui.treeview
     # create a question
     tv.setCurrentItem(tv.topLevelItem(0).child(0))
-    assert gui_init.gui.question_add.isEnabled() == True
+    assert gui_init.gui.question_add.isEnabled()
     QTest.qWait(500)
 
     QTimer.singleShot(100, handle_dialog_q)
-    QTest.mouseClick(gui_init.gui.question_add, Qt.MouseButton.LeftButton, delay=1)
+    QTest.mouseClick(gui_init.gui.question_add, Qt.MouseButton.LeftButton, delay=1000)
     assert tv.itemAt(0, 0).text(0) == "<new questionnaire>"
     assert tv.topLevelItemCount() == 1
     assert tv.topLevelItem(0).childCount() == 1
@@ -61,16 +61,16 @@ def test_create(gui_init, qtbot):
     layout = gui_init.gui.edit_layout
     not_none_rows = 0
     for row in range(layout.rowCount()):
-        if type(layout.itemAt(row, QFormLayout.ItemRole.FieldRole)) == QWidgetItem:
+        if isinstance(layout.itemAt(row, QFormLayout.ItemRole.FieldRole), QWidgetItem):
             not_none_rows += 1
-            assert layout.itemAt(row, QFormLayout.ItemRole.LabelRole).widget().text() in fields_per_type["Check"][0].keys()
+            assert layout.itemAt(row, QFormLayout.ItemRole.LabelRole).widget().text() in fields_per_type["Check"][0]
             assert str(type(layout.itemAt(row, QFormLayout.ItemRole.FieldRole).widget())).strip("'<>").rsplit(".", 1)[1] == \
                    'TextEdit' if fields_per_type["Check"][0][layout.itemAt(row, QFormLayout.ItemRole.LabelRole).widget().text()] == 'QPlainTextEdit'\
                    else fields_per_type["Check"][0][layout.itemAt(row, QFormLayout.ItemRole.LabelRole).widget().text()]
-            if type(layout.itemAt(row, QFormLayout.ItemRole.FieldRole).widget()) == QLineEdit and layout.itemAt(row, QFormLayout.ItemRole.LabelRole).widget().text() in \
+            if isinstance(layout.itemAt(row, QFormLayout.ItemRole.FieldRole).widget(), QLineEdit) and layout.itemAt(row, QFormLayout.ItemRole.LabelRole).widget().text() in \
                     default_values:
                 assert layout.itemAt(row, QFormLayout.ItemRole.FieldRole).widget().text() == default_values[layout.itemAt(row, QFormLayout.ItemRole.LabelRole).widget().text()]
-            elif type(layout.itemAt(row, QFormLayout.ItemRole.FieldRole).widget()) == QCheckBox and layout.itemAt(row, QFormLayout.ItemRole.LabelRole).widget().text() in \
+            elif isinstance(layout.itemAt(row, QFormLayout.ItemRole.FieldRole).widget(), QCheckBox) and layout.itemAt(row, QFormLayout.ItemRole.LabelRole).widget().text() in \
                     default_values:
                 assert layout.itemAt(row, QFormLayout.ItemRole.FieldRole).widget().isChecked() == default_values[
                     layout.itemAt(row, QFormLayout.ItemRole.LabelRole).widget().text()]
@@ -88,7 +88,7 @@ def test_create(gui_init, qtbot):
             structure["Page 1"][key] = value
     structure["Page 1"]["Question 1"] = {"type": "Check"}
     for key, value in default_values.items():
-        if key in fields_per_type["Check"][0].keys():
+        if key in fields_per_type["Check"][0]:
             structure["Page 1"]["Question 1"][key] = value
     listify(gui_init.structure)
     listify(structure)
@@ -118,8 +118,8 @@ def test_create(gui_init, qtbot):
 def test_answers(gui_load, qtbot):
     QTimer.singleShot(150, handle_dialog_error)
     error_found, warning_found, warning_details = validate_questionnaire(gui_load.structure)
-    assert error_found == False
-    assert warning_found == False
+    assert not error_found
+    assert not warning_found
     tv = gui_load.gui.treeview
     tv.expandAll()
     tv.setCurrentItem(tv.topLevelItem(0).child(0).child(0))  # should be 'Question 1'
@@ -141,8 +141,8 @@ def test_answers(gui_load, qtbot):
     assert gui_load.structure["Page 1"]["Question 1"]["answers"] == "only one"  # structure got listified with refresh
     QTimer.singleShot(150, handle_dialog_error)
     error_found, warning_found, warning_details = validate_questionnaire(gui_load.structure)
-    assert error_found == False
-    assert warning_found == False
+    assert not error_found
+    assert not warning_found
     _, cbs = make_answers_cb(gui_load.structure["Page 1"]["Question 1"]["answers"], gui_load.structure["Page 1"]["Question 1"]["id"])
     assert len(cbs) == 1
 
@@ -153,8 +153,8 @@ def test_answers(gui_load, qtbot):
     assert gui_load.structure["Page 1"]["Question 1"]["answers"] == "only one"
     QTimer.singleShot(150, handle_dialog_error)
     error_found, warning_found, warning_details = validate_questionnaire(gui_load.structure)
-    assert error_found == False
-    assert warning_found == False
+    assert not error_found
+    assert not warning_found
     _, cbs = make_answers_cb(gui_load.structure["Page 1"]["Question 1"]["answers"], gui_load.structure["Page 1"]["Question 1"]["id"])
     assert len(cbs) == 1
 
@@ -166,8 +166,8 @@ def test_answers(gui_load, qtbot):
     QTimer.singleShot(150, handle_dialog_error)
     error_found, warning_found, warning_details = validate_questionnaire(gui_load.structure)
     gui_load.structure = listify(gui_load.structure)
-    assert error_found == False
-    assert warning_found == False
+    assert not error_found
+    assert not warning_found
     assert gui_load.structure["Page 1"]["Question 1"]["answers"] == ["one", "two", "three"]
     _, cbs = make_answers_cb(gui_load.structure["Page 1"]["Question 1"]["answers"], gui_load.structure["Page 1"]["Question 1"]["id"])
     assert len(cbs) == 3
@@ -179,8 +179,8 @@ def test_answers(gui_load, qtbot):
     assert gui_load.structure["Page 1"]["Question 1"]["answers"] == ""
     QTimer.singleShot(150, handle_dialog_error)
     error_found, warning_found, warning_details = validate_questionnaire(gui_load.structure)
-    assert error_found == False
-    assert warning_found == True
+    assert not error_found
+    assert warning_found
     _, cbs = make_answers_cb(gui_load.structure["Page 1"]["Question 1"]["answers"], gui_load.structure["Page 1"]["Question 1"]["id"])
     assert len(cbs) == 1
     QTimer.singleShot(150, handle_dialog_no_save)
@@ -201,19 +201,19 @@ def test_execute_questionnaire_no_interaction(run, qtbot):
         for lines in csv_file:
             results = lines
             if results[0].startswith('data'):
-                assert lines[0] == 'data_row_number'  # participant number
-                assert lines[1] == 'cb1_0'
-                assert lines[2] == 'cb1_1'
-                assert lines[3] == 'cb1_2'
-                assert lines[4] == 'Start'
-                assert lines[5] == 'End'
+                assert results[0] == 'data_row_number'  # participant number
+                assert results[1] == 'cb1_0'
+                assert results[2] == 'cb1_1'
+                assert results[3] == 'cb1_2'
+                assert results[4] == 'Start'
+                assert results[5] == 'End'
     assert len(results) == 6
-    assert lines[0] == '1'  # participant number
-    assert lines[1] == 'False'  # first cb not checked
-    assert lines[2] == 'False'  # second cb not checked
-    assert lines[3] == 'False'  # third cb not checked
-    assert re.match(r'\d+-\d+-\d+ \d+:\d+:\d+.\d+', lines[4])  # timestamp
-    assert re.match(r'\d+-\d+-\d+ \d+:\d+:\d+.\d+', lines[5])  # timestamp
+    assert results[0] == '1'  # participant number
+    assert results[1] == 'False'  # first cb not checked
+    assert results[2] == 'False'  # second cb not checked
+    assert results[3] == 'False'  # third cb not checked
+    assert re.match(r'\d+-\d+-\d+ \d+:\d+:\d+.\d+', results[4])  # timestamp
+    assert re.match(r'\d+-\d+-\d+ \d+:\d+:\d+.\d+', results[5])  # timestamp
     os.remove("./test/results/results_cb.csv")
 
 
@@ -226,7 +226,7 @@ def test_execute_questionnaire_no_interaction_blocked(run, qtbot):
         res_file = None
         for file in os.listdir("./test/results/"):
             if file.find("_backup_"):
-                res_file = "./test/results/{}".format(file)
+                res_file = f'./test/results/{file}'
         results = []
         with open(res_file, mode='r') as file:
             csv_file = csv.reader(file, delimiter=';')
@@ -234,19 +234,19 @@ def test_execute_questionnaire_no_interaction_blocked(run, qtbot):
             for lines in csv_file:
                 results = lines
                 if results[0].startswith('data'):
-                    assert lines[0] == 'data_row_number'  # participant number
-                    assert lines[1] == 'cb1_0'
-                    assert lines[2] == 'cb1_1'
-                    assert lines[3] == 'cb1_2'
-                    assert lines[4] == 'Start'
-                    assert lines[5] == 'End'
+                    assert results[0] == 'data_row_number'  # participant number
+                    assert results[1] == 'cb1_0'
+                    assert results[2] == 'cb1_1'
+                    assert results[3] == 'cb1_2'
+                    assert results[4] == 'Start'
+                    assert results[5] == 'End'
         assert len(results) == 6
-        assert lines[0] == '-1'  # participant number unknown
-        assert lines[1] == 'False'  # first cb not checked
-        assert lines[2] == 'False'  # second cb not checked
-        assert lines[3] == 'False'  # third cb not checked
-        assert re.match(r'\d+-\d+-\d+ \d+:\d+:\d+.\d+', lines[4])  # timestamp
-        assert re.match(r'\d+-\d+-\d+ \d+:\d+:\d+.\d+', lines[5])  # timestamp
+        assert results[0] == '-1'  # participant number unknown
+        assert results[1] == 'False'  # first cb not checked
+        assert results[2] == 'False'  # second cb not checked
+        assert results[3] == 'False'  # third cb not checked
+        assert re.match(r'\d+-\d+-\d+ \d+:\d+:\d+.\d+', results[4])  # timestamp
+        assert re.match(r'\d+-\d+-\d+ \d+:\d+:\d+.\d+', results[5])  # timestamp
         os.remove(res_file)
 
 
@@ -255,13 +255,13 @@ def test_execute_questionnaire(run, qtbot):
     assert run.Stack.count() == 1
     cb_cnt = 1
     for child in run.Stack.currentWidget().children():
-        if type(child) is QCheckBox:
-            for i in range(cb_cnt):
+        if isinstance(child, QCheckBox):
+            for _ in range(cb_cnt):
                 child.click()
             cb_cnt += 1
 
     QTimer.singleShot(100, handle_dialog)
-    QTest.mouseClick(run.forwardbutton, Qt.MouseButton.LeftButton, delay=1)
+    QTest.mouseClick(run.forwardbutton, Qt.MouseButton.LeftButton, delay=1000)
 
     results = []
     with open('./test/results/results_cb.csv', mode='r') as file:
@@ -270,12 +270,12 @@ def test_execute_questionnaire(run, qtbot):
         for lines in csv_file:
             results = lines
     assert len(results) == 6
-    assert lines[0] == '1'  # participant number
-    assert lines[1] == 'True'  # first box checked
-    assert lines[2] == 'False'  # second box not checked
-    assert lines[3] == 'True'  # third box checked
-    assert re.match(r'\d+-\d+-\d+ \d+:\d+:\d+.\d+', lines[4])  # timestamp
-    assert re.match(r'\d+-\d+-\d+ \d+:\d+:\d+.\d+', lines[5])  # timestamp
+    assert results[0] == '1'  # participant number
+    assert results[1] == 'True'  # first box checked
+    assert results[2] == 'False'  # second box not checked
+    assert results[3] == 'True'  # third box checked
+    assert re.match(r'\d+-\d+-\d+ \d+:\d+:\d+.\d+', results[4])  # timestamp
+    assert re.match(r'\d+-\d+-\d+ \d+:\d+:\d+.\d+', results[5])  # timestamp
     os.remove("./test/results/results_cb.csv")
 
 
@@ -285,8 +285,8 @@ def test_execute_questionnaire_blocked(run, qtbot):
         assert run.Stack.count() == 1
         cb_cnt = 1
         for child in run.Stack.currentWidget().children():
-            if type(child) is QCheckBox:
-                for i in range(cb_cnt):
+            if isinstance(child, QCheckBox):
+                for _ in range(cb_cnt):
                     child.click()
                 cb_cnt += 1
         QTimer.singleShot(100, handle_dialog)
@@ -294,7 +294,7 @@ def test_execute_questionnaire_blocked(run, qtbot):
         res_file = None
         for file in os.listdir("./test/results/"):
             if file.find("_backup_"):
-                res_file = "./test/results/{}".format(file)
+                res_file = f'./test/results/{file}'
         results = []
         with open(res_file, mode='r') as file:
             csv_file = csv.reader(file, delimiter=';')
@@ -302,17 +302,17 @@ def test_execute_questionnaire_blocked(run, qtbot):
             for lines in csv_file:
                 results = lines
                 if results[0].startswith('data'):
-                    assert lines[0] == 'data_row_number'  # participant number
-                    assert lines[1] == 'cb1_0'
-                    assert lines[2] == 'cb1_1'
-                    assert lines[3] == 'cb1_2'
-                    assert lines[4] == 'Start'
-                    assert lines[5] == 'End'
+                    assert results[0] == 'data_row_number'  # participant number
+                    assert results[1] == 'cb1_0'
+                    assert results[2] == 'cb1_1'
+                    assert results[3] == 'cb1_2'
+                    assert results[4] == 'Start'
+                    assert results[5] == 'End'
         assert len(results) == 6
-        assert lines[0] == '-1'  # participant number unknown
-        assert lines[1] == 'True'  # first cb checked
-        assert lines[2] == 'False'  # second cb not checked
-        assert lines[3] == 'True'  # third cb checked
-        assert re.match(r'\d+-\d+-\d+ \d+:\d+:\d+.\d+', lines[4])  # timestamp
-        assert re.match(r'\d+-\d+-\d+ \d+:\d+:\d+.\d+', lines[5])  # timestamp
+        assert results[0] == '-1'  # participant number unknown
+        assert results[1] == 'True'  # first cb checked
+        assert results[2] == 'False'  # second cb not checked
+        assert results[3] == 'True'  # third cb checked
+        assert re.match(r'\d+-\d+-\d+ \d+:\d+:\d+.\d+', results[4])  # timestamp
+        assert re.match(r'\d+-\d+-\d+ \d+:\d+:\d+.\d+', results[5])  # timestamp
         os.remove(res_file)

@@ -29,13 +29,13 @@ def make_answers(answer, qid, objectname=None, parent=None):
     """
     hbox = QHBoxLayout()
     list_of_cb = []
-    if type(answer) is str:
+    if isinstance(answer, str):
         answer = [answer]  # to support questions with just one answer
-    for a in range(0, len(answer)):
-        cb = CheckBox(qid+"_{}".format(a), parent)
+    for a, answ in enumerate(answer):
+        cb = CheckBox(f'{qid}_{a}', parent)
         if objectname is not None:
             cb.setObjectName(objectname)
-        cb.setText(answer[a] + " ")
+        cb.setText(f'{answ} ')
         list_of_cb.append(cb)
         hbox.addWidget(cb)
     return hbox, list_of_cb
@@ -59,6 +59,6 @@ class CheckBox(QCheckBox):
         self.toggled.connect(self.log)
 
     def log(self):
-        print("\n\t{} - Toggled {} to {}".format(datetime.datetime.now().replace(microsecond=0).__str__(), self.id, self.isChecked())
-)
-        self.page.page_log += "\n\t{} - Toggled {} to {}".format(datetime.datetime.now().replace(microsecond=0).__str__(), self.id, self.isChecked())
+        """Create a log entry."""
+        print(f'\n\t{str(datetime.datetime.now().replace(microsecond=0))} - Toggled {self.id} to {self.isChecked()}')
+        self.page.page_log += f'\n\t{str(datetime.datetime.now().replace(microsecond=0))} - Toggled {self.id} to {self.isChecked()}'

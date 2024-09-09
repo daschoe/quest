@@ -1,6 +1,6 @@
 """Testing the behaviour of Image.py + QEditGui.py"""
 
-from context import *
+from context import pytest, QEditGuiMain, QTimer, open_config_file, StackedWindowGui, QTest, handle_dialog_p, handle_dialog_q, QHBoxLayout, keyboard, Qt, QFormLayout, QWidgetItem, fields_per_type, default_values, QCheckBox, QLineEdit, page_fields, listify, ConfigObj, general_fields, handle_dialog_error, validate_questionnaire, handle_dialog_no_save, find_row_by_label, handle_dialog, csv, re, os, mock_file, Image
 
 
 @pytest.fixture
@@ -27,19 +27,19 @@ def run():
 # noinspection PyArgumentList
 def test_create(gui_init, qtbot):
     # create a page
-    assert gui_init.gui.page_add.isEnabled() == True
+    assert gui_init.gui.page_add.isEnabled()
     QTest.qWait(500)
 
     QTimer.singleShot(100, handle_dialog_p)
-    QTest.mouseClick(gui_init.gui.page_add, Qt.MouseButton.LeftButton, delay=1)
+    QTest.mouseClick(gui_init.gui.page_add, Qt.MouseButton.LeftButton, delay=1000)
     tv = gui_init.gui.treeview
     # create a question
     tv.setCurrentItem(tv.topLevelItem(0).child(0))
-    assert gui_init.gui.question_add.isEnabled() == True
+    assert gui_init.gui.question_add.isEnabled()
     QTest.qWait(500)
 
     QTimer.singleShot(100, handle_dialog_q)
-    QTest.mouseClick(gui_init.gui.question_add, Qt.MouseButton.LeftButton, delay=1)
+    QTest.mouseClick(gui_init.gui.question_add, Qt.MouseButton.LeftButton, delay=1000)
     assert tv.itemAt(0, 0).text(0) == "<new questionnaire>"
     assert tv.topLevelItemCount() == 1
     assert tv.topLevelItem(0).childCount() == 1
@@ -71,19 +71,19 @@ def test_create(gui_init, qtbot):
     layout = gui_init.gui.edit_layout
     not_none_rows = 0
     for row in range(layout.rowCount()):
-        if type(layout.itemAt(row, QFormLayout.ItemRole.FieldRole)) == QWidgetItem:
+        if isinstance(layout.itemAt(row, QFormLayout.ItemRole.FieldRole), QWidgetItem):
             not_none_rows += 1
-            assert layout.itemAt(row, QFormLayout.ItemRole.LabelRole).widget().text() in fields_per_type["Image"][0].keys()
+            assert layout.itemAt(row, QFormLayout.ItemRole.LabelRole).widget().text() in fields_per_type["Image"][0]
             assert str(type(layout.itemAt(row, QFormLayout.ItemRole.FieldRole).widget())).strip("'<>").rsplit(".", 1)[1] == \
                    'TextEdit' if fields_per_type["Image"][0][layout.itemAt(row, QFormLayout.ItemRole.LabelRole).widget().text()] == 'QPlainTextEdit' else fields_per_type["Image"][0][layout.itemAt(row, QFormLayout.ItemRole.LabelRole).widget().text()]
-            if type(layout.itemAt(row, QFormLayout.ItemRole.FieldRole).widget()) == QLineEdit and layout.itemAt(row, QFormLayout.ItemRole.LabelRole).widget().text() in \
+            if isinstance(layout.itemAt(row, QFormLayout.ItemRole.FieldRole).widget(), QLineEdit) and layout.itemAt(row, QFormLayout.ItemRole.LabelRole).widget().text() in \
                     default_values:
                 assert layout.itemAt(row, QFormLayout.ItemRole.FieldRole).widget().text() == default_values[layout.itemAt(row, QFormLayout.ItemRole.LabelRole).widget().text()]
-            elif type(layout.itemAt(row, QFormLayout.ItemRole.FieldRole).widget()) == QCheckBox and layout.itemAt(row, QFormLayout.ItemRole.LabelRole).widget().text() in \
+            elif isinstance(layout.itemAt(row, QFormLayout.ItemRole.FieldRole).widget(), QCheckBox) and layout.itemAt(row, QFormLayout.ItemRole.LabelRole).widget().text() in \
                     default_values:
                 assert layout.itemAt(row, QFormLayout.ItemRole.FieldRole).widget().isChecked() == default_values[
                     layout.itemAt(row, QFormLayout.ItemRole.LabelRole).widget().text()]
-        elif type(layout.itemAt(row, QFormLayout.ItemRole.FieldRole)) == QHBoxLayout and \
+        elif isinstance(layout.itemAt(row, QFormLayout.ItemRole.FieldRole), QHBoxLayout) and \
                 gui_init.gui.img_layout == layout.itemAt(row, QFormLayout.ItemRole.FieldRole):
             not_none_rows += 1
             assert layout.itemAt(row, QFormLayout.ItemRole.FieldRole).itemAt(1).widget().text() == default_values[
@@ -102,7 +102,7 @@ def test_create(gui_init, qtbot):
             structure["Page 1"][key] = value
     structure["Page 1"]["Question 1"] = {"type": "Image"}
     for key, value in default_values.items():
-        if key in fields_per_type["Image"][0].keys():
+        if key in fields_per_type["Image"][0]:
             structure["Page 1"]["Question 1"][key] = value
     listify(gui_init.structure)
     listify(structure)
@@ -133,8 +133,8 @@ def test_create(gui_init, qtbot):
 def test_file(gui_load, qtbot):
     QTimer.singleShot(150, handle_dialog_error)
     error_found, warning_found, warning_details = validate_questionnaire(gui_load.structure)
-    assert error_found == False
-    assert warning_found == False
+    assert not error_found
+    assert not warning_found
     tv = gui_load.gui.treeview
     tv.expandAll()
     tv.setCurrentItem(tv.topLevelItem(0).child(0).child(1))  # should be 'Image'
@@ -152,7 +152,7 @@ def test_file(gui_load, qtbot):
         keyboard.write("Logo.png")
         keyboard.press("enter")
 
-    img_btn = gui_load.gui.edit_layout.itemAt(find_row_by_label(gui_load.gui.edit_layout, 'image_file_btn')[0], 1).itemAt(0).widget()
+    img_btn = gui_load.gui.edit_layout.itemAt(find_row_by_label(gui_load.gui.edit_layout, 'image_file_btn')[0], QFormLayout.ItemRole.FieldRole).itemAt(0).widget()
     QTimer.singleShot(100, handle_file_chooser)
     QTest.mouseClick(img_btn, Qt.MouseButton.LeftButton)
 
@@ -167,8 +167,8 @@ def test_file(gui_load, qtbot):
 def test_scale(gui_load, qtbot):
     QTimer.singleShot(150, handle_dialog_error)
     error_found, warning_found, warning_details = validate_questionnaire(gui_load.structure)
-    assert error_found == False
-    assert warning_found == False
+    assert not error_found
+    assert not warning_found
     tv = gui_load.gui.treeview
     tv.expandAll()
     tv.setCurrentItem(tv.topLevelItem(0).child(0).child(1))  # should be 'Image'
@@ -180,19 +180,19 @@ def test_scale(gui_load, qtbot):
     width_pos = find_row_by_label(gui_load.gui.edit_layout, 'width')
     height_pos = find_row_by_label(gui_load.gui.edit_layout, 'height')
 
-    gui_load.gui.edit_layoutitemAt(width_pos, QFormLayout.ItemRole.FieldRole).widget().clear()
-    gui_load.gui.edit_layoutitemAt(width_pos, QFormLayout.ItemRole.FieldRole).widget().insert("99")
-    assert gui_load.gui.edit_layoutitemAt(width_pos, QFormLayout.ItemRole.FieldRole).widget().text() == "99"
-    gui_load.gui.edit_layoutitemAt(width_pos, QFormLayout.ItemRole.FieldRole).widget().editingFinished.emit()
+    gui_load.gui.edit_layout.itemAt(width_pos, QFormLayout.ItemRole.FieldRole).widget().clear()
+    gui_load.gui.edit_layout.itemAt(width_pos, QFormLayout.ItemRole.FieldRole).widget().insert("99")
+    assert gui_load.gui.edit_layout.itemAt(width_pos, QFormLayout.ItemRole.FieldRole).widget().text() == "99"
+    gui_load.gui.edit_layout.itemAt(width_pos, QFormLayout.ItemRole.FieldRole).widget().editingFinished.emit()
     assert gui_load.structure["Page 1"]["Image"]["width"] == "99"
     gui_load.gui.load_preview()
     gui_load.gui.refresh_button.click()
-    assert gui_load.gui.edit_layoutitemAt(width_pos, QFormLayout.ItemRole.FieldRole).widget().text() == "99"
+    assert gui_load.gui.edit_layout.itemAt(width_pos, QFormLayout.ItemRole.FieldRole).widget().text() == "99"
     assert gui_load.structure["Page 1"]["Image"]["width"] == "99"
     QTimer.singleShot(150, handle_dialog_error)
     error_found, warning_found, warning_details = validate_questionnaire(gui_load.structure)
-    assert error_found == False
-    assert warning_found == False
+    assert not error_found
+    assert not warning_found
     gui_load.gui.edit_layout.itemAt(height_pos, QFormLayout.ItemRole.FieldRole).widget().clear()
     gui_load.gui.edit_layout.itemAt(height_pos, QFormLayout.ItemRole.FieldRole).widget().insert("99")
     assert gui_load.gui.edit_layout.itemAt(height_pos, QFormLayout.ItemRole.FieldRole).widget().text() == "99"
@@ -204,32 +204,33 @@ def test_scale(gui_load, qtbot):
     assert gui_load.structure["Page 1"]["Image"]["height"] == "99"
     QTimer.singleShot(150, handle_dialog_error)
     error_found, warning_found, warning_details = validate_questionnaire(gui_load.structure)
-    assert error_found == False
-    assert warning_found == False
-    QTest.keyClicks(gui_load, 's', modifier=Qt.KeyboardModifier.ControlModifier)
+    assert not error_found
+    assert not warning_found
+    QTest.keyClicks(gui_load, 's', modifier=Qt.KeyboardModifier.ControlModifier, delay=1000)
+    QTest.qWait(2000)
     test_gui = StackedWindowGui("./test/imgtest.txt")
     for child in test_gui.Stack.currentWidget().children():
-        if type(child) is Image:
+        if isinstance(child, Image):
             assert child.width() == 99
             assert child.height() == 99
     test_gui.close()
 
     #  -------- -1 ---------
-    gui_load.gui.edit_layoutitemAt(width_pos, QFormLayout.ItemRole.FieldRole).widget().clear()
-    gui_load.gui.edit_layoutitemAt(width_pos, QFormLayout.ItemRole.FieldRole).widget().insert("-1")
-    assert gui_load.gui.edit_layoutitemAt(width_pos, QFormLayout.ItemRole.FieldRole).widget().text() == "-1"
-    gui_load.gui.edit_layoutitemAt(width_pos, QFormLayout.ItemRole.FieldRole).widget().editingFinished.emit()
+    gui_load.gui.edit_layout.itemAt(width_pos, QFormLayout.ItemRole.FieldRole).widget().clear()
+    gui_load.gui.edit_layout.itemAt(width_pos, QFormLayout.ItemRole.FieldRole).widget().insert("-1")
+    assert gui_load.gui.edit_layout.itemAt(width_pos, QFormLayout.ItemRole.FieldRole).widget().text() == "-1"
+    gui_load.gui.edit_layout.itemAt(width_pos, QFormLayout.ItemRole.FieldRole).widget().editingFinished.emit()
     assert gui_load.structure["Page 1"]["Image"]["width"] == "-1"
     QTimer.singleShot(150, handle_dialog_error)
     gui_load.gui.load_preview()
     QTimer.singleShot(150, handle_dialog_error)
     gui_load.gui.refresh_button.click()
-    assert gui_load.gui.edit_layoutitemAt(width_pos, QFormLayout.ItemRole.FieldRole).widget().text() == "-1"
+    assert gui_load.gui.edit_layout.itemAt(width_pos, QFormLayout.ItemRole.FieldRole).widget().text() == "-1"
     assert gui_load.structure["Page 1"]["Image"]["width"] == "-1"
     QTimer.singleShot(150, handle_dialog_error)
     error_found, warning_found, warning_details = validate_questionnaire(gui_load.structure)
-    assert error_found == True
-    assert warning_found == False
+    assert error_found
+    assert not warning_found
     gui_load.gui.edit_layout.itemAt(height_pos, QFormLayout.ItemRole.FieldRole).widget().clear()
     gui_load.gui.edit_layout.itemAt(height_pos, QFormLayout.ItemRole.FieldRole).widget().insert("-1")
     assert gui_load.gui.edit_layout.itemAt(height_pos, QFormLayout.ItemRole.FieldRole).widget().text() == "-1"
@@ -243,25 +244,25 @@ def test_scale(gui_load, qtbot):
     assert gui_load.structure["Page 1"]["Image"]["height"] == "-1"
     QTimer.singleShot(150, handle_dialog_error)
     error_found, warning_found, warning_details = validate_questionnaire(gui_load.structure)
-    assert error_found == True
-    assert warning_found == False
+    assert error_found
+    assert not warning_found
 
     #  ---------0--------
-    gui_load.gui.edit_layoutitemAt(width_pos, QFormLayout.ItemRole.FieldRole).widget().clear()
-    gui_load.gui.edit_layoutitemAt(width_pos, QFormLayout.ItemRole.FieldRole).widget().insert("0")
-    assert gui_load.gui.edit_layoutitemAt(width_pos, QFormLayout.ItemRole.FieldRole).widget().text() == "0"
-    gui_load.gui.edit_layoutitemAt(width_pos, QFormLayout.ItemRole.FieldRole).widget().editingFinished.emit()
+    gui_load.gui.edit_layout.itemAt(width_pos, QFormLayout.ItemRole.FieldRole).widget().clear()
+    gui_load.gui.edit_layout.itemAt(width_pos, QFormLayout.ItemRole.FieldRole).widget().insert("0")
+    assert gui_load.gui.edit_layout.itemAt(width_pos, QFormLayout.ItemRole.FieldRole).widget().text() == "0"
+    gui_load.gui.edit_layout.itemAt(width_pos, QFormLayout.ItemRole.FieldRole).widget().editingFinished.emit()
     assert gui_load.structure["Page 1"]["Image"]["width"] == "0"
     QTimer.singleShot(150, handle_dialog_error)
     gui_load.gui.load_preview()
     QTimer.singleShot(150, handle_dialog_error)
     gui_load.gui.refresh_button.click()
-    assert gui_load.gui.edit_layoutitemAt(width_pos, QFormLayout.ItemRole.FieldRole).widget().text() == "0"
+    assert gui_load.gui.edit_layout.itemAt(width_pos, QFormLayout.ItemRole.FieldRole).widget().text() == "0"
     assert gui_load.structure["Page 1"]["Image"]["width"] == "0"
     QTimer.singleShot(150, handle_dialog_error)
     error_found, warning_found, warning_details = validate_questionnaire(gui_load.structure)
-    assert error_found == True
-    assert warning_found == False
+    assert error_found
+    assert not warning_found
     gui_load.gui.edit_layout.itemAt(height_pos, QFormLayout.ItemRole.FieldRole).widget().clear()
     gui_load.gui.edit_layout.itemAt(height_pos, QFormLayout.ItemRole.FieldRole).widget().insert("0")
     assert gui_load.gui.edit_layout.itemAt(height_pos, QFormLayout.ItemRole.FieldRole).widget().text() == "0"
@@ -275,12 +276,13 @@ def test_scale(gui_load, qtbot):
     assert gui_load.structure["Page 1"]["Image"]["height"] == "0"
     QTimer.singleShot(150, handle_dialog_error)
     error_found, warning_found, warning_details = validate_questionnaire(gui_load.structure)
-    assert error_found == True
-    assert warning_found == False
+    assert error_found
+    assert not warning_found
 
     gui_load.structure["Page 1"]["Image"]["height"] = 100
     gui_load.structure["Page 1"]["Image"]["width"] = 250
-    QTest.keyClicks(gui_load, 's', modifier=Qt.KeyboardModifier.ControlModifier)
+    QTest.keyClicks(gui_load, 's', modifier=Qt.KeyboardModifier.ControlModifier, delay=1000)
+    QTest.qWait(2000)
     gui_load.close()
     os.remove("./test/results/results_img.csv")
 
@@ -289,8 +291,8 @@ def test_scale(gui_load, qtbot):
 def test_move(gui_load, qtbot):
     QTimer.singleShot(150, handle_dialog_error)
     error_found, warning_found, warning_details = validate_questionnaire(gui_load.structure)
-    assert error_found == False
-    assert warning_found == False
+    assert not error_found
+    assert not warning_found
     tv = gui_load.gui.treeview
     tv.expandAll()
     tv.setCurrentItem(tv.topLevelItem(0).child(0).child(1))  # should be 'Image'
@@ -313,8 +315,8 @@ def test_move(gui_load, qtbot):
     assert gui_load.structure["Page 1"]["Image"]["x_pos"] == "99"
     QTimer.singleShot(150, handle_dialog_error)
     error_found, warning_found, warning_details = validate_questionnaire(gui_load.structure)
-    assert error_found == False
-    assert warning_found == False
+    assert not error_found
+    assert not warning_found
     gui_load.gui.edit_layout.itemAt(y_pos[0], QFormLayout.ItemRole.FieldRole).itemAt(y_pos[1]).widget().clear()
     gui_load.gui.edit_layout.itemAt(y_pos[0], QFormLayout.ItemRole.FieldRole).itemAt(y_pos[1]).widget().insert("99")
     assert gui_load.gui.edit_layout.itemAt(y_pos[0], QFormLayout.ItemRole.FieldRole).itemAt(y_pos[1]).widget().text() == "99"
@@ -326,12 +328,13 @@ def test_move(gui_load, qtbot):
     assert gui_load.structure["Page 1"]["Image"]["y_pos"] == "99"
     QTimer.singleShot(150, handle_dialog_error)
     error_found, warning_found, warning_details = validate_questionnaire(gui_load.structure)
-    assert error_found == False
-    assert warning_found == False
-    QTest.keyClicks(gui_load, 's', modifier=Qt.KeyboardModifier.ControlModifier)
+    assert not error_found
+    assert not warning_found
+    QTest.keyClicks(gui_load, 's', modifier=Qt.KeyboardModifier.ControlModifier, delay=1000)
+    QTest.qWait(2000)
     test_gui = StackedWindowGui("./test/imgtest.txt")
     for child in test_gui.Stack.currentWidget().children():
-        if type(child) is Image:
+        if isinstance(child, Image):
             assert child.x() == 99
             assert child.y() == 99
     test_gui.close()
@@ -350,8 +353,8 @@ def test_move(gui_load, qtbot):
     assert gui_load.structure["Page 1"]["Image"]["x_pos"] == "-1"
     QTimer.singleShot(150, handle_dialog_error)
     error_found, warning_found, warning_details = validate_questionnaire(gui_load.structure)
-    assert error_found == True
-    assert warning_found == False
+    assert error_found
+    assert not warning_found
     gui_load.gui.edit_layout.itemAt(y_pos[0], QFormLayout.ItemRole.FieldRole).itemAt(y_pos[1]).widget().clear()
     gui_load.gui.edit_layout.itemAt(y_pos[0], QFormLayout.ItemRole.FieldRole).itemAt(y_pos[1]).widget().insert("-1")
     assert gui_load.gui.edit_layout.itemAt(y_pos[0], QFormLayout.ItemRole.FieldRole).itemAt(y_pos[1]).widget().text() == "-1"
@@ -365,8 +368,8 @@ def test_move(gui_load, qtbot):
     assert gui_load.structure["Page 1"]["Image"]["y_pos"] == "-1"
     QTimer.singleShot(150, handle_dialog_error)
     error_found, warning_found, warning_details = validate_questionnaire(gui_load.structure)
-    assert error_found == True
-    assert warning_found == False
+    assert error_found
+    assert not warning_found
 
     #  ---------0--------
     gui_load.gui.edit_layout.itemAt(x_pos[0], QFormLayout.ItemRole.FieldRole).itemAt(x_pos[1]).widget().clear()
@@ -382,8 +385,8 @@ def test_move(gui_load, qtbot):
     assert gui_load.structure["Page 1"]["Image"]["x_pos"] == "0"
     QTimer.singleShot(150, handle_dialog_error)
     error_found, warning_found, warning_details = validate_questionnaire(gui_load.structure)
-    assert error_found == True
-    assert warning_found == False
+    assert error_found
+    assert not warning_found
     gui_load.gui.edit_layout.itemAt(y_pos[0], QFormLayout.ItemRole.FieldRole).itemAt(y_pos[1]).widget().clear()
     gui_load.gui.edit_layout.itemAt(y_pos[0], QFormLayout.ItemRole.FieldRole).itemAt(y_pos[1]).widget().insert("0")
     assert gui_load.gui.edit_layout.itemAt(y_pos[0], QFormLayout.ItemRole.FieldRole).itemAt(y_pos[1]).widget().text() == "0"
@@ -395,12 +398,13 @@ def test_move(gui_load, qtbot):
     assert gui_load.structure["Page 1"]["Image"]["y_pos"] == "0"
     QTimer.singleShot(150, handle_dialog_error)
     error_found, warning_found, warning_details = validate_questionnaire(gui_load.structure)
-    assert error_found == False
-    assert warning_found == False
+    assert not error_found
+    assert not warning_found
 
     gui_load.structure["Page 1"]["Image"]["x_pos"] = 1800
     gui_load.structure["Page 1"]["Image"]["y_pos"] = 400
-    QTest.keyClicks(gui_load, 's', modifier=Qt.KeyboardModifier.ControlModifier)
+    QTest.keyClicks(gui_load, 's', modifier=Qt.KeyboardModifier.ControlModifier, delay=1000)
+    QTest.qWait(2000)
     gui_load.close()
     os.remove("./test/results/results_img.csv")
 
@@ -409,8 +413,8 @@ def test_move(gui_load, qtbot):
 def test_image_position(gui_load, qtbot, capfd):
     QTimer.singleShot(150, handle_dialog_error)
     error_found, warning_found, warning_details = validate_questionnaire(gui_load.structure)
-    assert error_found == False
-    assert warning_found == False
+    assert not error_found
+    assert not warning_found
     tv = gui_load.gui.treeview
     tv.expandAll()
     tv.setCurrentItem(tv.topLevelItem(0).child(0).child(1))  # should be 'Image'
@@ -424,10 +428,10 @@ def test_image_position(gui_load, qtbot, capfd):
     pos_pos = find_row_by_label(gui_load.gui.edit_layout, 'image_position')
     pos_cb = gui_load.gui.edit_layout.itemAt(pos_pos, QFormLayout.ItemRole.FieldRole).widget()
     assert pos_cb.currentText() == 'free'
-    QTest.keyClicks(gui_load, 's', modifier=Qt.KeyboardModifier.ControlModifier)
+    QTest.keyClicks(gui_load, 's', modifier=Qt.KeyboardModifier.ControlModifier, delay=1000)
     test_gui = StackedWindowGui("./test/imgtest.txt")
     for child in test_gui.Stack.currentWidget().children():
-        if type(child) is Image:
+        if isinstance(child, Image):
             assert child.x() == 1800
             assert child.y() == 400
     test_gui.close()
@@ -439,15 +443,15 @@ def test_image_position(gui_load, qtbot, capfd):
     assert pos_cb.currentText() == "right"
     QTimer.singleShot(150, handle_dialog_error)
     error_found, warning_found, warning_details = validate_questionnaire(gui_load.structure)
-    assert error_found == False
-    assert warning_found == False
+    assert not error_found
+    assert not warning_found
     gui_load.gui.refresh_button.click()
     assert gui_load.structure["Page 1"]["Image"]["image_position"] == "right"
     gui_load.save()
     test_gui = StackedWindowGui("./test/imgtest.txt")
     for child in test_gui.Stack.currentWidget().children():
-        if type(child) is Image:
-            assert type(child.parent().layout()) == QHBoxLayout
+        if isinstance(child, Image):
+            assert isinstance(child.parent().layout(), QHBoxLayout)
             print(child.parent().children())
             assert child.parent().layout().indexOf(child) == 1
     test_gui.close()
@@ -459,15 +463,15 @@ def test_image_position(gui_load, qtbot, capfd):
     assert pos_cb.currentText() == "left"
     QTimer.singleShot(150, handle_dialog_error)
     error_found, warning_found, warning_details = validate_questionnaire(gui_load.structure)
-    assert error_found == False
-    assert warning_found == False
+    assert not error_found
+    assert not warning_found
     gui_load.gui.refresh_button.click()
     assert gui_load.structure["Page 1"]["Image"]["image_position"] == "left"
     gui_load.save()
     test_gui = StackedWindowGui("./test/imgtest.txt")
     for child in test_gui.Stack.currentWidget().children():
-        if type(child) is Image:
-            assert type(child.parent().layout()) == QHBoxLayout
+        if isinstance(child, Image):
+            assert isinstance(child.parent().layout(), QHBoxLayout)
             assert child.parent().layout().indexOf(child) == 0
     test_gui.close()
 
@@ -478,15 +482,15 @@ def test_image_position(gui_load, qtbot, capfd):
     assert pos_cb.currentText() == "bottom"
     QTimer.singleShot(150, handle_dialog_error)
     error_found, warning_found, warning_details = validate_questionnaire(gui_load.structure)
-    assert error_found == False
-    assert warning_found == False
+    assert not error_found
+    assert not warning_found
     gui_load.gui.refresh_button.click()
     assert gui_load.structure["Page 1"]["Image"]["image_position"] == "bottom"
     gui_load.save()
     test_gui = StackedWindowGui("./test/imgtest.txt")
     for child in test_gui.Stack.currentWidget().children():
-        if type(child) is Image:
-            assert type(child.parent().layout()) == QFormLayout
+        if isinstance(child, Image):
+            assert isinstance(child.parent().layout(), QFormLayout)
             assert child.parent().layout().getWidgetPosition(child)[0] == len(gui_load.structure["Page 1"].sections) - 1
 
     # --- top ---
@@ -496,15 +500,15 @@ def test_image_position(gui_load, qtbot, capfd):
     assert pos_cb.currentText() == "top"
     QTimer.singleShot(150, handle_dialog_error)
     error_found, warning_found, warning_details = validate_questionnaire(gui_load.structure)
-    assert error_found == False
-    assert warning_found == False
+    assert not error_found
+    assert not warning_found
     gui_load.gui.refresh_button.click()
     assert gui_load.structure["Page 1"]["Image"]["image_position"] == "top"
     gui_load.save()
     test_gui = StackedWindowGui("./test/imgtest.txt")
     for child in test_gui.Stack.currentWidget().children():
-        if type(child) is Image:
-            assert type(child.parent().layout()) == QFormLayout
+        if isinstance(child, Image):
+            assert isinstance(child.parent().layout(), QFormLayout)
             assert child.parent().layout().getWidgetPosition(child)[0] == 0
     test_gui.close()
 
@@ -515,15 +519,15 @@ def test_image_position(gui_load, qtbot, capfd):
     assert pos_cb.currentText() == "here"
     QTimer.singleShot(150, handle_dialog_error)
     error_found, warning_found, warning_details = validate_questionnaire(gui_load.structure)
-    assert error_found == False
-    assert warning_found == False
+    assert not error_found
+    assert not warning_found
     gui_load.gui.refresh_button.click()
     assert gui_load.structure["Page 1"]["Image"]["image_position"] == "here"
     gui_load.save()
     test_gui = StackedWindowGui("./test/imgtest.txt")
     for child in test_gui.Stack.currentWidget().children():
-        if type(child) is Image:
-            assert type(child.parent().layout()) == QFormLayout
+        if isinstance(child, Image):
+            assert isinstance(child.parent().layout(), QFormLayout)
             assert child.parent().layout().getWidgetPosition(child)[0] == gui_load.structure["Page 1"].sections.index("Image")
     test_gui.close()
 
@@ -537,7 +541,7 @@ def test_image_position(gui_load, qtbot, capfd):
     assert pos_cb.currentText() == 'free'
     gui_load.structure["Page 1"]["Image"]["x_pos"] = 1800
     gui_load.structure["Page 1"]["Image"]["y_pos"] = 400
-    QTest.keyClicks(gui_load, 's', modifier=Qt.KeyboardModifier.ControlModifier)
+    QTest.keyClicks(gui_load, 's', modifier=Qt.KeyboardModifier.ControlModifier, delay=1000)
     gui_load.save()
     os.remove("./test/results/results_img.csv")
     gui_load.close()
@@ -547,7 +551,7 @@ def test_image_position(gui_load, qtbot, capfd):
 def test_execute_questionnaire_no_interaction(run, qtbot):
     assert run.Stack.count() == 1
     for child in run.Stack.currentWidget().children():
-        if type(child) is Image:
+        if isinstance(child, Image):
             assert child.width() == 250
             assert child.height() == 100
             assert child.x() == 1800
@@ -562,13 +566,13 @@ def test_execute_questionnaire_no_interaction(run, qtbot):
         for lines in csv_file:
             results = lines
             if results[0].startswith('data'):
-                assert lines[0] == 'data_row_number'  # participant number
-                assert lines[1] == 'Start'
-                assert lines[2] == 'End'
+                assert results[0] == 'data_row_number'  # participant number
+                assert results[1] == 'Start'
+                assert results[2] == 'End'
     assert len(results) == 3
-    assert lines[0] == '1'  # participant number
-    assert re.match(r'\d+-\d+-\d+ \d+:\d+:\d+.\d+', lines[1])  # timestamp
-    assert re.match(r'\d+-\d+-\d+ \d+:\d+:\d+.\d+', lines[2])  # timestamp
+    assert results[0] == '1'  # participant number
+    assert re.match(r'\d+-\d+-\d+ \d+:\d+:\d+.\d+', results[1])  # timestamp
+    assert re.match(r'\d+-\d+-\d+ \d+:\d+:\d+.\d+', results[2])  # timestamp
     os.remove("./test/results/results_img.csv")
 
 
@@ -581,7 +585,7 @@ def test_execute_questionnaire_no_interaction_blocked(run, qtbot):
         res_file = None
         for file in os.listdir("./test/results/"):
             if file.find("_backup_"):
-                res_file = "./test/results/{}".format(file)
+                res_file = f'./test/results/{file}'
         results = []
         with open(res_file, mode='r') as file:
             csv_file = csv.reader(file, delimiter=';')
@@ -589,11 +593,11 @@ def test_execute_questionnaire_no_interaction_blocked(run, qtbot):
             for lines in csv_file:
                 results = lines
                 if results[0].startswith('data'):
-                    assert lines[0] == 'data_row_number'  # participant number
-                    assert lines[1] == 'Start'
-                    assert lines[2] == 'End'
+                    assert results[0] == 'data_row_number'  # participant number
+                    assert results[1] == 'Start'
+                    assert results[2] == 'End'
         assert len(results) == 3
-        assert lines[0] == '-1'  # participant number unknown
-        assert re.match(r'\d+-\d+-\d+ \d+:\d+:\d+.\d+', lines[1])  # timestamp
-        assert re.match(r'\d+-\d+-\d+ \d+:\d+:\d+.\d+', lines[2])  # timestamp
+        assert results[0] == '-1'  # participant number unknown
+        assert re.match(r'\d+-\d+-\d+ \d+:\d+:\d+.\d+', results[1])  # timestamp
+        assert re.match(r'\d+-\d+-\d+ \d+:\d+:\d+.\d+', results[2])  # timestamp
         os.remove(res_file)

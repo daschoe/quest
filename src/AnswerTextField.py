@@ -50,7 +50,7 @@ def make_answers(size, qid, policy=None, parent=None, objectname=None):
             elif policy[0].lower() == "regex":
                 text.setValidator(QRegularExpressionValidator(QRegularExpression(policy[1])))
             else:
-                raise ValueError("Unknown validator found {}.".format(policy[0]))
+                raise ValueError(f"Unknown validator found {policy[0]}.")
     elif size > 1:
         # big text fields do not use validators
         text = QPlainTextEdit()
@@ -60,6 +60,6 @@ def make_answers(size, qid, policy=None, parent=None, objectname=None):
         # print(size, text.font().pointSize(), size * QFontMetrics(text.font()).lineSpacing())
         # text.setFixedHeight(size * QFontMetrics(text.font()).lineSpacing()*2)
     else:
-        raise ValueError("Size of text answer needs to be >= 1. Found {}.".format(size))
+        raise ValueError(f"Size of text answer needs to be >= 1. Found {size}.")
     text.textChanged.connect(lambda: parent.log(qid, text))
     return text

@@ -20,7 +20,7 @@ def vlc_start(unused_addr, args):
     args : str or any
         if str: path of file to play
     """
-    if args == '{}':
+    if args == "{}":
         pl.resume()
         print("status: resume")
     else:
@@ -28,34 +28,34 @@ def vlc_start(unused_addr, args):
     print("status: play")
 
 
-def vlc_stop(unused_addr, args):
+def vlc_stop(unused_addr, unused_args):
     """
     Stop the video in the current player (by pausing it).
 
     Parameters
     ----------
     unused_addr : any
-    args : any
+    unused_args : any
     """
     pl.pause()
     print("status: pause")
 
 
-def vlc_finish(unused_addr, args):
+def vlc_finish(unused_addr, unused_args):
     """
         Set an all black still image, e.g. when currently no video needs to be played.
 
         Parameters
         ----------
         unused_addr : any
-        args : any
+        unused_args : any
     """
     video_thread = Thread(target=pl.play, args=("./Examples/black_3screens.mp4",))
     video_thread.run()
     print("status: finish")
 
 
-def vlc_still(unused_addr, args):
+def vlc_still(unused_addr, unused_args):
     """
         Set an all blue still image.
         Example use: Signal that the questionnaire is done.
@@ -63,7 +63,7 @@ def vlc_still(unused_addr, args):
         Parameters
         ----------
         unused_addr : any
-        args : any
+        unused_args : any
     """
     video_thread = Thread(target=pl.play, args=("./Examples/blue_3screens.mp4",))
     video_thread.run()
@@ -76,9 +76,9 @@ if __name__ == "__main__":
     parser.add_argument("--reaper", type=bool, default=True, help="Flag to use Reaper (default: True).")
     parser.add_argument("--reaper_ip", default="127.0.0.1", help="IPv4 the computer hosting Reaper.")
     parser.add_argument("--reaper_port", type=int, default=8000, help="The port of Reaper.")
-    args = parser.parse_args()
+    arguments = parser.parse_args()
 
-    pl = Player(reaper=args.reaper, reaper_ip=args.reaper_ip, reaper_port=args.reaper_port)
+    pl = Player(reaper=arguments.reaper, reaper_ip=arguments.reaper_ip, reaper_port=arguments.reaper_port)
     vlc_still("", None)
 
     dispatcher = dispatcher.Dispatcher()
@@ -89,6 +89,6 @@ if __name__ == "__main__":
     dispatcher.map("/vlc_still", vlc_still)  # show a still image
 
     ip = socket.gethostbyname(socket.gethostname())
-    server = osc_server.ThreadingOSCUDPServer((ip, args.port), dispatcher)
-    print("Serving on {}".format(server.server_address))
+    server = osc_server.ThreadingOSCUDPServer((ip, arguments.port), dispatcher)
+    print(f'Serving on {server.server_address}')
     server.serve_forever()

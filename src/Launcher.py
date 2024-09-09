@@ -30,7 +30,7 @@ class Launcher(QWidget):
         self.questionnaire_window = None
         self.setStyleSheet("QPushButton {padding: 7px; margin: 3px; }")
         self.setLayout(layout)
-        self.setWindowTitle("QUEST {}".format(VERSION))
+        self.setWindowTitle(f'QUEST {VERSION}')
         self.show()
 
     def run_questionnaire(self):
@@ -58,7 +58,7 @@ class Launcher(QWidget):
         msg.setText("This software was created by Daphne Schössow.")
         msg.setInformativeText("For detailed instructions on how to use this software, "
                                "have a look at the <a href=https://gitlab.uni-hannover.de/da.schoessow/quest/-/wikis/overview>wiki</a> of this project at gitlab. "
-                               "For further problems, feature request, or feedback create an issue at gitlab or contact <a href=mailto:daphne.schoessow@ikt.uni-hannover.de> via mail</a>.")
+                               "For further problems, feature request, or feedback create an issue at gitlab or contact <a href=mailto:schoessow@ikt.uni-hannover.de> via mail</a>.")
         msg.exec()
 
 

@@ -1,6 +1,6 @@
 """Testing the behaviour of PasswordEntry.py + QEditGui.py"""
 
-from context import *
+from context import pytest, QEditGuiMain, PasswordEntry, QHBoxLayout, keyboard, QIntValidator, QDoubleValidator, QRegularExpressionValidator, QPalette, QTimer, open_config_file, StackedWindowGui, QTest, handle_dialog_p, handle_dialog_q, Qt, QFormLayout, QWidgetItem, fields_per_type, default_values, QCheckBox, QLineEdit, page_fields, listify, ConfigObj, general_fields, handle_dialog_error, validate_questionnaire, handle_dialog_no_save, find_row_by_label, handle_dialog, csv, re, os, mock_file
 
 
 @pytest.fixture
@@ -27,19 +27,19 @@ def run():
 # noinspection PyArgumentList
 def test_create(gui_init, qtbot):
     # create a page
-    assert gui_init.gui.page_add.isEnabled() == True
+    assert gui_init.gui.page_add.isEnabled()
     QTest.qWait(500)
 
     QTimer.singleShot(100, handle_dialog_p)
-    QTest.mouseClick(gui_init.gui.page_add, Qt.MouseButton.LeftButton, delay=1)
+    QTest.mouseClick(gui_init.gui.page_add, Qt.MouseButton.LeftButton, delay=1000)
     tv = gui_init.gui.treeview
     # create a question
     tv.setCurrentItem(tv.topLevelItem(0).child(0))  # .setSelected(True)
-    assert gui_init.gui.question_add.isEnabled() == True
+    assert gui_init.gui.question_add.isEnabled()
     QTest.qWait(500)
 
     QTimer.singleShot(100, handle_dialog_q)
-    QTest.mouseClick(gui_init.gui.question_add, Qt.MouseButton.LeftButton, delay=1)
+    QTest.mouseClick(gui_init.gui.question_add, Qt.MouseButton.LeftButton, delay=1000)
     assert tv.itemAt(0, 0).text(0) == "<new questionnaire>"
     assert tv.topLevelItemCount() == 1
     assert tv.topLevelItem(0).childCount() == 1
@@ -68,20 +68,20 @@ def test_create(gui_init, qtbot):
     layout = gui_init.gui.edit_layout
     not_none_rows = 0
     for row in range(layout.rowCount()):
-        if type(layout.itemAt(row, QFormLayout.ItemRole.FieldRole)) == QWidgetItem:
+        if isinstance(layout.itemAt(row, QFormLayout.ItemRole.FieldRole), QWidgetItem):
             not_none_rows += 1
-            assert layout.itemAt(row, QFormLayout.ItemRole.LabelRole).widget().text() in fields_per_type["Password"][0].keys()
+            assert layout.itemAt(row, QFormLayout.ItemRole.LabelRole).widget().text() in fields_per_type["Password"][0]
             assert str(type(layout.itemAt(row, QFormLayout.ItemRole.FieldRole).widget())).strip("'<>").rsplit(".", 1)[1] == \
                    'TextEdit' if fields_per_type["Password"][0][layout.itemAt(row, QFormLayout.ItemRole.LabelRole).widget().text()] == 'QPlainTextEdit'\
                    else fields_per_type["Password"][0][layout.itemAt(row, QFormLayout.ItemRole.LabelRole).widget().text()]
-            if type(layout.itemAt(row, QFormLayout.ItemRole.FieldRole).widget()) == QLineEdit and layout.itemAt(row, QFormLayout.ItemRole.LabelRole).widget().text() in \
+            if isinstance(layout.itemAt(row, QFormLayout.ItemRole.FieldRole).widget(), QLineEdit) and layout.itemAt(row, QFormLayout.ItemRole.LabelRole).widget().text() in \
                     default_values:
                 assert layout.itemAt(row, QFormLayout.ItemRole.FieldRole).widget().text() == default_values[layout.itemAt(row, QFormLayout.ItemRole.LabelRole).widget().text()]
-            elif type(layout.itemAt(row, QFormLayout.ItemRole.FieldRole).widget()) == QCheckBox and layout.itemAt(row, QFormLayout.ItemRole.LabelRole).widget().text() in \
+            elif isinstance(layout.itemAt(row, QFormLayout.ItemRole.FieldRole).widget(), QCheckBox) and layout.itemAt(row, QFormLayout.ItemRole.LabelRole).widget().text() in \
                     default_values:
                 assert layout.itemAt(row, QFormLayout.ItemRole.FieldRole).widget().isChecked() == default_values[
                     layout.itemAt(row, QFormLayout.ItemRole.LabelRole).widget().text()]
-        elif type(layout.itemAt(row, QFormLayout.ItemRole.FieldRole)) == QHBoxLayout and \
+        elif isinstance(layout.itemAt(row, QFormLayout.ItemRole.FieldRole), QHBoxLayout) and \
                 gui_init.gui.pw_layout == layout.itemAt(row, QFormLayout.ItemRole.FieldRole):
             not_none_rows += 1
             assert layout.itemAt(row, QFormLayout.ItemRole.FieldRole).itemAt(1).widget().text() == default_values[
@@ -100,7 +100,7 @@ def test_create(gui_init, qtbot):
             structure["Page 1"][key] = value
     structure["Page 1"]["Question 1"] = {"type": "Password"}
     for key, value in default_values.items():
-        if key in fields_per_type["Password"][0].keys():
+        if key in fields_per_type["Password"][0]:
             structure["Page 1"]["Question 1"][key] = value
     listify(gui_init.structure)
     listify(structure)
@@ -140,7 +140,7 @@ def test_password_file(gui_load, run, qtbot):
     with open(pwfile) as f:
         passwords = f.read().splitlines()
     for child in run.Stack.currentWidget().children():
-        if type(child) is PasswordEntry:
+        if isinstance(child, PasswordEntry):
             assert child.passwords == passwords
 
     def handle_file_chooser():
@@ -165,8 +165,8 @@ def test_password_file(gui_load, run, qtbot):
 def test_policy(gui_load, qtbot):
     QTimer.singleShot(150, handle_dialog_error)
     error_found, warning_found, warning_details = validate_questionnaire(gui_load.structure)
-    assert error_found == False
-    assert warning_found == False
+    assert not error_found
+    assert not warning_found
     tv = gui_load.gui.treeview
     tv.expandAll()
     tv.setCurrentItem(tv.topLevelItem(0).child(0).child(0))  # should be 'Question 1'
@@ -184,19 +184,21 @@ def test_policy(gui_load, qtbot):
     assert find_row_by_label(gui_load.gui.edit_layout, "max") is None
     assert find_row_by_label(gui_load.gui.edit_layout, "dec") is None
     assert find_row_by_label(gui_load.gui.edit_layout, "exp") is None
-    QTest.keyClicks(gui_load, 's', modifier=Qt.KeyboardModifier.ControlModifier)
+    QTest.keyClicks(gui_load, 's', modifier=Qt.KeyboardModifier.ControlModifier, delay=1000)
     test_gui = StackedWindowGui("./test/pwtest.txt")
     for child in test_gui.Stack.currentWidget().children():
-        if type(child) is PasswordEntry:
+        if isinstance(child, PasswordEntry):
             assert child.validator() is None
     test_gui.close()
 
-    QTest.mouseClick(policy_cb, Qt.MouseButton.LeftButton)
-    QTest.keyClick(policy_cb, Qt.Key.Key_Down)
-    QTest.keyClick(policy_cb, Qt.Key.Key_Enter)
+    QTest.mouseClick(policy_cb, Qt.MouseButton.LeftButton, delay=1000)
+    QTest.keyClick(policy_cb, Qt.Key.Key_Down, delay=1000)
+    QTest.keyClick(policy_cb, Qt.Key.Key_Enter, delay=1000)
     assert policy_cb.currentText() == "int"
-    assert find_row_by_label(gui_load.gui.edit_layout, "min") == (answers_pos+1, 1)
-    assert find_row_by_label(gui_load.gui.edit_layout, "max") == (answers_pos+1, 3)
+    policy_cb.clearFocus()
+    gui_load.gui.setFocus()
+    assert find_row_by_label(gui_load.gui.edit_layout, "min") == (answers_pos + 1, 1)
+    assert find_row_by_label(gui_load.gui.edit_layout, "max") == (answers_pos + 1, 3)
     assert find_row_by_label(gui_load.gui.edit_layout, "dec") is None
     assert find_row_by_label(gui_load.gui.edit_layout, "exp") is None
     min_b = find_row_by_label(gui_load.gui.edit_layout, "min")
@@ -210,21 +212,24 @@ def test_policy(gui_load, qtbot):
     gui_load.structure["Page 1"]["Question 1"]["password_file"] = "./test/mock_pws_int.txt"
     pwfile.setText("./test/mock_pws_int.txt")
     gui_load.gui.refresh_button.click()
+    QTest.qWait(2000)
     assert gui_load.structure["Page 1"]["Question 1"]["policy"] == ['int', '1000', '9999']
-    QTest.keyClicks(gui_load, 's', modifier=Qt.KeyboardModifier.ControlModifier)
+    QTest.keyClicks(gui_load, 's', modifier=Qt.KeyboardModifier.ControlModifier, delay=1000)
+    gui_load.save() # have to enforce save since focus is lost somwhow....
+    QTest.qWait(1000)
     test_gui = StackedWindowGui("./test/pwtest.txt")
     for child in test_gui.Stack.currentWidget().children():
-        if type(child) is PasswordEntry:
-            assert type(child.validator()) == QIntValidator
+        if isinstance(child, PasswordEntry):
+            assert isinstance(child.validator(), QIntValidator)
     test_gui.close()
 
-    QTest.mouseClick(policy_cb, Qt.MouseButton.LeftButton)
-    QTest.keyClick(policy_cb, Qt.Key.Key_Down)
-    QTest.keyClick(policy_cb, Qt.Key.Key_Enter)
+    QTest.mouseClick(policy_cb, Qt.MouseButton.LeftButton, delay=1000)
+    QTest.keyClick(policy_cb, Qt.Key.Key_Down, delay=1000)
+    QTest.keyClick(policy_cb, Qt.Key.Key_Enter, delay=1000)
     assert policy_cb.currentText() == "double"
-    assert find_row_by_label(gui_load.gui.edit_layout, "min") == (answers_pos+1, 1)
-    assert find_row_by_label(gui_load.gui.edit_layout, "max") == (answers_pos+1, 3)
-    assert find_row_by_label(gui_load.gui.edit_layout, "dec") == (answers_pos+1, 5)
+    assert find_row_by_label(gui_load.gui.edit_layout, "min") == (answers_pos + 1, 1)
+    assert find_row_by_label(gui_load.gui.edit_layout, "max") == (answers_pos + 1, 3)
+    assert find_row_by_label(gui_load.gui.edit_layout, "dec") == (answers_pos + 1, 5)
     assert find_row_by_label(gui_load.gui.edit_layout, "exp") is None
     min_b = find_row_by_label(gui_load.gui.edit_layout, "min")
     QTest.keyClicks(gui_load.gui.edit_layout.itemAt(min_b[0], QFormLayout.ItemRole.FieldRole).itemAt(min_b[1]).widget(), '1')
@@ -242,16 +247,18 @@ def test_policy(gui_load, qtbot):
     pwfile.setText("./test/mock_pws_double.txt")
     gui_load.gui.refresh_button.click()
     assert gui_load.structure["Page 1"]["Question 1"]["policy"] == ['double', '1', '100', '2']
-    QTest.keyClicks(gui_load, 's', modifier=Qt.KeyboardModifier.ControlModifier)
+    QTest.keyClicks(gui_load, 's', modifier=Qt.KeyboardModifier.ControlModifier, delay=1000)
+    gui_load.save() # have to enforce save since focus is lost somwhow....
+    QTest.qWait(1000)
     test_gui = StackedWindowGui("./test/pwtest.txt")
     for child in test_gui.Stack.currentWidget().children():
-        if type(child) is PasswordEntry:
-            assert type(child.validator()) == QDoubleValidator
+        if isinstance(child, PasswordEntry):
+            assert isinstance(child.validator(), QDoubleValidator)
     test_gui.close()
 
-    QTest.mouseClick(policy_cb, Qt.MouseButton.LeftButton)
-    QTest.keyClick(policy_cb, Qt.Key.Key_Down)
-    QTest.keyClick(policy_cb, Qt.Key.Key_Enter)
+    QTest.mouseClick(policy_cb, Qt.MouseButton.LeftButton, delay=1000)
+    QTest.keyClick(policy_cb, Qt.Key.Key_Down, delay=1000)
+    QTest.keyClick(policy_cb, Qt.Key.Key_Enter, delay=1000)
     assert policy_cb.currentText() == "regex"
     assert find_row_by_label(gui_load.gui.edit_layout, "min") is None
     assert find_row_by_label(gui_load.gui.edit_layout, "max") is None
@@ -265,18 +272,20 @@ def test_policy(gui_load, qtbot):
     pwfile.setText("./test/mock_pws_regex.txt")
     gui_load.gui.refresh_button.click()
     assert gui_load.structure["Page 1"]["Question 1"]["policy"] == ['regex', '[A-Z]\\d']
-    QTest.keyClicks(gui_load, 's', modifier=Qt.KeyboardModifier.ControlModifier)
+    QTest.keyClicks(gui_load, 's', modifier=Qt.KeyboardModifier.ControlModifier, delay=1000)
+    gui_load.save() # have to enforce save since focus is lost somwhow....
+    QTest.qWait(2000)
     test_gui = StackedWindowGui("./test/pwtest.txt")
     for child in test_gui.Stack.currentWidget().children():
-        if type(child) is PasswordEntry:
-            assert type(child.validator()) == QRegularExpressionValidator
+        if isinstance(child, PasswordEntry):
+            assert isinstance(child.validator(), QRegularExpressionValidator)
     test_gui.close()
 
-    QTest.mouseClick(policy_cb, Qt.MouseButton.LeftButton)
+    QTest.mouseClick(policy_cb, Qt.MouseButton.LeftButton, delay=1000)
     QTest.keyClick(policy_cb, Qt.Key.Key_Up)
     QTest.keyClick(policy_cb, Qt.Key.Key_Up)
     QTest.keyClick(policy_cb, Qt.Key.Key_Up)
-    QTest.keyClick(policy_cb, Qt.Key.Key_Enter)
+    QTest.keyClick(policy_cb, Qt.Key.Key_Enter, delay=1000)
     assert policy_cb.currentText() == 'None'
     assert find_row_by_label(gui_load.gui.edit_layout, "min") is None
     assert find_row_by_label(gui_load.gui.edit_layout, "max") is None
@@ -284,7 +293,8 @@ def test_policy(gui_load, qtbot):
     assert find_row_by_label(gui_load.gui.edit_layout, "exp") is None
     gui_load.structure["Page 1"]["Question 1"]["password_file"] = "./test/mock_pws.txt"
     pwfile.setText("./test/mock_pws.txt")
-    QTest.keyClicks(gui_load, 's', modifier=Qt.KeyboardModifier.ControlModifier)
+    QTest.keyClicks(gui_load, 's', modifier=Qt.KeyboardModifier.ControlModifier, delay=1000)
+    gui_load.save() # have to enforce save since focus is lost somwhow....
     gui_load.close()
 
 
@@ -304,15 +314,15 @@ def test_execute_questionnaire_no_interaction(run, qtbot):
         for lines in csv_file:
             results = lines
             if results[0].startswith('data'):
-                assert lines[0] == 'data_row_number'  # participant number
-                assert lines[1] == 'pw'
-                assert lines[2] == 'Start'
-                assert lines[3] == 'End'
+                assert results[0] == 'data_row_number'  # participant number
+                assert results[1] == 'pw'
+                assert results[2] == 'Start'
+                assert results[3] == 'End'
     assert len(results) == 4
-    assert lines[0] == '1'  # participant number
-    assert lines[1] == ''
-    assert re.match(r'\d+-\d+-\d+ \d+:\d+:\d+.\d+', lines[2])  # timestamp
-    assert re.match(r'\d+-\d+-\d+ \d+:\d+:\d+.\d+', lines[3])  # timestamp
+    assert results[0] == '1'  # participant number
+    assert results[1] == ''
+    assert re.match(r'\d+-\d+-\d+ \d+:\d+:\d+.\d+', results[2])  # timestamp
+    assert re.match(r'\d+-\d+-\d+ \d+:\d+:\d+.\d+', results[3])  # timestamp
     os.remove("./test/results/results_pw.csv")
 
 
@@ -325,7 +335,7 @@ def test_execute_questionnaire_no_interaction_blocked(run, qtbot):
         res_file = None
         for file in os.listdir("./test/results/"):
             if file.find("_backup_"):
-                res_file = "./test/results/{}".format(file)
+                res_file = f'./test/results/{file}'
         results = []
         with open(res_file, mode='r') as file:
             csv_file = csv.reader(file, delimiter=';')
@@ -333,15 +343,15 @@ def test_execute_questionnaire_no_interaction_blocked(run, qtbot):
             for lines in csv_file:
                 results = lines
                 if results[0].startswith('data'):
-                    assert lines[0] == 'data_row_number'  # participant number
-                    assert lines[1] == 'pw'
-                    assert lines[2] == 'Start'
-                    assert lines[3] == 'End'
+                    assert results[0] == 'data_row_number'  # participant number
+                    assert results[1] == 'pw'
+                    assert results[2] == 'Start'
+                    assert results[3] == 'End'
         assert len(results) == 4
-        assert lines[0] == '-1'  # participant number unknown
-        assert lines[1] == ''
-        assert re.match(r'\d+-\d+-\d+ \d+:\d+:\d+.\d+', lines[2])  # timestamp
-        assert re.match(r'\d+-\d+-\d+ \d+:\d+:\d+.\d+', lines[3])  # timestamp
+        assert results[0] == '-1'  # participant number unknown
+        assert results[1] == ''
+        assert re.match(r'\d+-\d+-\d+ \d+:\d+:\d+.\d+', results[2])  # timestamp
+        assert re.match(r'\d+-\d+-\d+ \d+:\d+:\d+.\d+', results[3])  # timestamp
         os.remove(res_file)
 
 
@@ -351,18 +361,18 @@ def test_execute_questionnaire_type_pw(run, qtbot):
         os.remove("./test/results/results_pw.csv")
     assert run.Stack.count() == 1
     for child in run.Stack.currentWidget().children():
-        if type(child) is PasswordEntry:
+        if isinstance(child, PasswordEntry):
             assert child.text() == ''
-            QTest.keyClicks(child, "wrong", modifier=Qt.KeyboardModifier.NoModifier, delay=1)
+            QTest.keyClicks(child, "wrong", modifier=Qt.KeyboardModifier.NoModifier, delay=500)
             assert child.text() == 'wrong'
-            assert child.validate() == False
+            assert not child.validate()
             assert child.toolTip() == "Invalid password."
             assert child.objectName() == 'required'
             # assert child.palette().color(QPalette.Text).name() == 'red'
             child.clear()
-            QTest.keyClicks(child, "password", modifier=Qt.KeyboardModifier.NoModifier, delay=1)
+            QTest.keyClicks(child, "password", modifier=Qt.KeyboardModifier.NoModifier, delay=500)
             assert child.text() == 'password'
-            assert child.validate() == True
+            assert child.validate()
             assert child.toolTip() == ""
             assert child.objectName() == ''
 
@@ -376,15 +386,15 @@ def test_execute_questionnaire_type_pw(run, qtbot):
         for lines in csv_file:
             results = lines
             if results[0].startswith('data'):
-                assert lines[0] == 'data_row_number'  # participant number
-                assert lines[1] == 'pw'
-                assert lines[2] == 'Start'
-                assert lines[3] == 'End'
+                assert results[0] == 'data_row_number'  # participant number
+                assert results[1] == 'pw'
+                assert results[2] == 'Start'
+                assert results[3] == 'End'
     assert len(results) == 4
-    assert lines[0] == '1'  # participant number
-    assert lines[1] == 'password'
-    assert re.match(r'\d+-\d+-\d+ \d+:\d+:\d+.\d+', lines[2])  # timestamp
-    assert re.match(r'\d+-\d+-\d+ \d+:\d+:\d+.\d+', lines[3])  # timestamp
+    assert results[0] == '1'  # participant number
+    assert results[1] == 'password'
+    assert re.match(r'\d+-\d+-\d+ \d+:\d+:\d+.\d+', results[2])  # timestamp
+    assert re.match(r'\d+-\d+-\d+ \d+:\d+:\d+.\d+', results[3])  # timestamp
     os.remove("./test/results/results_pw.csv")
 
 
@@ -393,18 +403,18 @@ def test_execute_questionnaire_blocked(run, qtbot):
     with mock_file(r'./test/results/results_pw.csv'):
         assert run.Stack.count() == 1
         for child in run.Stack.currentWidget().children():
-            if type(child) is PasswordEntry:
+            if isinstance(child, PasswordEntry):
                 assert child.text() == ''
-                QTest.keyClicks(child, "wrong", modifier=Qt.KeyboardModifier.NoModifier, delay=1)
+                QTest.keyClicks(child, "wrong", modifier=Qt.KeyboardModifier.NoModifier, delay=500)
                 assert child.text() == 'wrong'
-                assert child.validate() == False
+                assert not child.validate()
                 assert child.toolTip() == "Invalid password."
                 assert child.objectName() == 'required'
                 # assert child.palette().color(QPalette.Text).name() == 'red'
                 child.clear()
-                QTest.keyClicks(child, "password", modifier=Qt.KeyboardModifier.NoModifier, delay=1)
+                QTest.keyClicks(child, "password", modifier=Qt.KeyboardModifier.NoModifier, delay=500)
                 assert child.text() == 'password'
-                assert child.validate() == True
+                assert child.validate()
                 assert child.toolTip() == ""
                 assert child.objectName() == ''
         QTimer.singleShot(100, handle_dialog)
@@ -412,7 +422,7 @@ def test_execute_questionnaire_blocked(run, qtbot):
         res_file = None
         for file in os.listdir("./test/results/"):
             if file.find("_backup_"):
-                res_file = "./test/results/{}".format(file)
+                res_file = f'./test/results/{file}'
         results = []
         with open(res_file, mode='r') as file:
             csv_file = csv.reader(file, delimiter=';')
@@ -420,15 +430,15 @@ def test_execute_questionnaire_blocked(run, qtbot):
             for lines in csv_file:
                 results = lines
                 if results[0].startswith('data'):
-                    assert lines[0] == 'data_row_number'  # participant number
-                    assert lines[1] == 'pw'
-                    assert lines[2] == 'Start'
-                    assert lines[3] == 'End'
+                    assert results[0] == 'data_row_number'  # participant number
+                    assert results[1] == 'pw'
+                    assert results[2] == 'Start'
+                    assert results[3] == 'End'
         assert len(results) == 4
-        assert lines[0] == '-1'  # participant number unknown
-        assert lines[1] == 'password'
-        assert re.match(r'\d+-\d+-\d+ \d+:\d+:\d+.\d+', lines[2])  # timestamp
-        assert re.match(r'\d+-\d+-\d+ \d+:\d+:\d+.\d+', lines[3])  # timestamp
+        assert results[0] == '-1'  # participant number unknown
+        assert results[1] == 'password'
+        assert re.match(r'\d+-\d+-\d+ \d+:\d+:\d+.\d+', results[2])  # timestamp
+        assert re.match(r'\d+-\d+-\d+ \d+:\d+:\d+.\d+', results[3])  # timestamp
         os.remove(res_file)
 
 
@@ -438,21 +448,21 @@ def test_execute_questionnaire_type_wrong_pw(run, qtbot):
         os.remove("./test/results/results_pw.csv")
     assert run.Stack.count() == 1
     for child in run.Stack.currentWidget().children():
-        if type(child) is PasswordEntry:
+        if isinstance(child, PasswordEntry):
             assert child.text() == ''
-            QTest.keyClicks(child, "wrong", modifier=Qt.KeyboardModifier.NoModifier, delay=1)
+            QTest.keyClicks(child, "wrong", modifier=Qt.KeyboardModifier.NoModifier, delay=500)
             assert child.text() == 'wrong'
     QTest.mouseClick(run.forwardbutton, Qt.MouseButton.LeftButton)
     for child in run.Stack.currentWidget().children():
-        if type(child) is PasswordEntry:
+        if isinstance(child, PasswordEntry):
             assert child.text() == 'wrong'
             assert child.toolTip() == "Invalid password."
             assert child.objectName() == 'required'
             assert child.palette().color(QPalette.Text).name() == '#ff0000'  # == red
             child.clear()
-            QTest.keyClicks(child, "password", modifier=Qt.KeyboardModifier.NoModifier, delay=1)
+            QTest.keyClicks(child, "password", modifier=Qt.KeyboardModifier.NoModifier, delay=500)
             assert child.text() == 'password'
-            assert child.validate() == True
+            assert child.validate()
             assert child.toolTip() == ""
             assert child.objectName() == ''
 
@@ -466,13 +476,13 @@ def test_execute_questionnaire_type_wrong_pw(run, qtbot):
         for lines in csv_file:
             results = lines
             if results[0].startswith('data'):
-                assert lines[0] == 'data_row_number'  # participant number
-                assert lines[1] == 'pw'
-                assert lines[2] == 'Start'
-                assert lines[3] == 'End'
+                assert results[0] == 'data_row_number'  # participant number
+                assert results[1] == 'pw'
+                assert results[2] == 'Start'
+                assert results[3] == 'End'
     assert len(results) == 4
-    assert lines[0] == '1'  # participant number
-    assert lines[1] == 'password'
-    assert re.match(r'\d+-\d+-\d+ \d+:\d+:\d+.\d+', lines[2])  # timestamp
-    assert re.match(r'\d+-\d+-\d+ \d+:\d+:\d+.\d+', lines[3])  # timestamp
+    assert results[0] == '1'  # participant number
+    assert results[1] == 'password'
+    assert re.match(r'\d+-\d+-\d+ \d+:\d+:\d+.\d+', results[2])  # timestamp
+    assert re.match(r'\d+-\d+-\d+ \d+:\d+:\d+.\d+', results[3])  # timestamp
     os.remove("./test/results/results_pw.csv")

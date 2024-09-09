@@ -5,8 +5,8 @@ position - a function that's not possible with QSlider.
 The functionality is adapted from: https://www.queryxchange.com/q/27_52689047/moving-qslider-to-mouse-click-position/
 """
 from math import ceil
-from PySide6.QtCore import Qt, QPoint, Signal
-from PySide6.QtGui import QPainter, QColor, QPen, QPaintEvent, QMouseEvent
+from PySide6.QtCore import Qt, Signal
+from PySide6.QtGui import QPainter, QColor, QPen
 from PySide6.QtWidgets import QSlider, QStyle, QStyleOptionSlider
 
 
@@ -85,7 +85,7 @@ class Slider(QSlider):
                         x += ceil(0.5 * p.pen().width())
                         if p.pen().width() % 2 == 0:
                             x += 1
-                    elif x >= (self.width()):
+                    elif x >= self.width():
                         x = self.width() - ceil(0.5 * p.pen().width()) - 1
                     else:
                         x -= ceil(0.5 * p.pen().width())
@@ -130,15 +130,12 @@ class Slider(QSlider):
         if event.button() == Qt.MouseButton.LeftButton:
             if self.orientation() == Qt.Orientation.Horizontal:
                 self.blockSignals(True)
-            val = self.pixel_pos_to_range_value(event.pos())
+            val = self.pixel_pos_to_range_value(event.position())
             self.moved = True
             self.mouse_down = True
-            if self.value() != val:
+            if self.value() != val: # TODO?
                 self.setValue(val)
                 self.blockSignals(False)
-                # print("New val {} unblocked (press)".format(val))
-                #self.valueChanged.emit(self.value())
-                #self.mushra_stopped.emit()
                 if self.orientation() == Qt.Orientation.Horizontal:
                     self.blockSignals(True)
 
@@ -153,7 +150,7 @@ class Slider(QSlider):
         if self.mouse_down:
             if self.orientation() == Qt.Orientation.Horizontal:
                 self.blockSignals(True)
-            val = self.pixel_pos_to_range_value(event.pos())
+            val = self.pixel_pos_to_range_value(event.position())
             if self.value() != val:
                 self.setValue(val)
                 self.moving = True
@@ -170,12 +167,12 @@ class Slider(QSlider):
             self.blockSignals(True)
         self.mouse_down = False
         if self.moving:
-            val = self.pixel_pos_to_range_value(event.pos())
+            val = self.pixel_pos_to_range_value(event.position())
             self.setValue(val)
             self.moving = False
             self.blockSignals(False)
-            print("New val {} unblocked (move)".format(val))
-            self.valueChanged.emit(self.value())
+            # print(f'New val {val} unblocked (move)')
+            self.valueChanged.emit(val)
             self.mushra_stopped.emit(self.sid)
             if self.orientation() == Qt.Orientation.Horizontal:
                 self.blockSignals(True)
@@ -208,7 +205,7 @@ class Slider(QSlider):
             super(Slider, self).keyReleaseEvent(event)
             if self.value() != self.prev:
                 self.blockSignals(False)
-                print("New val {} unblocked (key)".format(self.value()))
+                # print(f'New val {self.value()} unblocked (key)')
                 self.valueChanged.emit(self.value())
                 self.mushra_stopped.emit(self.sid)
                 if self.orientation() == Qt.Orientation.Horizontal:
@@ -221,11 +218,15 @@ class Slider(QSlider):
         -------
         int or float : current handle position in the range
         """
-        value = self.minimum() + self._min + super(Slider, self).value()*self.step
-        if int(self.step) != float(self.step):  # float step size
-            value = round(value, str(self.step)[::-1].find('.'))
-        # print("debug:",self._min, super(Slider, self).value(), self.step,  value)
-        return value if int(self.step) != float(self.step) else int(value)
+        if not self.invertedAppearance():
+            value = self.minimum() + self._min + super(Slider, self).value() * self.step
+            if int(self.step) != float(self.step):  # float step size
+                value = round(value, str(self.step)[::-1].find('.'))
+            return value if int(self.step) != float(self.step) else int(value)
+        else:
+            value = self._min + super(Slider, self).value() * self.step  # super(Slider, self).value() #TODO float?TODO TODO TODO FALSCH!!!
+            # print("new value", value)
+            return value if int(self.step) != float(self.step) else int(value)
 
     def get_moved(self):
         """ Return whether the slider has been touched by the user.
@@ -265,8 +266,7 @@ class Slider(QSlider):
             slider_max = gr.bottom() - slider_length + 1
         pr = pos - sr.center() + sr.topLeft()
         p = pr.x() if self.orientation() == Qt.Orientation.Horizontal else pr.y()
-        return QStyle.sliderValueFromPosition(self.minimum(), self.maximum(), p - slider_min,
-                                              slider_max - slider_min, opt.upsideDown)
+        return QStyle.sliderValueFromPosition(self.minimum(), self.maximum(), p - slider_min, slider_max - slider_min, opt.upsideDown)
 
     def prepare_slider(self, min_val, max_val, start, step=1, tick_interval=1, tickpos=QSlider.TickPosition.TicksBelow, sid=None):
         """
@@ -294,15 +294,21 @@ class Slider(QSlider):
         self.prev = None
         if self.orientation() == Qt.Orientation.Horizontal:
             self.blockSignals(True)  # don't spam new values on move, click and release
-        self.setMinimum(0)
-        self.setMaximum(int((max_val-min_val)/self.step))
+        if self._min > self._max:
+            self.setInvertedAppearance(True)
+            self.setMaximum(0)
+            self.setMinimum(int((max_val - min_val) / self.step))
+        else:
+            self.setMinimum(0)
+            self.setMaximum(int((max_val - min_val) / self.step))
+        print("Start:",round((self.start - self._min) / self.step), self.minimum(), self.maximum())
+        self.setValue(round((self.start - self._min) / self.step))
         self.setTickInterval(tick_interval)
-        #self.tick_dist = int(tick_interval)
+        # TODO self.tick_dist = int(tick_interval)
         self.setSingleStep(1)
-        self.setValue(round(abs((start-self._min)/self.step)))
         self.setTickPosition(tickpos)
         self.sid = sid
-
+        
         if hasattr(self.parent(), "page_log"):  # awkward workaround to reference "Page"
             sheet = self.parent().parent().styleSheet()
             sheet = sheet[sheet.find("Slider::groove"):]
@@ -310,20 +316,20 @@ class Slider(QSlider):
             width = 1
             color = QColor("black")
             if sheet.find("border-width:") > -1:
-                width = sheet[sheet.find("border-width:")+len("border-width:"):sheet.find("px", sheet.find("border-width:"))].strip(" ")
+                width = sheet[sheet.find("border-width:") + len("border-width:"):sheet.find("px", sheet.find("border-width:"))].strip(" ")
             elif sheet.find("border:") > -1:
-                border = sheet[sheet.find("border:")+len("border:"):sheet.find(";", sheet.find("border:"))].strip(" ")
+                border = sheet[sheet.find("border:") + len("border:"):sheet.find(";", sheet.find("border:"))].strip(" ")
                 border = border.split(" ")
                 for entry in border:
                     if entry.find("px") > -1:
                         width = entry.strip(" px")
             if sheet.find("border-color:") > -1:
-                color = sheet[sheet.find("border-color:")+len("border-color:"):sheet.find(";", sheet.find("border-color:"))].strip(" ")
+                color = sheet[sheet.find("border-color:") + len("border-color:"):sheet.find(";", sheet.find("border-color:"))].strip(" ")
             elif sheet.find("border:") > -1:
-                border = sheet[sheet.find("border:")+len("border:"):sheet.find(";", sheet.find("border:"))].strip(" ")
+                border = sheet[sheet.find("border:") + len("border:"):sheet.find(";", sheet.find("border:"))].strip(" ")
                 border = border.split(" ")
                 for entry in border:
-                    if QColor.isValidColor(entry):
+                    if QColor.isValidColorName(entry):
                         color = entry
             self.strokewidth = int(width)
             self.strokecolor = QColor(color)
@@ -349,20 +355,19 @@ class Slider(QSlider):
                 border = sheet[sheet.find("border:") + len("border:"):sheet.find(";", sheet.find("border:"))].strip(" ")
                 border = border.split(" ")
                 for entry in border:
-                    if QColor.isValidColor(entry):
+                    if QColor.isValidColorName(entry):
                         color_disabled = entry
             self.strokewidth_disabled = int(width_disabled)
             self.strokecolor_disabled = QColor(color_disabled)
 
         if self.objectName() != "":
             sheet = self.parent().parent().styleSheet()
-            sheet = sheet[sheet.find("Slider#{}::groove".format(self.objectName())):]
+            sheet = sheet[sheet.find(f'Slider#{self.objectName()}::groove'):]
             sheet = sheet[:sheet.find("}")]
             width = 1
             color = QColor("black")
             if sheet.find("border-width:") > -1:
-                width = sheet[sheet.find("border-width:") + len("border-width:"):sheet.find("px", sheet.find(
-                    "border-width:"))].strip(" ")
+                width = sheet[sheet.find("border-width:") + len("border-width:"):sheet.find("px", sheet.find("border-width:"))].strip(" ")
             elif sheet.find("border:") > -1:
                 border = sheet[sheet.find("border:") + len("border:"):sheet.find(";", sheet.find("border:"))].strip(" ")
                 border = border.split(" ")
@@ -370,25 +375,23 @@ class Slider(QSlider):
                     if entry.find("px") > -1:
                         width = entry.strip(" px")
             if sheet.find("border-color:") > -1:
-                color = sheet[sheet.find("border-color:") + len("border-color:"):sheet.find(";", sheet.find(
-                    "border-color:"))].strip(" ")
+                color = sheet[sheet.find("border-color:") + len("border-color:"):sheet.find(";", sheet.find("border-color:"))].strip(" ")
             elif sheet.find("border:") > -1:
                 border = sheet[sheet.find("border:") + len("border:"):sheet.find(";", sheet.find("border:"))].strip(" ")
                 border = border.split(" ")
                 for entry in border:
-                    if QColor.isValidColor(entry):
+                    if QColor.isValidColorName(entry):
                         color = entry
             self.strokewidth = int(width)
             self.strokecolor = QColor(color)
 
             sheet = self.parent().parent().styleSheet()
-            sheet = sheet[sheet.find("Slider#{}::groove:disabled".format(self.objectName())):]
+            sheet = sheet[sheet.find(f'Slider#{self.objectName()}::groove:disabled'):]
             sheet = sheet[:sheet.find("}")]
             width_disabled = self.strokewidth
             color_disabled = self.strokecolor
             if sheet.find("border-width:") > -1:
-                width_disabled = sheet[sheet.find("border-width:") + len("border-width:"):sheet.find("px", sheet.find(
-                    "border-width:"))].strip(" ")
+                width_disabled = sheet[sheet.find("border-width:") + len("border-width:"):sheet.find("px", sheet.find("border-width:"))].strip(" ")
             elif sheet.find("border:") > -1:
                 border = sheet[sheet.find("border:") + len("border:"):sheet.find(";", sheet.find("border:"))].strip(" ")
                 border = border.split(" ")
@@ -396,13 +399,12 @@ class Slider(QSlider):
                     if entry.find("px") > -1:
                         width_disabled = entry.strip(" px")
             if sheet.find("border-color:") > -1:
-                color_disabled = sheet[sheet.find("border-color:") + len("border-color:"):sheet.find(";", sheet.find(
-                    "border-color:"))].strip(" ")
+                color_disabled = sheet[sheet.find("border-color:") + len("border-color:"):sheet.find(";", sheet.find("border-color:"))].strip(" ")
             elif sheet.find("border:") > -1:
                 border = sheet[sheet.find("border:") + len("border:"):sheet.find(";", sheet.find("border:"))].strip(" ")
                 border = border.split(" ")
                 for entry in border:
-                    if QColor.isValidColor(entry):
+                    if QColor.isValidColorName(entry):
                         color_disabled = entry
             self.strokewidth_disabled = int(width_disabled)
             self.strokecolor_disabled = QColor(color_disabled)
