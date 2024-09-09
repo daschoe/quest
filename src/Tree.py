@@ -35,7 +35,7 @@ class Tree(QTreeWidget):
         self.setDragEnabled(True)
         self.setDefaultDropAction(Qt.MoveAction)
 
-    def dragMoveEvent(self, event: QDragMoveEvent) -> None:
+    def dragMoveEvent(self, event):
         """Changed behaviour on dragging.
 
         Don't accept any drops from somewhere else.
@@ -49,7 +49,7 @@ class Tree(QTreeWidget):
             # do not accept drop on the viewport
             event.ignore()
 
-    def dropEvent(self, event) -> None:
+    def dropEvent(self, event):
         """Changed behaviour on drop, according to the questionnaire structure.
 
         This means: \n
@@ -66,10 +66,10 @@ class Tree(QTreeWidget):
             if self.dropIndicatorPosition() == QAbstractItemView.OnViewport:
                 event.ignore()
             if self.dropIndicatorPosition() == QAbstractItemView.OnItem:
-                tree_target_item = self.itemAt(event.position())
+                tree_target_item = self.itemAt(event.position().toPoint())
                 target_children = []
-                for ch in range(self.itemAt(event.position()).childCount()):
-                    target_children.append(self.itemAt(event.position()).child(ch))
+                for ch in range(self.itemAt(event.position().toPoint()).childCount()):
+                    target_children.append(self.itemAt(event.position().toPoint()).child(ch))
                 if tree_target_item.parent() is None:  # something was dropped on root
                     if source.parent().data() == tree_target_item.text(0):
                         # root item only accepts pages
@@ -115,7 +115,7 @@ class Tree(QTreeWidget):
                 else:
                     event.ignore()
             else:  # move above/below item
-                tree_target_item = self.itemAt(event.position())
+                tree_target_item = self.itemAt(event.position().toPoint())
                 if tree_target_item.parent() is None:
                     event.ignore()  # don't move anything above/below root
                 elif (tree_target_item.parent().parent() is None and source.parent().parent().data() is not None) or \

@@ -301,7 +301,6 @@ class Slider(QSlider):
         else:
             self.setMinimum(0)
             self.setMaximum(int((max_val - min_val) / self.step))
-        print("Start:",round((self.start - self._min) / self.step), self.minimum(), self.maximum())
         self.setValue(round((self.start - self._min) / self.step))
         self.setTickInterval(tick_interval)
         # TODO self.tick_dist = int(tick_interval)

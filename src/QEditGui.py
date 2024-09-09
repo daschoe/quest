@@ -689,7 +689,6 @@ class EditGui(QWidget):
                         elif field == "video_player":
                             val_field = QComboBox()
                             val_field.addItems(video_player)
-                            print(self.parent().structure[field])
                             val_field.setCurrentIndex(video_player.index(self.parent().structure[field]))
                             val_field.activated.connect(self.update_val)
                         else:
@@ -1176,7 +1175,6 @@ class EditGui(QWidget):
             the layout to be cleared
         """
         while layout.count():
-            print(type(layout))
             if isinstance(layout, QFormLayout):
                 trr = layout.takeRow(0)
                 child = trr.fieldItem
