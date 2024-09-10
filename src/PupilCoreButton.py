@@ -106,14 +106,13 @@ class Button(QWidget):
         self.used = True
         try:
             if self.recording_name is None:
-                print("just record...")
+                # print("just record...")
                 self.pupil_remote.send_string('R')
             else:
                 if self.recording_name.startswith("id:"):
-                    print("recording name starts with id")
+                    # print("recording name starts with id")
                     var = self.recording_name[2:].strip(' :')
                     skip = False
-                    print(var)
                     for s in range(0, self.parent().parent().count()):
                         if not skip and self.parent().parent().widget(s).evaluationvars is not None and \
                                 var in self.parent().parent().widget(s).evaluationvars:

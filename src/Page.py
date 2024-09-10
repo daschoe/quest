@@ -300,7 +300,7 @@ class Page(QWidget):
         sender : QObject
             the sender of the log
         """
-        print("Log raised", qid, type(sender))
+        # print("Log raised", qid, type(sender))
         if isinstance(sender, QLineEdit) or isinstance(sender, PasswordEntry):
             self.page_log += f'\n\t{str(datetime.datetime.now().replace(microsecond=0))} - Changed {qid} to {sender.text()}'
         elif isinstance(sender, QPlainTextEdit):

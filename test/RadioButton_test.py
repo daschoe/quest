@@ -191,7 +191,9 @@ def test_answers(gui_load, qtbot):
                          gui_load.gui.preview_gui.Stack.currentWidget(),
                          gui_load.structure["Page 1"]["Question 1"]['id'])
     assert len(bg.buttons()) == 1
-    QTimer.singleShot(150, handle_dialog_no_save)
+    
+    gui_load.structure["Page 1"]["Question 1"]["answers"] = ["yes", "no"]
+    gui_load.save()
     gui_load.close()
 
 

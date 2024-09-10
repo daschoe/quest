@@ -41,9 +41,7 @@ class PasswordEntry(QLineEdit):
             self.setObjectName(objectname)
         else:
             self.name = None
-        print("Policy:",policy)
         if policy is not None and policy != ["None"]:
-            print(policy)
             if policy[0].lower() == "int":
                 self.setValidator(QIntValidator(bottom=int(policy[1]), top=int(policy[2])))
             elif policy[0].lower() == "double":
@@ -56,7 +54,6 @@ class PasswordEntry(QLineEdit):
                 self.setValidator(QRegularExpressionValidator(QRegularExpression(policy[1])))
             else:
                 raise ValueError(f'Unknown validator found {policy[0]}.')
-            print(self.validator())
         self.textChanged.connect(lambda: parent.log(qid, self))
 
     def validate(self):

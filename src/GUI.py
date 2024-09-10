@@ -915,12 +915,12 @@ class StackedWindowGui(QWidget):
             with open(self.filepath_results, 'r', newline='', encoding='utf_8') as f:
                 d_reader = csv.DictReader(f, delimiter=self.delimiter)
                 headers = d_reader.fieldnames
-                print("Header",headers)
+                # print("Header",headers)
             time.sleep(2)
             with open(self.filepath_results, "a", newline='', encoding='utf_8') as csvfile:
                 writer = csv.writer(csvfile, delimiter=self.delimiter)
                 row = []
-                print(headers)
+                # print(headers)
                 for _, hfield in enumerate(headers):
                     row.append(fields[hfield])
                 writer.writerow(row)

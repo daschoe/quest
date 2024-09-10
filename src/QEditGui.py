@@ -235,8 +235,6 @@ class QEditGuiMain(QMainWindow):
                 self.status.clearMessage()
                 self.status.showMessage(f'Loading {self.filename}.', self.status_duration)
                 self.structure = ConfigObj(file)
-                if len(self.structure.initial_comment) > 0:
-                    print(self.structure.initial_comment[0].rsplit(' ', 1)[1])
                 self.initial_structure = copy.deepcopy(dict(self.structure))
                 self.gui.create_tree(self.structure)
                 self.undoaction.setEnabled(False)

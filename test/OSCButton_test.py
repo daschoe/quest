@@ -581,7 +581,6 @@ def test_execute_questionnaire_no_interaction_blocked(run, qtbot):
         assert re.match(r'\d+-\d+-\d+ \d+:\d+:\d+.\d+', results[3])  # timestamp
         os.remove(res_file)
     assert thread.message_stack[-1] != ("/message", "Hello world!")
-    print(thread.message_stack)
     thread.stop(0.1)
     QTest.qWait(1000)
 
@@ -616,7 +615,6 @@ def test_execute_questionnaire(run, qtbot):
     assert re.match(r'\d+-\d+-\d+ \d+:\d+:\d+.\d+', results[3])  # timestamp
     os.remove("./test/results/results_osc.csv")
     assert thread.message_stack[-1] == ("/message", "Hello world!")
-    print(thread.message_stack)
     thread.stop(0.1)
     QTest.qWait(1000)
 
@@ -652,7 +650,6 @@ def test_execute_questionnaire_blocked(run, qtbot):
         assert re.match(r'\d+-\d+-\d+ \d+:\d+:\d+.\d+', results[2])  # timestamp
         assert re.match(r'\d+-\d+-\d+ \d+:\d+:\d+.\d+', results[3])  # timestamp
         os.remove(res_file)
-        print(thread.message_stack)
         assert thread.message_stack[-1] == ('/message', 'Hello world!')
         thread.stop(0.1)
         QTest.qWait(1000)

@@ -800,6 +800,7 @@ def validate_questionnaire(structure, suppress=False):
                     error_details.append(f'No starting value was given for the slider in question "{quest}" on page "{page}".\n')
                 else:
                     try:
+                        float(structure[page][quest]["start"])
                         if "min" in structure[page][quest].keys() and "max" in structure[page][quest].keys():
                             if float(structure[page][quest]["min"]) < float(structure[page][quest]["max"]):
                                 if float(structure[page][quest]["start"]) < float(structure[page][quest]["min"]):

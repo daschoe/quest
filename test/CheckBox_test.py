@@ -183,7 +183,9 @@ def test_answers(gui_load, qtbot):
     assert warning_found
     _, cbs = make_answers_cb(gui_load.structure["Page 1"]["Question 1"]["answers"], gui_load.structure["Page 1"]["Question 1"]["id"])
     assert len(cbs) == 1
-    QTimer.singleShot(150, handle_dialog_no_save)
+    
+    gui_load.structure["Page 1"]["Question 1"]["answers"] = ["yes", " no", " maybe"]
+    gui_load.save()
     gui_load.close()
 
 
@@ -215,6 +217,7 @@ def test_execute_questionnaire_no_interaction(run, qtbot):
     assert re.match(r'\d+-\d+-\d+ \d+:\d+:\d+.\d+', results[4])  # timestamp
     assert re.match(r'\d+-\d+-\d+ \d+:\d+:\d+.\d+', results[5])  # timestamp
     os.remove("./test/results/results_cb.csv")
+    QTest.qWait(5000)
 
 
 # noinspection PyArgumentList
@@ -248,6 +251,7 @@ def test_execute_questionnaire_no_interaction_blocked(run, qtbot):
         assert re.match(r'\d+-\d+-\d+ \d+:\d+:\d+.\d+', results[4])  # timestamp
         assert re.match(r'\d+-\d+-\d+ \d+:\d+:\d+.\d+', results[5])  # timestamp
         os.remove(res_file)
+        QTest.qWait(5000)
 
 
 # noinspection PyArgumentList
@@ -277,6 +281,7 @@ def test_execute_questionnaire(run, qtbot):
     assert re.match(r'\d+-\d+-\d+ \d+:\d+:\d+.\d+', results[4])  # timestamp
     assert re.match(r'\d+-\d+-\d+ \d+:\d+:\d+.\d+', results[5])  # timestamp
     os.remove("./test/results/results_cb.csv")
+    QTest.qWait(5000)
 
 
 # noinspection PyArgumentList
@@ -316,3 +321,4 @@ def test_execute_questionnaire_blocked(run, qtbot):
         assert re.match(r'\d+-\d+-\d+ \d+:\d+:\d+.\d+', results[4])  # timestamp
         assert re.match(r'\d+-\d+-\d+ \d+:\d+:\d+.\d+', results[5])  # timestamp
         os.remove(res_file)
+        QTest.qWait(5000)

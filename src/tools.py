@@ -214,7 +214,7 @@ default_values = {
     "labelled": False,
     "buttons": player_buttons,
     "policy": ["None"],
-    "function": "Calibration",
+    "function": "Annotate",
     "inscription": "",
     "password_file": "",
     "button_texts": "",

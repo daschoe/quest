@@ -1128,7 +1128,6 @@ def test_video(gui_load2, qtbot):
     assert thread_video.message_stack[-3] == ("/vlc_stop", 1)
     assert thread_video.message_stack[-2] == ("/vlc_still", 1)
     assert thread_video.message_stack[-1] == ("/vlc_finish", 1)
-    print(thread_video.message_stack)
     thread_audio.stop(0.1)
     thread_video.stop(0.1)
     QTest.qWait(1000)
@@ -1153,7 +1152,6 @@ def test_video(gui_load2, qtbot):
     QTimer.singleShot(200, handle_dialog)
     QTest.mouseClick(test_gui.forwardbutton, Qt.MouseButton.LeftButton, delay=1000)
     test_gui.close()
-    print(thread_video.message_stack)  # the reply is a bis fucked up since it is configured for Reaper
     assert thread_video.message_stack[0] == ("/medias/selected/position_sec", 0.0)
     assert thread_video.message_stack[1] == ('/cues/Bank-1/scenes/by_name/./some_video.mp4', 1)
     assert thread_video.message_stack[3] == ("/play", 1)
@@ -1229,7 +1227,6 @@ def test_pupil(gui_load, qtbot, capfd):
             QTest.qWait(1000)
             assert child.playing
             out, err = capfd.readouterr()
-            print(out, err)
             assert out.index("Trigger {'topic': 'annotation', 'label': 'Custom Annotation', 'timestamp':") != -1
             assert out.endswith(", 'duration': 1} Message forwarded.\n")
             QTest.qWait(2000)

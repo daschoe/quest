@@ -60,5 +60,5 @@ class CheckBox(QCheckBox):
 
     def log(self):
         """Create a log entry."""
-        print(f'\n\t{str(datetime.datetime.now().replace(microsecond=0))} - Toggled {self.id} to {self.isChecked()}')
+        # print(f'\n\t{str(datetime.datetime.now().replace(microsecond=0))} - Toggled {self.id} to {self.isChecked()}')
         self.page.page_log += f'\n\t{str(datetime.datetime.now().replace(microsecond=0))} - Toggled {self.id} to {self.isChecked()}'

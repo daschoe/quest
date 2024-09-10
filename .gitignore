@@ -135,3 +135,4 @@ dmypy.json
 results/
 tmp*.txt
 src/Configs/tests/
+.vscode/

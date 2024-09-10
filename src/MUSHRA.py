@@ -311,7 +311,7 @@ class MUSHRA(QWidget):
         self.stop_button.setEnabled(True)
 
         if self.paused and self.current == cue:
-            print("pause")
+            # print("pause")
             self.audio_client.send_message("/pause", 1)
             self.parent().page_log += f'\n\t{str(datetime.datetime.now().replace(microsecond=0))} - Unpaused Player {self.id}'
         else:

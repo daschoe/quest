@@ -452,7 +452,6 @@ def test_image_position(gui_load, qtbot, capfd):
     for child in test_gui.Stack.currentWidget().children():
         if isinstance(child, Image):
             assert isinstance(child.parent().layout(), QHBoxLayout)
-            print(child.parent().children())
             assert child.parent().layout().indexOf(child) == 1
     test_gui.close()
 

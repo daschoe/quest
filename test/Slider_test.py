@@ -655,9 +655,9 @@ def test_step(gui_load, qtbot):
     QTest.keyClicks(gui_load, 's', modifier=Qt.KeyboardModifier.ControlModifier, delay=1000)
     test_gui = StackedWindowGui("./test/sltest.txt")
     assert test_gui.Stack.count() == 1
-    for child in test_gui.Stack.currentWidget().children():
-        if isinstance(child, Slider.Slider):
-            print(child.tickInterval())  # TODO is it possible to count the displayed ticks/steps?
+    #for child in test_gui.Stack.currentWidget().children():
+    #    if isinstance(child, Slider.Slider):
+    #        print(child.tickInterval())  # TODO is it possible to count the displayed ticks/steps?
 
     QTimer.singleShot(100, handle_dialog)
     QTest.mouseClick(test_gui.forwardbutton, Qt.MouseButton.LeftButton, delay=1000)
@@ -694,9 +694,9 @@ def test_step(gui_load, qtbot):
     QTest.keyClicks(gui_load, 's', modifier=Qt.KeyboardModifier.ControlModifier, delay=1000)
     test_gui = StackedWindowGui("./test/sltest.txt")
     assert test_gui.Stack.count() == 1
-    for child in test_gui.Stack.currentWidget().children():
-        if isinstance(child, Slider.Slider):
-            print(child.tickInterval())  # TODO is it possible to count the displayed ticks/steps?
+    #for child in test_gui.Stack.currentWidget().children():
+    #    if isinstance(child, Slider.Slider):
+    #        print(child.tickInterval())  # TODO is it possible to count the displayed ticks/steps?
 
     QTimer.singleShot(100, handle_dialog)
     QTest.mouseClick(test_gui.forwardbutton, Qt.MouseButton.LeftButton, delay=1000)

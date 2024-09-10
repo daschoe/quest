@@ -431,8 +431,8 @@ def test_custom_recording_name_id(gui_load2, qtbot, capfd):
         if isinstance(child, Button):
             child.button.click()
             out, err = capfd.readouterr()
-            print(out)
             assert out.endswith("\nStart recording... OK\n")
+            QTest.qWait(500)
 
     test_gui.pupil_remote.send_string('r')
     print("Stop recording...", test_gui.pupil_remote.recv_string())
