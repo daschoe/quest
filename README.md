@@ -113,7 +113,7 @@ The necessary python libraries are given in ```requirements.txt```.
 
 ### Installation
 
-1. Clone the repo or download the [latest stable release](https://gitlab.uni-hannover.de/da.schoessow/quest/-/releases#v1.0.6)
+1. Clone the repo or download the [latest stable release](https://gitlab.uni-hannover.de/da.schoessow/quest/-/releases#v1.1.0)
    ```sh
    git clone https://gitlab.uni-hannover.de/da.schoessow/quest.git
    ```
@@ -146,13 +146,13 @@ _For more examples and explanation, please refer to the [Documentation](https://
 ## Roadmap and TODOs
 
 - [x] Initial public release
-  - [ ] Test setup (-> see issue #1 )
+  - [x] Test setup (-> see issue #1 )
   - [x] Initialize Wiki
 - [ ] Additional question types
   - [ ] AFC
   - [ ] Localisation
 - [ ] Automatic page generation/templates (e.g. pairwise comparison)
-- [ ] PyQt6 compatible release
+- [x] PyQt6 compatible release
 - [ ] Editor for *.qss
 - [x] Usage of Mad Mapper as video tool (OSC support given)
 - [ ] Fix pdf export graphic glitches
