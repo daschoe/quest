@@ -33,6 +33,7 @@ class MockReceiver(Thread):
 
     def message_handler(self, addr, args):
         """Handle the received OSC messages"""
+        # print("message received....",addr, args)
         if addr == "/play":
             self.message_stack.append(("/stop", 0.0))
             self.message_stack.append((addr, 1.0))
@@ -59,6 +60,7 @@ class MockReceiver(Thread):
             self.message_stack.append(("/track/4/mute", 1.0))
         else:
             self.message_stack.append((addr, args))
+        # print("Message stack afterwards.....", self.message_stack)
 
     def start_server(self, port):
         """Start OSC listener."""
@@ -69,5 +71,5 @@ class MockReceiver(Thread):
             self.server = osc_server.ThreadingOSCUDPServer(('127.0.0.1', port), dispat)
         except Exception as e:
             print(e)
-        print("Serving on {}".format(self.server.server_address))
+        print(f'Serving on {self.server.server_address}')
         self.server.serve_forever()

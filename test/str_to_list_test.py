@@ -1,6 +1,6 @@
 """Test if the string_to_list function in Validator.py is working correctly."""
 
-from context import *
+from context import string_to_list
 
 
 def test_single_string():
@@ -67,7 +67,7 @@ def test_quotes():
 
 # TODO this does not work, should it?
 '''
-def test_quotes_comma():  
+def test_quotes_comma():
     assert string_to_list("except 'this, that' one") == ["except 'this, that' one"]
     assert string_to_list("[except 'this, that' one]") == ["except 'this, that' one"]
     assert string_to_list("except 'this, that'") == ["except 'this, that'"]

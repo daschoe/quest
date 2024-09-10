@@ -8,9 +8,9 @@ madmapper = {
     "pause": ["/pause", 1],
     "unpause": ["/play", 1],
     "reset": ["/medias/selected/position_sec", 0.0]
-    #"loop_on": ["/medias/selected/loop", True],  # TBC
-    #"loop_off": ["/medias/selected/loop", False],  # TBC
-    #"restart": ["/medias/selected/restart"]  # TBC
+    # "loop_on": ["/medias/selected/loop", True],  # TBC
+    # "loop_off": ["/medias/selected/loop", False],  # TBC
+    # "restart": ["/medias/selected/restart"]  # TBC
 }
 
 vlc = {

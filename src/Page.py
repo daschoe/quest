@@ -3,8 +3,8 @@ Creates a structured page.
 """
 import datetime
 
-from PyQt5.QtCore import QSignalMapper, Qt
-from PyQt5.QtWidgets import QWidget, QLabel, QFormLayout, QButtonGroup, QCheckBox, QLineEdit, QPlainTextEdit, \
+from PySide6.QtCore import QSignalMapper, Qt
+from PySide6.QtWidgets import QWidget, QLabel, QFormLayout, QButtonGroup, QCheckBox, QLineEdit, QPlainTextEdit, \
     QHBoxLayout
 
 from src.ABX import ABX
@@ -23,25 +23,16 @@ from src.RadioMatrix import RadioMatrix
 
 
 class Page(QWidget):
-    """
-    Structure for a basic page layout.
+    """ Structure for a basic page layout."""
 
-    Attributes
-    ----------
-    structure : ConfigObj
-        questionnaire structure
-    parent : QObject, optional
-         widget/layout this widget is embedded in
-    """
-
-    def __init__(self, structure, id, parent=None):
+    def __init__(self, structure, pid, parent=None):
         """
 
         Parameters
         ----------
         structure : ConfigObj
             questionnaire structure
-        id : str
+        pid : str
             name of the page
         parent : QObject, optional
              widget/layout this widget is embedded in
@@ -60,7 +51,7 @@ class Page(QWidget):
         self.image_position = None
         self.image = None
         self.outer_layout = None
-        self.id = id
+        self.id = pid
 
         if "pupil_on_next" in structure.keys() and structure["pupil_on_next"] is not None and \
                 structure["pupil_on_next"] != "" and not self.parent().preview:
@@ -154,11 +145,10 @@ class Page(QWidget):
                                 objectname=structure[quest]["objectName"] if "objectName" in structure[quest].keys() else None)
                 layout.addRow(mr)
                 self.evaluationvars[structure[quest]["id"]] = mr.duration
-                for sl in range(0, len(mr.sliders)):
-                    self.evaluationvars[structure[quest]["id"] + "_{}".format(sl + 1)] = mr.sliders[sl]
+                for sl, msli in enumerate(mr.sliders):
+                    self.evaluationvars[f'{structure[quest]["id"]}_{sl + 1}'] = msli
                 self.players.append(mr)
-                self.required[structure[quest]["id"]] = [True if ("required" in structure[quest].keys()) and (
-                    structure[quest].as_bool("required")) else False, [mr.refbutton] + mr.buttons, mr.name, mr.playing]
+                self.required[structure[quest]["id"]] = [("required" in structure[quest].keys()) and (structure[quest].as_bool("required")), [mr.refbutton] + mr.buttons, mr.name, mr.playing]
             elif structure[quest]["type"] == "Radio":
                 ans_layout, bg = mar(structure[quest]["answers"], self, structure[quest]["id"],
                                      objectname=structure[quest]["objectName"] if "objectName" in structure[quest].keys() else None,
@@ -166,22 +156,15 @@ class Page(QWidget):
                 lbl = QLabel(structure[quest]["text"])
                 layout.addRow(lbl, ans_layout)
                 self.evaluationvars[structure[quest]["id"]] = bg
-                self.required[structure[quest]["id"]] = [True if ("required" in structure[quest].keys()) and (
-                    structure[quest].as_bool("required")) else False, lbl]
+                self.required[structure[quest]["id"]] = [("required" in structure[quest].keys()) and (structure[quest].as_bool("required")), lbl]
             elif structure[quest]["type"] == "Check":
-                ans_layout, cvars = mac(structure[quest]["answers"],
+                ans_layout, cvars = mac(structure[quest]["answers"], structure[quest]["id"], parent=self,
                                         objectname=structure[quest]["objectName"] if "objectName" in structure[quest].keys() else None)
                 lbl = QLabel(structure[quest]["text"])
                 layout.addRow(lbl, ans_layout)
-                cbmapper = QSignalMapper(self)
-                for c in range(0, len(cvars)):
-                    self.evaluationvars[structure[quest]["id"] + "_{}".format(c)] = cvars[c]
-                    self.required[structure[quest]["id"] + "_{}".format(c)] = [
-                        True if ("required" in structure[quest].keys()) and (
-                            structure[quest].as_bool("required")) else False, lbl]
-                    cvars[c].toggled.connect(cbmapper.map)
-                    cbmapper.setMapping(cvars[c], structure[quest]["id"] + "_{}".format(c))
-                cbmapper.mapped[str].connect(self.log)
+                for c, chck in enumerate(cvars):
+                    self.evaluationvars[f'{structure[quest]["id"]}_{c}'] = chck
+                    self.required[f'{structure[quest]["id"]}_{c}'] = [("required" in structure[quest].keys()) and (structure[quest].as_bool("required")), lbl]
             elif structure[quest]["type"] == "Text":
                 txt = matf(structure[quest].as_int("size"), structure[quest]["id"],
                            structure[quest]["policy"] if "policy" in structure[quest].keys() else None, self,
@@ -189,8 +172,7 @@ class Page(QWidget):
                 lbl = QLabel(structure[quest]["text"])
                 layout.addRow(lbl, txt)
                 self.evaluationvars[structure[quest]["id"]] = txt
-                self.required[structure[quest]["id"]] = [True if ("required" in structure[quest].keys()) and (
-                    structure[quest].as_bool("required")) else False, lbl]
+                self.required[structure[quest]["id"]] = [("required" in structure[quest].keys()) and (structure[quest].as_bool("required")), lbl]
             elif structure[quest]["type"] == "Password":
                 pw = PasswordEntry(structure[quest]["password_file"], structure[quest]["id"],
                                    structure[quest]["policy"] if "policy" in structure[quest].keys() else None, self,
@@ -198,15 +180,14 @@ class Page(QWidget):
                 lbl = QLabel(structure[quest]["text"])
                 layout.addRow(lbl, pw)
                 self.evaluationvars[structure[quest]["id"]] = pw
-                self.required[structure[quest]["id"]] = [True if ("required" in structure[quest].keys()) and (
-                    structure[quest].as_bool("required")) else False, lbl]
+                self.required[structure[quest]["id"]] = [("required" in structure[quest].keys()) and (structure[quest].as_bool("required")), lbl]
             elif structure[quest]["type"] == "Slider":
                 ans_layout, slider = mas(structure[quest].as_bool("labelled"), structure[quest]["id"],
                                          structure[quest].as_float("min"), structure[quest].as_float("max"),
-                                         structure[quest].as_float("start"), structure[quest].as_float("step"),
-                                         structure[quest]["header"] if "header" in structure[quest].keys() else None,
-                                         structure[quest]["label"] if "label" in structure[quest].keys() else None,
-                                         self,
+                                         sstart=structure[quest].as_float("start"), sstep=structure[quest].as_float("step"),
+                                         header=structure[quest]["header"] if "header" in structure[quest].keys() else None,
+                                         label=structure[quest]["label"] if "label" in structure[quest].keys() else None,
+                                         parent=self,
                                          objectname=structure[quest]["objectName"] if "objectName" in structure[quest].keys() else None)
                 lbl = QLabel(structure[quest]["text"])
                 if ("question_above" in structure[quest].keys()) and structure[quest].as_bool("question_above"):
@@ -221,8 +202,7 @@ class Page(QWidget):
                     else:
                         layout.addRow(lbl, ans_layout)
                 self.evaluationvars[structure[quest]["id"]] = slider
-                self.required[structure[quest]["id"]] = [True if ("required" in structure[quest].keys()) and (
-                    structure[quest].as_bool("required")) else False, lbl]
+                self.required[structure[quest]["id"]] = [("required" in structure[quest].keys()) and (structure[quest].as_bool("required")), lbl]
             elif structure[quest]["type"] == "ABX":
                 abx = ABX(structure[quest]["start_cues"], structure[quest]["track"], structure[quest]["text"],
                           structure[quest]["id"],
@@ -230,15 +210,17 @@ class Page(QWidget):
                           button_texts=structure[quest]["button_texts"] if "button_texts" in structure[quest].keys() else None,
                           parent=self,
                           objectname=structure[quest]["objectName"] if "objectName" in structure[quest].keys() else None,
-                          x=True if ("x" in structure[quest].keys()) and (structure[quest].as_bool("x")) else False)
+                          x=(("x" in structure[quest].keys()) and (structure[quest].as_bool("x"))))
                 layout.addRow(abx)
                 self.evaluationvars[structure[quest]["id"]] = abx
                 self.players.append(abx.a_button)
                 self.players.append(abx.b_button)
                 if abx.x_button is not None:
                     self.players.append(abx.x_button)
-                self.required[structure[quest]["id"]] = [True if ("required" in structure[quest].keys()) and (
-                    structure[quest].as_bool("required")) else False, [abx.a_button, abx.b_button] if abx.x_button is None else [abx.a_button, abx.b_button, abx.x_button], abx.name, [abx.a_button.playing, abx.b_button.playing] if abx.x_button is None else [abx.a_button.playing, abx.b_button.playing, abx.x_button.playing]]
+                self.required[structure[quest]["id"]] = [("required" in structure[quest].keys()) and (structure[quest].as_bool("required")),
+                                                         [abx.a_button, abx.b_button] if abx.x_button is None else [abx.a_button, abx.b_button, abx.x_button],
+                                                         abx.name,
+                                                         [abx.a_button.playing, abx.b_button.playing] if abx.x_button is None else [abx.a_button.playing, abx.b_button.playing, abx.x_button.playing]]
             elif structure[quest]["type"] == "Matrix":
                 matrix = RadioMatrix(structure[quest]["questions"], structure[quest]["answers"], structure[quest]["id"],
                                      structure[quest].as_int("start_answer_id"), parent=self,
@@ -246,11 +228,9 @@ class Page(QWidget):
                                      randomize=structure[quest].as_bool("randomize") if "randomize" in structure[quest].keys() else False)
                 layout.addRow(matrix)
                 self.evaluationvars[structure[quest]["id"]] = matrix
-                self.required[structure[quest]["id"]] = [True if ("required" in structure[quest].keys()) and (
-                    structure[quest].as_bool("required")) else False, matrix.questions, matrix.name]
+                self.required[structure[quest]["id"]] = [("required" in structure[quest].keys()) and (structure[quest].as_bool("required")), matrix.questions, matrix.name]
             else:
-                raise ValueError("Unknown type for question {}. Found {}. Supported types are: HLine, Player, MUSHRA, "
-                                 "Radio, Check, Text, Slider, Button".format(structure[quest]["id"], structure[quest]["type"]))
+                raise ValueError(f'Unknown type for question {structure[quest]["id"]}. Found {structure[quest]["type"]}. Supported types are: HLine, Player, MUSHRA, Radio, Check, Text, Slider, Button')
 
         if self.image_position == "free":
             if len(self.findChildren(Image)) > 0:
@@ -280,63 +260,57 @@ class Page(QWidget):
 
         if len(self.players) > 0 and self.parent().popup and not self.parent().preview:
             for p in self.players:
-                if type(p) == Player and p.timer is not None:
+                if isinstance(p, Player) and p.timer is not None:
                     player_found = False
                     for item in range(self.layout().rowCount()):
-                        if player_found and self.layout().itemAt(item, 1).widget() is None:
-                            if type(self.layout().itemAt(item, 1)) is QHBoxLayout:
-                                for box in range(self.layout().itemAt(item, 1).count()):
-                                    sp = self.layout().itemAt(item, 1).itemAt(box).widget().sizePolicy()
+                        if player_found and self.layout().itemAt(item, QFormLayout.ItemRole.FieldRole).widget() is None:
+                            if isinstance(self.layout().itemAt(item, QFormLayout.ItemRole.FieldRole), QHBoxLayout):
+                                for box in range(self.layout().itemAt(item, QFormLayout.ItemRole.FieldRole).count()):
+                                    sp = self.layout().itemAt(item, QFormLayout.ItemRole.FieldRole).itemAt(box).widget().sizePolicy()
                                     sp.setRetainSizeWhenHidden(True)
-                                    self.layout().itemAt(item, 1).itemAt(box).widget().setSizePolicy(sp)
-                                    self.layout().itemAt(item, 1).itemAt(box).widget().hide()
-                            if self.layout().itemAt(item, 0) is not None:
-                                sp = self.layout().itemAt(item, 0).widget().sizePolicy()
+                                    self.layout().itemAt(item, QFormLayout.ItemRole.FieldRole).itemAt(box).widget().setSizePolicy(sp)
+                                    self.layout().itemAt(item, QFormLayout.ItemRole.FieldRole).itemAt(box).widget().hide()
+                            if self.layout().itemAt(item, QFormLayout.ItemRole.LabelRole) is not None:
+                                sp = self.layout().itemAt(item, QFormLayout.ItemRole.LabelRole).widget().sizePolicy()
                                 sp.setRetainSizeWhenHidden(True)
-                                self.layout().itemAt(item, 0).widget().setSizePolicy(sp)
-                                self.layout().itemAt(item, 0).widget().hide()
-                        if player_found and self.layout().itemAt(item, 1).widget() is not None:
-                            if self.layout().itemAt(item, 0) is not None:
-                                sp = self.layout().itemAt(item, 0).widget().sizePolicy()
+                                self.layout().itemAt(item, QFormLayout.ItemRole.LabelRole).widget().setSizePolicy(sp)
+                                self.layout().itemAt(item, QFormLayout.ItemRole.LabelRole).widget().hide()
+                        if player_found and self.layout().itemAt(item, QFormLayout.ItemRole.FieldRole).widget() is not None:
+                            if self.layout().itemAt(item, QFormLayout.ItemRole.LabelRole) is not None:
+                                sp = self.layout().itemAt(item, QFormLayout.ItemRole.LabelRole).widget().sizePolicy()
                                 sp.setRetainSizeWhenHidden(True)
-                                self.layout().itemAt(item, 0).widget().setSizePolicy(sp)
-                                self.layout().itemAt(item, 0).widget().hide()
-                            sp = self.layout().itemAt(item, 1).widget().sizePolicy()
+                                self.layout().itemAt(item, QFormLayout.ItemRole.LabelRole).widget().setSizePolicy(sp)
+                                self.layout().itemAt(item, QFormLayout.ItemRole.LabelRole).widget().hide()
+                            sp = self.layout().itemAt(item, QFormLayout.ItemRole.FieldRole).widget().sizePolicy()
                             sp.setRetainSizeWhenHidden(True)
-                            self.layout().itemAt(item, 1).widget().setSizePolicy(sp)
-                            self.layout().itemAt(item, 1).widget().hide()
-                        if self.layout().itemAt(item, 1).widget() == p:
+                            self.layout().itemAt(item, QFormLayout.ItemRole.FieldRole).widget().setSizePolicy(sp)
+                            self.layout().itemAt(item, QFormLayout.ItemRole.FieldRole).widget().hide()
+                        if self.layout().itemAt(item, QFormLayout.ItemRole.FieldRole).widget() == p:
                             player_found = True
-        layout.setLabelAlignment(Qt.AlignVCenter)
-        layout.setRowWrapPolicy(QFormLayout.WrapLongRows)  # automatic line breaks in text
+        layout.setLabelAlignment(Qt.AlignmentFlag.AlignVCenter)
+        layout.setRowWrapPolicy(QFormLayout.RowWrapPolicy.WrapLongRows)  # automatic line breaks in text
 
-    def log(self, qid):
+    def log(self, qid, sender):
         """Log changes
 
         Parameters
         ----------
         qid : str
             id of the element that raised a log
+        sender : QObject
+            the sender of the log
         """
-        print("Log raised", qid, type(self.sender()))
-        if type(self.sender()) is QLineEdit or type(self.sender()) is PasswordEntry:
-            self.page_log += "\n\t{} - Changed {} to {}".format(datetime.datetime.now().replace(microsecond=0).__str__(),
-                                                                qid, self.sender().text())
-        elif type(self.sender()) is QPlainTextEdit:
-            self.page_log += "\n\t{} - Changed {} to {}".format(datetime.datetime.now().replace(microsecond=0).__str__(),
-                                                                qid, self.sender().toPlainText())
-        elif type(self.sender()) is QButtonGroup:
-            self.page_log += "\n\t{} - Changed {} to {}".format(datetime.datetime.now().replace(microsecond=0).__str__(),
-                                                                qid, self.sender().checkedId())
-        elif type(self.sender()) is QCheckBox:
-            self.page_log += "\n\t{} - Changed {} to {}".format(datetime.datetime.now().replace(microsecond=0).__str__(),
-                                                                qid, self.sender().isChecked())
-        elif (type(self.sender()) is QSignalMapper) and (type(self.sender().sender()) is QCheckBox):  # QCheckBox
-            self.page_log += "\n\t{} - Changed {} to {}".format(datetime.datetime.now().replace(microsecond=0).__str__(),
-                                                                qid, self.sender().sender().isChecked())
+        # print("Log raised", qid, type(sender))
+        if isinstance(sender, QLineEdit) or isinstance(sender, PasswordEntry):
+            self.page_log += f'\n\t{str(datetime.datetime.now().replace(microsecond=0))} - Changed {qid} to {sender.text()}'
+        elif isinstance(sender, QPlainTextEdit):
+            self.page_log += f'\n\t{str(datetime.datetime.now().replace(microsecond=0))} - Changed {qid} to {sender.toPlainText()}'
+        elif isinstance(sender, QButtonGroup):
+            self.page_log += f'\n\t{str(datetime.datetime.now().replace(microsecond=0))} - Changed {qid} to {sender.checkedId()}'
+        elif isinstance(sender, QSignalMapper) and isinstance(sender, QCheckBox):  # QCheckBox
+            self.page_log += f'\n\t{str(datetime.datetime.now().replace(microsecond=0))} - Changed {qid} to {sender.isChecked()}'
         else:  # Slider
-            self.page_log += "\n\t{} - Changed {} to {}".format(datetime.datetime.now().replace(microsecond=0).__str__(),
-                                                                qid, self.sender().value())
+            self.page_log += f'\n\t{str(datetime.datetime.now().replace(microsecond=0))} - Changed {qid} to {sender.value()}'
 
     def get_key(self, val):
         """ function to return key for any value
@@ -365,5 +339,4 @@ class Page(QWidget):
         val : str
             message to set
         """
-        #self.osc_message = val
-        self.evaluationvars["OSCMessage_{}".format(self.id)] = val
+        self.evaluationvars[f'OSCMessage_{self.id}'] = val

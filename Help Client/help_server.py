@@ -15,7 +15,7 @@ WAIT_TIME_SECONDS = 60
 TIMEOUT = 0.75
 
 tl = Timeloop()
-server = None
+SERVER = None
 
 
 def request(unused_addr, opt_args):
@@ -28,7 +28,7 @@ def request(unused_addr, opt_args):
     opt_args : str or list[str]
         optional arguments
     """
-    print(Back.YELLOW+"Help requested.")
+    print(Back.YELLOW + "Help requested.")
 
 
 def page(unused_addr, opt_args):
@@ -41,7 +41,7 @@ def page(unused_addr, opt_args):
     opt_args : str or list[str]
         optional arguments, here page number
     """
-    print("Page {}".format(opt_args))
+    print(f'Page {opt_args}')
 
 
 def connection(unused_addr, opt_args):
@@ -54,7 +54,7 @@ def connection(unused_addr, opt_args):
     opt_args : str or list[str]
         optional arguments
     """
-    print(Back.RED+"Connection to pupil capture lost.")
+    print(Back.RED + "Connection to pupil capture lost.")
 
 
 def finished(unused_addr, opt_args):
@@ -67,7 +67,7 @@ def finished(unused_addr, opt_args):
         opt_args : str or list[str]
             optional arguments
         """
-    print(Back.GREEN+"Questionnaire finished.")
+    print(Back.GREEN + "Questionnaire finished.")
     tl.stop()
     # server.server_close()  # close the window manually, as this statement will throw exceptions
 
@@ -76,10 +76,10 @@ def finished(unused_addr, opt_args):
 def send_ping():
     """Send a ping to the GUI's machine."""
     # noinspection PyTypeChecker
-    print("Pinging {} every {} seconds with timeout {}.".format(HOST, WAIT_TIME_SECONDS, TIMEOUT))
+    print(f'Pinging {HOST} every {WAIT_TIME_SECONDS} seconds with timeout {TIMEOUT}.')
     response = ping(HOST, timeout=TIMEOUT)
     if response is None:
-        print(Back.RED+"Connection to GUI lost.")
+        print(Back.RED + "Connection to GUI lost.")
     else:
         print("Everything is fine :)")
 
@@ -89,16 +89,14 @@ if __name__ == "__main__":
     own_ip = socket.gethostbyname(socket.gethostname())
     parser = argparse.ArgumentParser()
     parser.add_argument("--port", type=int, default=5005, help="The port to listen on.")
-    parser.add_argument("--ping_ip", type=str, default=HOST,
-                        help="IP of the GUI to ping to.")  # TODO testen
-    parser.add_argument("--ping_timeout", type=float, default=TIMEOUT,
-                        help="Timeout for ping back of GUI.")  # TODO testen
+    parser.add_argument("--ping_ip", type=str, default=HOST, help="IP of the GUI to ping to.")  # TODO testen
+    parser.add_argument("--ping_timeout", type=float, default=TIMEOUT, help="Timeout for ping back of GUI.")  # TODO testen
     args = parser.parse_args()
     if args.ping_ip is not None:
         HOST = args.ping_ip
     if args.ping_timeout is not None:
         TIMEOUT = args.ping_timeout
-    print("Pinging {} every {} seconds with timeout {}.".format(HOST, WAIT_TIME_SECONDS, TIMEOUT))
+    print(f'Pinging {HOST} every {WAIT_TIME_SECONDS} seconds with timeout {TIMEOUT}.')
     tl.start(block=False)
 
     dispatcher = dispatcher.Dispatcher()
@@ -111,6 +109,6 @@ if __name__ == "__main__":
     # noinspection PyTypeChecker
     dispatcher.map("/questionnaire_finished", finished)
 
-    server = osc_server.ThreadingOSCUDPServer((own_ip, args.port), dispatcher)
-    print("Serving on {}".format(server.server_address))
-    server.serve_forever()
+    SERVER = osc_server.ThreadingOSCUDPServer((own_ip, args.port), dispatcher)
+    print(f'Serving on {SERVER.server_address}')
+    SERVER.serve_forever()

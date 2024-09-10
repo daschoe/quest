@@ -1,11 +1,11 @@
 """ Helper to create lines.
 
-These classes are used to create neat lines in PyQt5, which can be used e.g. as separators.
+These classes are used to create neat lines in PySide6, which can be used e.g. as separators.
 The idea is adapted from:
 https://stackoverflow.com/questions/5671354/how-to-programmatically-make-a-horizontal-line-in-qt
 """
 
-from PyQt5.QtWidgets import QFrame
+from PySide6.QtWidgets import QFrame
 
 
 class QHLine(QFrame):
@@ -21,8 +21,8 @@ class QHLine(QFrame):
                 name of the object, if it is supposed to be styled individually
         """
         super(QHLine, self).__init__()
-        self.setFrameShape(QFrame.HLine)
-        self.setFrameShadow(QFrame.Sunken)
+        self.setFrameShape(QFrame.Shape.HLine)
+        self.setFrameShadow(QFrame.Shadow.Sunken)
         if objectname is not None:
             self.setObjectName(objectname)
 
@@ -40,7 +40,7 @@ class QVLine(QFrame):
                 name of the object, if it is supposed to be styled individually
         """
         super(QVLine, self).__init__()
-        self.setFrameShape(QFrame.VLine)
-        self.setFrameShadow(QFrame.Sunken)
+        self.setFrameShape(QFrame.Shape.VLine)
+        self.setFrameShadow(QFrame.Shadow.Sunken)
         if objectname is not None:
             self.setObjectName(objectname)

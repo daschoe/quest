@@ -2,7 +2,7 @@
 Ref how to auto-dialog: https://stackoverflow.com/a/59148220
 """
 
-from context import *
+from context import pytest, QEditGuiMain, QTimer, open_config_file, QTest, handle_dialog_p, handle_dialog_q, Qt, default_values, page_fields, listify, ConfigObj, general_fields, handle_dialog_error, validate_questionnaire, handle_dialog_sa
 
 
 @pytest.fixture
@@ -28,11 +28,11 @@ def test_create(gui_init, qtbot):
 # noinspection PyArgumentList
 def test_add_page(gui_init, qtbot):
     tv = gui_init.gui.treeview
-    assert gui_init.gui.page_add.isEnabled() == True
+    assert gui_init.gui.page_add.isEnabled()
     QTest.qWait(500)
 
     QTimer.singleShot(100, handle_dialog_p)
-    QTest.mouseClick(gui_init.gui.page_add, Qt.LeftButton, delay=1)
+    QTest.mouseClick(gui_init.gui.page_add, Qt.MouseButton.LeftButton, delay=1000)
     assert tv.itemAt(0, 0).text(0) == "<new questionnaire>"
     assert tv.topLevelItemCount() == 1
     assert tv.topLevelItem(0).childCount() == 1
@@ -69,18 +69,18 @@ def test_load_file(gui_init, qtbot):
 
 # noinspection PyArgumentList
 def test_add_page_add_question(gui_init, qtbot):
-    assert gui_init.gui.page_add.isEnabled() == True
+    assert gui_init.gui.page_add.isEnabled()
     QTest.qWait(500)
 
     QTimer.singleShot(100, handle_dialog_p)
-    QTest.mouseClick(gui_init.gui.page_add, Qt.LeftButton, delay=1)
+    QTest.mouseClick(gui_init.gui.page_add, Qt.MouseButton.LeftButton, delay=1000)
     tv = gui_init.gui.treeview
     tv.setCurrentItem(tv.topLevelItem(0).child(0))
-    assert gui_init.gui.question_add.isEnabled() == True
+    assert gui_init.gui.question_add.isEnabled()
     QTest.qWait(500)
 
     QTimer.singleShot(100, handle_dialog_q)
-    QTest.mouseClick(gui_init.gui.question_add, Qt.LeftButton, delay=1)
+    QTest.mouseClick(gui_init.gui.question_add, Qt.MouseButton.LeftButton, delay=1000)
     assert tv.itemAt(0, 0).text(0) == "<new questionnaire>"
     assert tv.topLevelItemCount() == 1
     assert tv.topLevelItem(0).childCount() == 1
@@ -97,11 +97,11 @@ def test_add_question_after_load(gui_init, qtbot):
     gui_init.load_file()
     tv = gui_init.gui.treeview
     tv.setCurrentItem(tv.topLevelItem(0).child(0))
-    assert gui_init.gui.question_add.isEnabled() == True
+    assert gui_init.gui.question_add.isEnabled()
     QTest.qWait(500)
 
     QTimer.singleShot(100, handle_dialog_q)
-    QTest.mouseClick(gui_init.gui.question_add, Qt.LeftButton, delay=1)
+    QTest.mouseClick(gui_init.gui.question_add, Qt.MouseButton.LeftButton, delay=1000)
     assert tv.itemAt(0, 0).text(0) == "onepage.txt"
     assert tv.topLevelItemCount() == 1
     assert tv.topLevelItem(0).childCount() == 1
@@ -118,12 +118,12 @@ def test_add_page_after_load(gui_init, qtbot):
     gui_init.load_file()
     tv = gui_init.gui.treeview
     tv.setCurrentItem(tv.topLevelItem(0))
-    assert gui_init.gui.page_add.isEnabled() == True
+    assert gui_init.gui.page_add.isEnabled()
     QTest.qWait(500)
 
     QTimer.singleShot(100, handle_dialog_p)
     QTimer.singleShot(200, handle_dialog_sa)
-    QTest.mouseClick(gui_init.gui.page_add, Qt.LeftButton, delay=1)
+    QTest.mouseClick(gui_init.gui.page_add, Qt.MouseButton.LeftButton, delay=1000)
 
     assert tv.itemAt(0, 0).text(0) == "onepage.txt"
     assert tv.topLevelItemCount() == 1

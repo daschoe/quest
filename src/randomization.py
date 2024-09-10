@@ -40,8 +40,8 @@ def order_from_file(file):
     """
     with open(file) as f:
         orders = f.read().splitlines()
-    for row in range(0, len(orders)):
-        orders[row] = orders[row].split(",")
+    for row, order in enumerate(orders):
+        orders[row] = order.split(",")
         for entry in range(0, len(orders[row])):
             orders[row][entry] = int(orders[row][entry])
     return orders

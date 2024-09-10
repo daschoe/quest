@@ -10,9 +10,9 @@ import keyboard
 from MockReceiver import MockReceiver
 import portalocker
 from pythonosc import osc_server, dispatcher
-from PyQt5.QtGui import QIntValidator, QDoubleValidator, QRegExpValidator
-from PyQt5.QtCore import QTimer, QPoint
-from PyQt5.QtWidgets import QCheckBox, QLabel, QRadioButton, QFormLayout, QButtonGroup, QPlainTextEdit
+from PySide6.QtGui import QIntValidator, QDoubleValidator, QRegularExpressionValidator, QPalette
+from PySide6.QtCore import QTimer, QPoint
+from PySide6.QtWidgets import QCheckBox, QLabel, QRadioButton, QFormLayout, QButtonGroup, QPlainTextEdit
 import asyncio
 
 

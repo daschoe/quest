@@ -6,30 +6,14 @@ from time import time
 
 import msgpack as serializer
 import zmq
-from PyQt5.QtCore import Qt, QTimer, QObject
-from PyQt5.QtGui import QPixmap, QDoubleValidator
-from PyQt5.QtWidgets import QPushButton, QWidget, QHBoxLayout, QLabel, QDesktopWidget, QLineEdit, QPlainTextEdit
+from PySide6.QtCore import QTimer
+from PySide6.QtGui import QDoubleValidator
+from PySide6.QtWidgets import QPushButton, QWidget, QHBoxLayout, QLineEdit, QPlainTextEdit
 from src.PasswordEntry import PasswordEntry
 
 
 class Button(QWidget):
-    """Button with custom functionality for interacting with Pupil Core.
-
-    Attributes
-    ----------
-    inscription : str
-        the text displayed on the button
-    function : str
-        shorthand hint for functionality
-    parent : QObject
-        the page the button is on
-    qid : str
-        id of the question
-    recording_name : str, optional
-        name for the recording folder(?)
-    objectname : str, optional
-        name of the object, if it is supposed to be styled individually
-    """
+    """Button with custom functionality for interacting with Pupil Core."""
 
     def __init__(self, inscription, function, parent, qid, recording_name=None, objectname=None, annotation=None):
         """
@@ -37,14 +21,14 @@ class Button(QWidget):
 
             Parameters
             ----------
-            inscription : str
-                the text displayed on the button
+            inscription : Union(str, None)
+                the text displayed on the button, if None the Button will be invisible
             function : str
                 shorthand hint for functionality
             parent : QObject
                 the page the button is on
-            qid : str
-                id of the question
+            qid : Union(str, None)
+                id of the question, if None invisible Button that just triggers the function
             recording_name : str, optional
                 name for the recording folder(?)
             objectname : str, optional
@@ -80,8 +64,8 @@ class Button(QWidget):
             layout.addWidget(self.button)
             self.used = False
             if function == "Calibration":
-                self.button.clicked.connect(self.start_calibration)
-            elif function == "Recording":
+                raise NotImplementedError
+            if function == "Recording":
                 self.button.clicked.connect(self.start_recording)
             elif function == "Stop":
                 self.button.clicked.connect(self.stop_recording)
@@ -90,7 +74,7 @@ class Button(QWidget):
                     self.setup_annotate()
                 self.button.clicked.connect(lambda: self.send_trigger(self.new_trigger("test" if annotation is None else str(annotation))))
             self.button.clicked.connect(self.log)
-            self.button.clicked.connect(self.__click_animation)
+            self.button.clicked.connect(lambda: self.__click_animation(self.button))
             self.setLayout(layout)
         elif function == "Annotate":  # the only function that needs setup
             self.setup_annotate()
@@ -105,30 +89,10 @@ class Button(QWidget):
         'v'  # get the Pupil Core software version string
         '''
 
-    def __click_animation(self):
-        __btn = self.sender()
+    def __click_animation(self, btn):
+        __btn = btn
         __btn.setDown(True)
         QTimer.singleShot(self.button_fade, lambda: __btn.setDown(False))
-
-    def start_calibration(self):
-        """
-        Start the calibration process of the Pupil Core tracking.
-
-        Raises
-        ------
-        zmq.ZMQError, AttributeError
-            If there are connection problems
-        """
-        self.used = True
-        self.parent().evaluationvars[self.id] = True
-        try:
-            self.pupil_remote.send_string('C')
-            print("Calibrate...", self.pupil_remote.recv_string())
-            if self.config_win is None:
-                self.config_win = Calib()
-                self.config_win.show()
-        except (zmq.ZMQError, AttributeError):
-            print("Couldn't connect with Pupil Capture!")
 
     def start_recording(self):
         """
@@ -142,25 +106,27 @@ class Button(QWidget):
         self.used = True
         try:
             if self.recording_name is None:
+                # print("just record...")
                 self.pupil_remote.send_string('R')
             else:
                 if self.recording_name.startswith("id:"):
+                    # print("recording name starts with id")
                     var = self.recording_name[2:].strip(' :')
                     skip = False
                     for s in range(0, self.parent().parent().count()):
                         if not skip and self.parent().parent().widget(s).evaluationvars is not None and \
                                 var in self.parent().parent().widget(s).evaluationvars:
                             self.recording_name = self.parent().parent().widget(s).evaluationvars[var]
-                            if type(self.recording_name) is QLineEdit or type(self.recording_name) is PasswordEntry:
-                                if type(self.recording_name.validator()) == QDoubleValidator:
+                            if isinstance(self.recording_name, (QLineEdit, PasswordEntry)):
+                                if isinstance(self.recording_name.validator(), QDoubleValidator):
                                     self.recording_name.setText(self.recording_name.text().replace(",", "."))
                                 self.recording_name = self.recording_name.text()
-                            elif type(self.recording_name) is QPlainTextEdit:
+                            elif isinstance(self.recording_name, QPlainTextEdit):
                                 self.recording_name = self.recording_name.toPlainText().replace("\n", " ")
                         if not skip and self.parent().parent().widget(s) == self.parent():
                             skip = True
-                print(self.recording_name)
-                self.pupil_remote.send_string('R {}'.format(self.recording_name))
+                print("Recording name:",self.recording_name)
+                self.pupil_remote.send_string(f'R {self.recording_name}')
             print("Start recording...", self.pupil_remote.recv_string())
         except (zmq.ZMQError, AttributeError):
             print("Couldn't connect with Pupil Capture!")
@@ -200,7 +166,7 @@ class Button(QWidget):
             self.pub_socket = zmq.Socket(self.ctx, zmq.PUB)
             # self.pub_socket.setsockopt(zmq.LINGER, 0)  # ____POLICY: set upon instantiations
             # self.pub_socket.setsockopt(zmq.RCVTIMEO, 2000)
-            self.pub_socket.connect("tcp://{}:{}".format(self.ip, pub_port))
+            self.pub_socket.connect(f'tcp://{self.ip}:{pub_port}')
             # In order for the annotations to be correlated correctly with the rest of
             # the data it is required to change Pupil Capture's time base to this scripts
             # clock. We only set the time base once. Consider using Pupil Time Sync for
@@ -209,7 +175,7 @@ class Button(QWidget):
             # Set Pupil Capture's time base to this scripts time. (Should be done before
             # starting the recording)
 
-            self.pupil_remote.send_string("T {}".format(time()))
+            self.pupil_remote.send_string(f'T {time()}')
             print("Annotate...", self.pupil_remote.recv_string())
 
             # Start the annotations plugin
@@ -279,81 +245,10 @@ class Button(QWidget):
         return {
             "topic": "annotation",
             "label": label,
-            "timestamp": time(),  # time.asctime(time.localtime()); for Pupil Core > v3.4.0 NEEDS to be float
+            "timestamp": time(),  # time.asctime(time.localtime()); for Pupil Core > v3.4.0 NEEDS to be of type float
             "duration": duration,
         }
 
     def log(self):
         """Log Action"""
-        self.parent().page_log += "\n\t{} - Pressed Button {} ".format(datetime.datetime.now().replace(microsecond=0).__str__(),
-                                                                       self.id)
-
-
-class Calib(QWidget):
-    """ Mocking of the calibration display of Pupil Capture
-
-    This "window" is a QWidget. If it has no parent, it will appear as a free-floating window.
-
-    .. deprecated:: 0.1.0
-          `Calib` will be removed in version 1.0.0
-
-    """
-
-    def __init__(self):
-        super().__init__()
-        self.setStyleSheet("QWidget {background-color: white;}")
-        self.setWindowFlags(Qt.CustomizeWindowHint | Qt.FramelessWindowHint)
-        sg = QDesktopWidget().screenGeometry()
-        self.setFixedWidth(sg.width())
-        self.setFixedHeight(sg.height())
-
-        calibmarker = QPixmap('./Images/v0.4_calib_marker_02.jpg')
-        calibmarker = calibmarker.scaledToHeight(int(0.2 * sg.height()))
-        self.middle = QLabel(self)
-        self.middle.setPixmap(calibmarker)
-        self.middle.move(int(0.5 * sg.width() - 0.5 * calibmarker.width()),
-                         int(0.5 * sg.height() - 0.5 * calibmarker.height()))
-        self.topleft = QLabel(self)
-        self.topleft.setPixmap(calibmarker)
-        self.topleft.move(0, 0)
-        self.topright = QLabel(self)
-        self.topright.setPixmap(calibmarker)
-        self.topright.move(int(sg.width() - calibmarker.width()), 0)
-        self.bottomright = QLabel(self)
-        self.bottomright.setPixmap(calibmarker)
-        self.bottomright.move(int(sg.width() - calibmarker.width()), int(sg.height() - calibmarker.height()))
-        self.bottomleft = QLabel(self)
-        self.bottomleft.setPixmap(calibmarker)
-        self.bottomleft.move(0, int(sg.height() - calibmarker.height()))
-
-        stopmarker = QPixmap('./Images/v0.4_calib_marker_01.jpg')
-        stopmarker = stopmarker.scaledToHeight(int(0.2 * sg.height()))
-        self.stop = QLabel(self)
-        self.stop.setPixmap(stopmarker)
-        self.stop.move(int(0.5 * sg.width() - 0.5 * stopmarker.width()),
-                       int(0.5 * sg.height() - 0.5 * stopmarker.height()))
-        self.move(0, 0)
-
-        self.markers = [self.middle, self.topleft, self.topright, self.bottomright, self.bottomleft, self.stop]
-        self.show_marker(0)
-
-    def show_marker(self, marker_no):
-        """Display the marker `marker_no` of `self.markers` and hide the others.
-        Do this for all markers and then close the window.
-
-        Parameters
-        ----------
-        marker_no : int
-            number of the marker to be displayed [0..5]
-        """
-        # TODO display length?
-        for marker in range(len(self.markers)):
-            if self.markers[marker] != self.markers[marker_no]:
-                self.markers[marker].hide()
-            else:
-                self.markers[marker].show()
-        if marker_no + 1 < len(self.markers):
-            marker_no += 1
-            QTimer.singleShot(1000, lambda: self.show_marker(marker_no))
-        else:
-            QTimer.singleShot(1000, self.close)
+        self.parent().page_log += f'\n\t{str(datetime.datetime.now().replace(microsecond=0))} - Pressed Button {self.id}'

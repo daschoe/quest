@@ -6,12 +6,12 @@ from collections import deque
 from os.path import basename
 
 import configobj
-from PyQt5 import sip
-from PyQt5.QtCore import Qt, QModelIndex, QPoint
-from PyQt5.QtGui import QCloseEvent, QKeySequence, QPixmap
-from PyQt5.QtWidgets import QApplication, QTreeWidgetItem, QWidget, QHBoxLayout, QGroupBox, QSplitter, QFileDialog, \
-    QMainWindow, QAction, QLabel, QVBoxLayout, QFormLayout, QLineEdit, QPushButton, QGridLayout, QComboBox, QCheckBox, \
-    QRadioButton, QButtonGroup, QMenu, QInputDialog, QMessageBox, QLayout, QScrollArea, QDesktopWidget
+import shiboken6
+from PySide6.QtCore import Qt
+from PySide6.QtGui import QKeySequence, QAction, QCloseEvent
+from PySide6.QtWidgets import QApplication, QTreeWidgetItem, QWidget, QHBoxLayout, QGroupBox, QSplitter, QFileDialog, \
+    QMainWindow, QLabel, QVBoxLayout, QFormLayout, QLineEdit, QPushButton, QGridLayout, QComboBox, QCheckBox, \
+    QRadioButton, QButtonGroup, QMenu, QInputDialog, QMessageBox, QScrollArea
 from configobj import ConfigObj, ConfigObjError
 from fpdf import FPDF
 
@@ -19,28 +19,15 @@ from src.GUI import StackedWindowGui, VERSION
 from src.TextEdit import TextEdit
 from src.Tree import Tree
 from src.Validator import validate_questionnaire, listify
-from src.tools import *
+from src.tools import general_fields, default_values, tooltips, types, fields_per_type, video_player, randomize_options, page_fields, image_positions, policy_possibilities, player_buttons, function_possibilites
 
 
 class QEditGuiMain(QMainWindow):
-    """ Main Window, adds menu bar and status bar
-
-    Attributes
-    ----------
-    parent : QObject, optional
-        widget/layout this widget is embedded in
-    """
+    """ Main Window, adds menu bar and status bar."""
 
     # noinspection PyTypeChecker
-    def __init__(self, parent=None):
-        """
-
-        Parameters
-        ----------
-        parent : QObject, optional
-            widget/layout this widget is embedded in
-        """
-        QWidget.__init__(self, parent)
+    def __init__(self):
+        super().__init__()
         menu = self.menuBar()
         file = menu.addMenu("File")
         new = QAction("New", self)
@@ -106,12 +93,12 @@ class QEditGuiMain(QMainWindow):
         self.setCentralWidget(self.gui)
         self.setWindowTitle("Questionnaire Editor")
         self.move(0, 0)
-        # self.showMaximized()
+        self.showMaximized()
         self.show()
 
     def run_validation(self):
         """Make sure that the current variable is saved and then run validation."""
-        if (type(QApplication.focusWidget()) == QLineEdit) or (type(QApplication.focusWidget()) == TextEdit):
+        if isinstance(QApplication.focusWidget(), (QLineEdit, TextEdit)):
             QApplication.focusWidget().clearFocus()
         validate_questionnaire(listify(self.structure, self.status, self.status_duration))
 
@@ -126,50 +113,53 @@ class QEditGuiMain(QMainWindow):
             value of the button clicked (True if it is supposed to be saved)
         """
         msg = QMessageBox()
-        msg.setIcon(QMessageBox.Question)
+        msg.setIcon(QMessageBox.Icon.Question)
         msg.setText("The questionnaire file has changed. Do you want to save it?")
         msg.setWindowFlags(Qt.CustomizeWindowHint)  # removes title bar
-        msg.addButton("Yes", QMessageBox.AcceptRole)
-        msg.addButton("No", QMessageBox.RejectRole)
-        retval = msg.exec_()
+        msg.addButton("Yes", QMessageBox.ButtonRole.AcceptRole)
+        msg.addButton("No", QMessageBox.ButtonRole.RejectRole)
+        msg.exec()
+        retval = msg.buttonRole(msg.clickedButton())
         return retval
 
-    def closeEvent(self, a0):
+    def closeEvent(self, event):
         """Check for unsaved changes before quitting. (When the red x is pressed.)
 
         Parameters
         ----------
-        a0 : QCloseEvent
+        event : QCloseEvent
         """
-        self.quit_editor()
+        if isinstance(event, QCloseEvent):
+            self.quit_editor()
 
     def quit_editor(self):
         """Check for unsaved changes before quitting."""
-        QApplication.focusWidget().clearFocus()
+        if QApplication.focusWidget() is not None:
+            QApplication.focusWidget().clearFocus()
         if self.initial_structure is not None and self.initial_structure != copy.deepcopy(
                 dict(listify(self.structure))) and len(self.undo_stack) > 0 \
                 and not (
                 self.initial_structure == copy.deepcopy(dict(listify(self.structure))) and len(self.undo_stack) == 0):
-            if self.unsaved_message() == QMessageBox.AcceptRole:
+            if self.unsaved_message() == QMessageBox.ButtonRole.AcceptRole:
                 self.save()
         self.close()
 
     def export(self):
         """Export GUI to pdf by taking screenshots of every page and combining them."""
-        if (type(QApplication.focusWidget()) == QLineEdit) or (type(QApplication.focusWidget()) == TextEdit):
+        if isinstance(QApplication.focusWidget(), (QLineEdit, TextEdit)):
             QApplication.focusWidget().clearFocus()
         if self.filename is None:
             self.structure.filename = "./tmp.txt"
             self.structure.encoding = "utf-8"
-            self.structure.initial_comment = ["Created with QUEST version {}".format(VERSION)]
+            self.structure.initial_comment = [f'Created with QUEST version {VERSION}.']
             self.structure.write()
         self.status.showMessage("Exporting to pdf...", self.status_duration)
         exgui = StackedWindowGui(self.structure.filename, preview=True)
-        exgui.children()[1].setVerticalScrollBarPolicy(Qt.ScrollBarAlwaysOff)  # this is the ScrollArea
-        exgui.children()[1].setHorizontalScrollBarPolicy(Qt.ScrollBarAlwaysOff)  # this is the ScrollArea
+        exgui.children()[1].setVerticalScrollBarPolicy(Qt.ScrollBarPolicy.ScrollBarAlwaysOff)  # this is the ScrollArea
+        exgui.children()[1].setHorizontalScrollBarPolicy(Qt.ScrollBarPolicy.ScrollBarAlwaysOff)  # this is the ScrollArea
         rec_size = exgui.children()[1].children()[0].children()[0].children()[0].sizeHint()  # this is the Page object
         exgui.resize(max(exgui.width(), rec_size.width()), max(exgui.height(), rec_size.height()))
-        pdf = None#FPDF()
+        pdf = None
         for page in range(exgui.Stack.count()):
             exgui.Stack.setCurrentIndex(page)
             if page + 1 == exgui.Stack.count():  # last page
@@ -177,9 +167,9 @@ class QEditGuiMain(QMainWindow):
             p = exgui.grab()
             w = p.width()
             h = p.height()
-            p.save("./Page_{}.png".format(page))
+            p.save(f'./Page_{page}.png')
             if pdf is None:
-                pdf = FPDF(format=(w,h))
+                pdf = FPDF(format=(w, h))
             '''if w > h:
                 pdf.add_page(orientation='L')
                 pdf.image("./Page_{}.png".format(page), x=0, y=0)#, w=297)
@@ -188,7 +178,7 @@ class QEditGuiMain(QMainWindow):
                 pdf.image("./Page_{}.png".format(page), x=0, y=0)#, h=297)
             '''
             pdf.add_page()
-            pdf.image("./Page_{}.png".format(page), x=0, y=0, w=w, h=h)
+            pdf.image(f'./Page_{page}.png', x=0, y=0, w=w, h=h)
         exgui.close()
         file = QFileDialog().getSaveFileName(self, caption="Save PDF-File", filter="pdf files (*.pdf)")[0]
         if file is not None and file != "":
@@ -197,7 +187,7 @@ class QEditGuiMain(QMainWindow):
         else:
             self.status.showMessage("Export aborted.", self.status_duration)
         for page in range(exgui.Stack.count()):
-            os.remove("./Page_{}.png".format(page))
+            os.remove(f'./Page_{page}.png')
         if self.structure.filename == "./tmp.txt":
             os.remove("./tmp.txt")
 
@@ -205,9 +195,8 @@ class QEditGuiMain(QMainWindow):
         """Create a new file structure."""
         if self.initial_structure is not None and self.initial_structure != copy.deepcopy(
                 dict(listify(self.structure))) and len(self.undo_stack) > 0 \
-                and not (
-                self.initial_structure == copy.deepcopy(dict(listify(self.structure))) and len(self.undo_stack) == 0):
-            if self.unsaved_message() == QMessageBox.AcceptRole:
+                and not (self.initial_structure == copy.deepcopy(dict(listify(self.structure))) and len(self.undo_stack) == 0):
+            if self.unsaved_message() == QMessageBox.ButtonRole.AcceptRole:
                 self.save()
         self.undo_stack.clear()
         self.redo_stack.clear()
@@ -232,28 +221,27 @@ class QEditGuiMain(QMainWindow):
         """
         if self.initial_structure is not None and (
                 self.initial_structure != copy.deepcopy(dict(listify(self.structure))) and len(self.undo_stack) > 0) \
-                and not (
-                self.initial_structure == copy.deepcopy(dict(listify(self.structure))) and len(self.undo_stack) == 0):
-            if self.unsaved_message() == QMessageBox.AcceptRole:
+                and not (self.initial_structure == copy.deepcopy(dict(listify(self.structure))) and len(self.undo_stack) == 0):
+            if self.unsaved_message() == QMessageBox.ButtonRole.AcceptRole:
                 self.save()
         dlg = QFileDialog(self)
-        dlg.setFileMode(QFileDialog.ExistingFile)
+        dlg.setFileMode(QFileDialog.FileMode.ExistingFile)
         dlg.setNameFilter("Text files (*.txt)")
         dlg.setStyle(self.style())
-        if dlg.exec_():
+        if dlg.exec():
             file = dlg.selectedFiles()[0]
             self.filename = file
             try:
                 self.status.clearMessage()
+                self.status.showMessage(f'Loading {self.filename}.', self.status_duration)
                 self.structure = ConfigObj(file)
-                if len(self.structure.initial_comment) > 0:
-                    print(self.structure.initial_comment[0].rsplit(' ', 1)[1])
                 self.initial_structure = copy.deepcopy(dict(self.structure))
                 self.gui.create_tree(self.structure)
                 self.undoaction.setEnabled(False)
                 self.redoaction.setEnabled(False)
                 self.undo_stack.clear()
                 self.redo_stack.clear()
+                self.status.clearMessage()
             except ConfigObjError:
                 self.status.showMessage("Tried to load a file with an invalid structure.", self.status_duration)
             if self.load_preview.isChecked():
@@ -267,7 +255,7 @@ class QEditGuiMain(QMainWindow):
 
     def save(self):
         """Save current structure with current name."""
-        if (type(QApplication.focusWidget()) == QLineEdit) or (type(QApplication.focusWidget()) == TextEdit):
+        if isinstance(QApplication.focusWidget(), (QLineEdit, TextEdit)):
             QApplication.focusWidget().clearFocus()
         self.structure = listify(self.structure, self.status, self.status_duration)
         if self.structure.filename is None or self.structure.filename == "./tmp.txt":
@@ -275,18 +263,17 @@ class QEditGuiMain(QMainWindow):
         else:
             self.structure.filename = self.filename
             self.structure.encoding = "utf-8"
-            self.structure.initial_comment = ["Created with QUEST version {}".format(VERSION)]
+            self.structure.initial_comment = [f'Created with QUEST version {VERSION}.']
             self.structure.write()
             self.initial_structure = copy.deepcopy(dict(self.structure))
             self.status.clearMessage()
-            self.undo_stack.clear()
-            self.redo_stack.clear()
+            #self.undo_stack.clear()
+            #self.redo_stack.clear()
             self.status.showMessage("Saved structure.", self.status_duration)
 
     def saveas(self):
         """Save current structure as .txt file."""
-        if (type(QApplication.focusWidget()) == QLineEdit) or (type(QApplication.focusWidget()) == TextEdit):
-            # QLineEdit().editingFinished()
+        if isinstance(QApplication.focusWidget(), (QLineEdit, TextEdit)):
             QApplication.focusWidget().clearFocus()
         self.structure = listify(self.structure, self.status, self.status_duration)
         file = QFileDialog().getSaveFileName(self, caption="Save File", filter="Text files (*.txt)")[0]
@@ -294,13 +281,13 @@ class QEditGuiMain(QMainWindow):
             self.filename = file
             self.structure.filename = file
             self.structure.encoding = "utf-8"
-            self.structure.initial_comment = ["Created with QUEST version {}".format(VERSION)]
+            self.structure.initial_comment = [f'Created with QUEST version {VERSION}.']
             self.structure.write()
             self.initial_structure = copy.deepcopy(dict(self.structure))
             self.status.clearMessage()
-            self.undo_stack.clear()
-            self.redo_stack.clear()
-            self.status.showMessage("Saved structure as {}".format(file), self.status_duration)
+            #self.undo_stack.clear()
+            #self.redo_stack.clear()
+            self.status.showMessage(f'Saved structure as {file}.', self.status_duration)
             self.gui.treeview.topLevelItem(0).setText(0, os.path.basename(file))
         else:
             self.status.clearMessage()
@@ -350,7 +337,7 @@ class EditGui(QWidget):
         self.treeview = Tree(self)
         self.treeview.clicked.connect(self.show_details)
         self.treeview.itemSelectionChanged.connect(self.change_active_buttons)
-        self.treeview.setContextMenuPolicy(Qt.CustomContextMenu)
+        self.treeview.setContextMenuPolicy(Qt.ContextMenuPolicy.CustomContextMenu)
         self.treeview.customContextMenuRequested.connect(self.open_tree_menu)
         self.treeview.tree_changed.connect(self.update_structure)
         self.treeview.error_message.connect(self.set_status_message)
@@ -363,6 +350,7 @@ class EditGui(QWidget):
         self.questiontype = QComboBox()
         self.questiontype.addItems(types)
         self.questiontype.setToolTip(tooltips["type"])
+        self.questiontype.setObjectName("questiontype")
         self.questiontype.hide()
         self.questiontype.activated.connect(self.update_val)
         self.qss_filechooser = QPushButton("Choose file...")
@@ -443,7 +431,7 @@ class EditGui(QWidget):
         self.prev_refresh_layout = QHBoxLayout()
         self.refresh_button = QPushButton("Refresh Preview")
         self.refresh_button.clicked.connect(self.load_preview)
-        self.prev_refresh_layout.addWidget(self.refresh_button, alignment=Qt.AlignRight | Qt.AlignBottom)
+        self.prev_refresh_layout.addWidget(self.refresh_button, alignment=Qt.AlignmentFlag.AlignRight | Qt.AlignmentFlag.AlignBottom)
         self.automatic_refresh = QCheckBox("automatic refresh")
         self.prev_refresh_layout.addWidget(self.automatic_refresh)
         self.prev_layout.addLayout(self.prev_refresh_layout)
@@ -451,21 +439,22 @@ class EditGui(QWidget):
         scroll = QScrollArea()
         scroll.setWidget(edit)
         scroll.setWidgetResizable(True)
-        scroll.setHorizontalScrollBarPolicy(Qt.ScrollBarAlwaysOff)
+        scroll.setHorizontalScrollBarPolicy(Qt.ScrollBarPolicy.ScrollBarAlwaysOff)
         scroll.setStyleSheet("QScrollArea{border: 1px solid transparent;}")
         splitter.addWidget(structure_view)
         splitter.addWidget(scroll)
         splitter.addWidget(preview)
         layout.addWidget(splitter)
+        splitter.setSizes([int(self.width()/3), int(self.width()/3), int(self.width()/3)])
         self.setLayout(layout)
 
     def choose_qss(self):
         """Choose an existing qss/css file as stylesheet."""
         dlg = QFileDialog(self)
-        dlg.setFileMode(QFileDialog.ExistingFile)
+        dlg.setFileMode(QFileDialog.FileMode.ExistingFile)
         dlg.setNameFilter("QSS/CSS files (*.qss *.css)")
         dlg.setStyle(self.style())
-        if dlg.exec_():
+        if dlg.exec():
             self.qss_filename.setText(dlg.selectedFiles()[0])
             if self.parent().structure["stylesheet"] != self.qss_filename.text():
                 self.parent().undo_stack.append(copy.deepcopy(dict(self.parent().structure)))
@@ -479,10 +468,10 @@ class EditGui(QWidget):
     def choose_pwfile(self):
         """Choose an existing txt file as password file."""
         dlg = QFileDialog(self)
-        dlg.setFileMode(QFileDialog.ExistingFile)
+        dlg.setFileMode(QFileDialog.FileMode.ExistingFile)
         dlg.setNameFilter("Password files (*.txt)")
         dlg.setStyle(self.style())
-        if dlg.exec_():
+        if dlg.exec():
             self.pw_file.setText(dlg.selectedFiles()[0])
             page = self.treeview.selectedItems()[0].parent().text(0)
             question = self.treeview.selectedItems()[0].text(0)
@@ -496,10 +485,10 @@ class EditGui(QWidget):
     def choose_imgfile(self):
         """Choose an existing image file."""
         dlg = QFileDialog(self)
-        dlg.setFileMode(QFileDialog.ExistingFile)
+        dlg.setFileMode(QFileDialog.FileMode.ExistingFile)
         dlg.setNameFilter("Image files (*.png *.jpg *.jpeg *.gif)")
         dlg.setStyle(self.style())
-        if dlg.exec_():
+        if dlg.exec():
             self.img_file.setText(dlg.selectedFiles()[0])
             page = self.treeview.selectedItems()[0].parent().text(0)
             question = self.treeview.selectedItems()[0].text(0)
@@ -513,10 +502,10 @@ class EditGui(QWidget):
     def choose_randfile(self):
         """Choose an existing txt file as randomization order file."""
         dlg = QFileDialog(self)
-        dlg.setFileMode(QFileDialog.ExistingFile)
+        dlg.setFileMode(QFileDialog.FileMode.ExistingFile)
         dlg.setNameFilter("Randomization files (*.txt *.csv)")
         dlg.setStyle(self.style())
-        if dlg.exec_():
+        if dlg.exec():
             self.rand_file.setText(dlg.selectedFiles()[0])
             if self.parent().structure["randomization_file"] != self.rand_file.text():
                 self.parent().undo_stack.append(copy.deepcopy(dict(self.parent().structure)))
@@ -533,18 +522,18 @@ class EditGui(QWidget):
         file : str, optional, default=None
             name/path of the config file, use None for previewing an unsaved structure.
         """
-        if (type(QApplication.focusWidget()) == QLineEdit) or (type(QApplication.focusWidget()) == TextEdit):
+        if isinstance(QApplication.focusWidget(), (QLineEdit, TextEdit)):
             self.edit_done()
+        self.parent().save()
         error_found, _, _ = validate_questionnaire(
             listify(self.parent().structure, self.parent().status, self.parent().status_duration), suppress=True)
         if not error_found and len(self.parent().structure.sections) > 0:
             self.clear_layout(self.prev_widget)
             if file is None or not file:
-                if not file and (self.parent().structure.filename is None or file == "./tmp.txt" or
-                                 self.parent().structure.filename == "./tmp.txt"):
+                if not file and (self.parent().structure.filename is None or file == "./tmp.txt" or self.parent().structure.filename == "./tmp.txt"):
                     self.parent().structure.filename = "./tmp.txt"
                     self.parent().structure.encoding = "utf-8"
-                    self.parent().structure.initial_comment = ["Created with QUEST version {}".format(VERSION)]
+                    self.parent().structure.initial_comment = [f'Created with QUEST version {VERSION}.']
                     self.parent().structure.write()
                     file = "./tmp.txt"
                 else:
@@ -624,7 +613,7 @@ class EditGui(QWidget):
                 page = QTreeWidgetItem(root, [sec])
                 for q in structure[sec].sections:
                     quest = QTreeWidgetItem(page, [q])
-                    quest.setFlags(quest.flags() & ~Qt.ItemIsDropEnabled)
+                    quest.setFlags(quest.flags() & ~Qt.ItemFlag.ItemIsDropEnabled)
             self.treeview.addTopLevelItem(root)
         else:
             root = QTreeWidgetItem(self.treeview, ["<new questionnaire>"])
@@ -653,8 +642,7 @@ class EditGui(QWidget):
                         if field == "go_back":
                             val_field = QCheckBox("")
                             val_field.toggled.connect(self.update_val)
-                            val_field.setChecked(True if ((self.parent().structure[field] == "True") or (
-                                    type(self.parent().structure["go_back"]) is bool and self.parent().structure["go_back"])) else False)
+                            val_field.setChecked(True if ((self.parent().structure[field] == "True") or (isinstance(self.parent().structure["go_back"], bool) and self.parent().structure["go_back"])) else False)
                         elif field == "save_message":
                             val_field = TextEdit(self.parent().structure[field] if field in self.parent().structure.keys() else "")
                             val_field.editingFinished.connect(self.edit_done)
@@ -664,7 +652,7 @@ class EditGui(QWidget):
                             if current_pages:
                                 self.save_after.addItems(current_pages)
                                 selected = current_pages.index(self.parent().structure[field]) if (field in self.parent().structure.keys() and self.parent().structure[field] in current_pages) else -1
-                                self.save_after.setCurrentIndex(selected if selected > -1 else len(current_pages)-1)
+                                self.save_after.setCurrentIndex(selected if selected > -1 else len(current_pages) - 1)
                                 self.parent().structure[field] = self.save_after.currentText()
                             self.save_after.show()
                         elif field == "stylesheet":
@@ -699,7 +687,6 @@ class EditGui(QWidget):
                         elif field == "video_player":
                             val_field = QComboBox()
                             val_field.addItems(video_player)
-                            print(self.parent().structure[field])
                             val_field.setCurrentIndex(video_player.index(self.parent().structure[field]))
                             val_field.activated.connect(self.update_val)
                         else:
@@ -707,18 +694,17 @@ class EditGui(QWidget):
                             if field in self.parent().structure.keys():
                                 val_field.setText(str(self.parent().structure[field]))
                             val_field.editingFinished.connect(self.edit_done)
-                            if field == "back_text" and (("go_back" in self.parent().structure.keys()) and
-                                                         ((self.parent().structure["go_back"] == "False") or (
-                                    type(self.parent().structure["go_back"]) is bool and not self.parent().structure["go_back"]))):
+                            if field == "back_text" and (("go_back" in self.parent().structure.keys()) and ((self.parent().structure["go_back"] == "False") or (
+                                    isinstance(self.parent().structure["go_back"], bool) and not self.parent().structure["go_back"]))):
                                 val_field.setDisabled(True)
                         self.edit_layout.addRow(QLabel(field), val_field)
-                        if type(val_field) != QHBoxLayout:
+                        if not isinstance(val_field, QHBoxLayout):
                             val_field.setToolTip(tooltips[field])
             elif (val.parent().data() is not None) and (val.parent().parent().data() is None):  # page
                 if self.parent().structure[val.data()]:
                     for k in page_fields:
                         val_field = None
-                        if k == "title" or k == "randomgroup" or k == "pupil_on_next":
+                        if k in ["title", "randomgroup", "pupil_on_next"]:
                             val_field = QLineEdit(self.parent().structure[val.data()][k] if k in self.parent().structure[val.data()] else "")
                             val_field.editingFinished.connect(self.edit_done)
                         elif k == "description":
@@ -764,12 +750,14 @@ class EditGui(QWidget):
                                         self.img_layout.addWidget(self.img_file)
                                 elif fields_per_type[question_data[k]][0][field] == "QPlainTextEdit":
                                     if field not in question_data.keys():
-                                        val_field = TextEdit("")
+                                        val_field = TextEdit()
+                                        val_field.setText("")
                                     else:
-                                        val_field = TextEdit(str(question_data[field]))
+                                        val_field = TextEdit()
+                                        val_field.setText(str(question_data[field]))
                                     val_field.editingFinished.connect(self.edit_done)
                                     if (field == "label") and ((question_data["labelled"] == "False") or (
-                                            type(question_data["labelled"]) is bool and not question_data["labelled"])):
+                                            isinstance(question_data["labelled"], bool) and not question_data["labelled"])):
                                         val_field.setDisabled(True)
                                 elif fields_per_type[question_data[k]][0][field] == "QComboBox":
                                     if field == "receiver":
@@ -815,14 +803,12 @@ class EditGui(QWidget):
                                             self.clear_layout(self.policy_layout)
                                             if question_data[field] == "free":
                                                 self.policy_layout.addWidget(QLabel("x_pos"))
-                                                ann_field = QLineEdit(str(question_data[
-                                                                              "x_pos"]) if "x_pos" in question_data.keys() else "")
+                                                ann_field = QLineEdit(str(question_data["x_pos"]) if "x_pos" in question_data.keys() else "")
                                                 ann_field.setObjectName("x_pos")
                                                 self.policy_layout.addWidget(ann_field)
                                                 ann_field.editingFinished.connect(self.edit_done)
                                                 self.policy_layout.addWidget(QLabel("y_pos"))
-                                                ann_field = QLineEdit(str(question_data[
-                                                                              "y_pos"]) if "y_pos" in question_data.keys() else "")
+                                                ann_field = QLineEdit(str(question_data["y_pos"]) if "y_pos" in question_data.keys() else "")
                                                 ann_field.setObjectName("y_pos")
                                                 self.policy_layout.addWidget(ann_field)
                                                 ann_field.editingFinished.connect(self.edit_done)
@@ -921,9 +907,9 @@ class EditGui(QWidget):
                                             bg.addButton(rb, cnt)
                                             bg.buttonClicked.connect(self.update_val)
                                             cnt += 1
-                                if type(val_field) != QHBoxLayout:
+                                if not isinstance(val_field, QHBoxLayout):
                                     val_field.setToolTip(tooltips[field])
-                                if field == "policy" or field == "annotation" or field == "recording_name" or field == "function" or field == "image_position":
+                                if field in ["policy", "annotation", "recording_name", "function", "image_position"]:
                                     self.edit_layout.addRow(QLabel(field), val_field)
                                     self.edit_layout.addRow(self.policy_layout)
                                 elif field == "password_file":
@@ -945,22 +931,20 @@ class EditGui(QWidget):
                 self.parent().undoaction.setEnabled(True)
                 self.parent().redo_stack.clear()
                 self.parent().redoaction.setEnabled(False)
-            if type(self.sender()) is QButtonGroup:
+            if isinstance(self.sender(), QButtonGroup):
                 lbl = self.sender().parent().parent().layout().labelForField(self.sender().parent().layout()).text()
                 new_val = self.sender().checkedId()
                 if lbl == "size":
                     if self.sender().checkedId():  # multiline
-                        pos = \
-                            self.sender().parent().parent().layout().getLayoutPosition(self.sender().parent().layout())[0] + 1
-                        self.sender().parent().parent().layout().itemAt(pos, 1).widget().setEnabled(False)
-                        self.sender().parent().parent().layout().itemAt(pos, 1).widget().setCurrentIndex(0)
+                        pos = self.sender().parent().parent().layout().getLayoutPosition(self.sender().parent().layout())[0] + 1
+                        self.sender().parent().parent().layout().itemAt(pos, QFormLayout.ItemRole.FieldRole).widget().setEnabled(False)
+                        self.sender().parent().parent().layout().itemAt(pos, QFormLayout.ItemRole.FieldRole).widget().setCurrentIndex(0)
                         self.clear_layout(self.policy_layout)
                     else:
-                        pos = \
-                            self.sender().parent().parent().layout().getLayoutPosition(self.sender().parent().layout())[0] + 1
-                        self.sender().parent().parent().layout().itemAt(pos, 1).widget().setEnabled(True)
+                        pos = self.sender().parent().parent().layout().getLayoutPosition(self.sender().parent().layout())[0] + 1
+                        self.sender().parent().parent().layout().itemAt(pos, QFormLayout.ItemRole.FieldRole).widget().setEnabled(True)
                         self.parent().structure[self.treeview.currentItem().parent().text(0)][self.treeview.currentItem().text(0)]["policy"] = \
-                            self.sender().parent().parent().layout().itemAt(pos, 1).widget().currentText()
+                            self.sender().parent().parent().layout().itemAt(pos, QFormLayout.ItemRole.FieldRole).widget().currentText()
                     self.parent().structure[self.treeview.currentItem().parent().text(0)][self.treeview.currentItem().text(0)]["policy"] = ["None"]
                     new_val += 1
                 elif lbl == "buttons":
@@ -968,17 +952,17 @@ class EditGui(QWidget):
                     for btn in self.sender().buttons():
                         if btn.isChecked():
                             new_val.append(player_buttons[self.sender().buttons().index(btn)])
-            elif type(self.sender().parent().layout()) != QVBoxLayout:
+            elif not isinstance(self.sender().parent().layout(), QVBoxLayout):
                 lbl = self.sender().parent().layout().labelForField(self.sender()).text()
-            if type(self.sender()) is QCheckBox:
-                if (lbl == "go_back") or (lbl == "labelled"):
+            if isinstance(self.sender(), QCheckBox):
+                if lbl in ["go_back", "labelled"]:
                     if new_val:
                         pos = self.sender().parent().layout().getWidgetPosition(self.sender())[0] + 1
-                        self.sender().parent().layout().itemAt(pos, 1).widget().setEnabled(True)
+                        self.sender().parent().layout().itemAt(pos, QFormLayout.ItemRole.FieldRole).widget().setEnabled(True)
                     else:
                         pos = self.sender().parent().layout().getWidgetPosition(self.sender())[0] + 1
-                        self.sender().parent().layout().itemAt(pos, 1).widget().setEnabled(False)
-            elif type(self.sender()) is QComboBox:
+                        self.sender().parent().layout().itemAt(pos, QFormLayout.ItemRole.FieldRole).widget().setEnabled(False)
+            elif isinstance(self.sender(), QComboBox):
                 if self.sender().objectName() == "receiver":
                     self.sender().parent().layout().itemAt(1).widget().layout().itemAt(1).widget().setEnabled(False)
                     self.sender().parent().layout().itemAt(1).widget().layout().itemAt(3).widget().setEnabled(False)
@@ -1079,12 +1063,12 @@ class EditGui(QWidget):
                     new_val = self.sender().currentText()
                     # add all needed fields for the new type, keep values of fields if already present
                     for field in fields_per_type[new_val][0].keys():
-                        if field in default_values.keys() and \
+                        if field in default_values and \
                                 field not in self.parent().structure[self.treeview.currentItem().parent().text(0)][self.treeview.currentItem().text(0)]:
                             self.parent().structure[self.treeview.currentItem().parent().text(0)][self.treeview.currentItem().text(0)][field] = default_values[field]
                     # remove no longer valid fields
                     for field in self.parent().structure[self.treeview.currentItem().parent().text(0)][self.treeview.currentItem().text(0)].keys():
-                        if field not in fields_per_type[new_val][0].keys():
+                        if field not in fields_per_type[new_val][0]:
                             self.parent().structure[self.treeview.currentItem().parent().text(0)][self.treeview.currentItem().text(0)].pop(field)
 
             # update the value just changed
@@ -1136,38 +1120,28 @@ class EditGui(QWidget):
                     new_val[1] = self.sender().text() if len(new_val) > 1 else new_val.append(self.sender().text())
             elif self.sender().objectName() == "anno":
                 new_val = self.sender().text()
-                self.parent().structure[self.treeview.currentItem().parent().text(0)][
-                    self.treeview.currentItem().text(0)]["annotation"] = new_val
+                self.parent().structure[self.treeview.currentItem().parent().text(0)][self.treeview.currentItem().text(0)]["annotation"] = new_val
             elif self.sender().objectName() == "rec":
                 new_val = self.sender().text()
-                self.parent().structure[self.treeview.currentItem().parent().text(0)][
-                    self.treeview.currentItem().text(0)]["recording_name"] = new_val
+                self.parent().structure[self.treeview.currentItem().parent().text(0)][self.treeview.currentItem().text(0)]["recording_name"] = new_val
             elif self.sender().objectName() == "x_pos":
                 new_val = self.sender().text()
-                self.parent().structure[self.treeview.currentItem().parent().text(0)][
-                    self.treeview.currentItem().text(0)]["x_pos"] = new_val
+                self.parent().structure[self.treeview.currentItem().parent().text(0)][self.treeview.currentItem().text(0)]["x_pos"] = new_val
             elif self.sender().objectName() == "y_pos":
                 new_val = self.sender().text()
-                self.parent().structure[self.treeview.currentItem().parent().text(0)][
-                    self.treeview.currentItem().text(0)]["y_pos"] = new_val
+                self.parent().structure[self.treeview.currentItem().parent().text(0)][self.treeview.currentItem().text(0)]["y_pos"] = new_val
             elif self.sender().objectName() == "rec_ip":
                 new_val = self.sender().text()
-                if len(self.parent().structure[self.treeview.currentItem().parent().text(0)][
-                    self.treeview.currentItem().text(0)]["receiver"]) > 0:
-                    self.parent().structure[self.treeview.currentItem().parent().text(0)][
-                        self.treeview.currentItem().text(0)]["receiver"][0] = new_val
+                if len(self.parent().structure[self.treeview.currentItem().parent().text(0)][self.treeview.currentItem().text(0)]["receiver"]) > 0:
+                    self.parent().structure[self.treeview.currentItem().parent().text(0)][self.treeview.currentItem().text(0)]["receiver"][0] = new_val
                 else:
-                    self.parent().structure[self.treeview.currentItem().parent().text(0)][
-                        self.treeview.currentItem().text(0)]["receiver"] = [new_val, ""]
+                    self.parent().structure[self.treeview.currentItem().parent().text(0)][self.treeview.currentItem().text(0)]["receiver"] = [new_val, ""]
             elif self.sender().objectName() == "rec_port":
                 new_val = self.sender().text()
-                if len(self.parent().structure[self.treeview.currentItem().parent().text(0)][
-                           self.treeview.currentItem().text(0)]["receiver"]) > 0:
-                    self.parent().structure[self.treeview.currentItem().parent().text(0)][
-                        self.treeview.currentItem().text(0)]["receiver"][1] = new_val
+                if len(self.parent().structure[self.treeview.currentItem().parent().text(0)][self.treeview.currentItem().text(0)]["receiver"]) > 0:
+                    self.parent().structure[self.treeview.currentItem().parent().text(0)][self.treeview.currentItem().text(0)]["receiver"][1] = new_val
                 else:
-                    self.parent().structure[self.treeview.currentItem().parent().text(0)][
-                        self.treeview.currentItem().text(0)]["receiver"] = ["", new_val]
+                    self.parent().structure[self.treeview.currentItem().parent().text(0)][self.treeview.currentItem().text(0)]["receiver"] = ["", new_val]
         if self.automatic_refresh.isChecked():
             self.load_preview()
 
@@ -1181,12 +1155,13 @@ class EditGui(QWidget):
             value of the button clicked (True if it is supposed to be updated)
         """
         msg = QMessageBox()
-        msg.setIcon(QMessageBox.Question)
-        msg.setText('The current value of "save_after" is "{}". Do you want to change it to the new page ({})?'.format(self.save_after.currentText(), new_page))
+        msg.setIcon(QMessageBox.Icon.Question)
+        msg.setText(f'The current value of "save_after" is "{self.save_after.currentText()}". Do you want to change it to the new page ({new_page})?')
         msg.setWindowFlags(Qt.CustomizeWindowHint)  # removes title bar
-        msg.addButton("Yes", QMessageBox.AcceptRole)
-        msg.addButton("No", QMessageBox.RejectRole)
-        retval = msg.exec_()
+        msg.addButton("Yes", QMessageBox.ButtonRole.AcceptRole)
+        msg.addButton("No", QMessageBox.ButtonRole.RejectRole)
+        msg.exec()
+        retval = msg.buttonRole(msg.clickedButton())
         return retval
 
     def clear_layout(self, layout):
@@ -1198,7 +1173,7 @@ class EditGui(QWidget):
             the layout to be cleared
         """
         while layout.count():
-            if type(layout) == QFormLayout:
+            if isinstance(layout, QFormLayout):
                 trr = layout.takeRow(0)
                 child = trr.fieldItem
                 lbl = trr.labelItem
@@ -1206,11 +1181,7 @@ class EditGui(QWidget):
                     lbl.widget().deleteLater()
             else:
                 child = layout.takeAt(0)
-            if child.widget() and (not child.widget() == self.questiontype) and \
-                    (not child.widget() == self.qss_filechooser) and (not child.widget() == self.qss_filename)\
-                    and (not child.widget() == self.pw_file) and (not child.widget() == self.save_after) and\
-                    (not child.widget() == self.img_file) and\
-                    (not child.widget() == self.rand_file) and (not child.widget() == self.rand_filechooser):
+            if child.widget() and child.widget() not in [self.questiontype, self.qss_filechooser, self.qss_filename, self.pw_file, self.save_after, self.img_file, self.rand_file, self.rand_filechooser]:
                 child.widget().deleteLater()
             elif child.widget() == self.questiontype:
                 self.questiontype.hide()
@@ -1303,7 +1274,7 @@ class EditGui(QWidget):
                 paste_quest.triggered.connect(lambda: self.paste(self.treeview.itemAt(position)))
                 menu.addAction(paste_quest)
             if menu is not None:
-                menu.exec_(self.treeview.viewport().mapToGlobal(position))
+                menu.exec(self.treeview.viewport().mapToGlobal(position))
 
     def copy(self, node, copy_type):
         """Copy a page or question.
@@ -1341,7 +1312,7 @@ class EditGui(QWidget):
         pasted = False
         before = copy.deepcopy(dict(self.parent().structure))
         if self.copied[0] is not None:
-            if item is None or type(item) is bool:
+            if item is None or isinstance(item, bool):
                 item = self.current_item
             if item is not None:
                 if (item.parent() is None and self.copied[1] != "page") or (item.parent() is not None and item.text(0) not in self.parent().structure.sections and self.copied[1] != "question"):
@@ -1372,10 +1343,10 @@ class EditGui(QWidget):
         data : configobj.Section, default=None
             not None when adding a page by copy+paste
         """
-        text, ok = QInputDialog.getText(self, "New page", "Name of the new page:", QLineEdit.Normal)
+        text, ok = QInputDialog.getText(self, "New page", "Name of the new page:", QLineEdit.EchoMode.Normal)
         if ok and text not in self.parent().structure.keys() and text != '':
             self.treeview.expandItem(self.treeview.itemAt(0, 0))
-            if data is None or type(data) != configobj.Section:
+            if data is None or not isinstance(data, configobj.Section):
                 self.parent().undo_stack.append(
                     copy.deepcopy(dict(self.parent().structure)))
                 self.parent().undoaction.setEnabled(True)
@@ -1390,7 +1361,7 @@ class EditGui(QWidget):
                     self.parent().structure["save_after"] = text
                 else:
                     new_val = self.change_save_after_message(text)
-                    if new_val == QMessageBox.AcceptRole:
+                    if new_val == QMessageBox.ButtonRole.AcceptRole:
                         self.parent().structure["save_after"] = text
             else:
                 page = QTreeWidgetItem(self.treeview.itemAt(0, 0), self.treeview.currentItem())
@@ -1404,19 +1375,18 @@ class EditGui(QWidget):
                 for quest in data.sections:
                     _ = QTreeWidgetItem(page, [quest])
                 new_val = self.change_save_after_message(text)
-                if new_val == QMessageBox.AcceptRole:
+                if new_val == QMessageBox.ButtonRole.AcceptRole:
                     self.parent().structure["save_after"] = text
                 self.update_structure()
             self.treeview.setCurrentItem(page)
             self.show_details(self.treeview.indexFromItem(page))
-            if self.automatic_refresh.isChecked() and (data is None or type(data) != configobj.Section):
+            if self.automatic_refresh.isChecked() and (data is None or not isinstance(data, configobj.Section)):
                 self.load_preview()
         elif text in self.parent().structure.keys():
             if text in general_fields:
-                self.set_status_message(
-                    "Cannot create page named {}. A general field is already named that.".format(text))
+                self.set_status_message(f'Cannot create page named {text}. A general field is already named that.')
             else:
-                self.set_status_message("Page {} already exists.".format(text))
+                self.set_status_message(f'Page {text} already exists.')
         else:
             self.set_status_message("Add page aborted.")
 
@@ -1430,7 +1400,7 @@ class EditGui(QWidget):
         data : configObj.Section, default=None
             not None when adding a page by copy+paste
         """
-        text, ok = QInputDialog.getText(self, "New question", "Name of the new question:", QLineEdit.Normal)
+        text, ok = QInputDialog.getText(self, "New question", "Name of the new question:", QLineEdit.EchoMode.Normal)
         if ok and text not in self.parent().structure[page.text(0)].keys() and text != '':
             self.treeview.expandItem(page)
             if data is None:
@@ -1440,13 +1410,13 @@ class EditGui(QWidget):
                 self.parent().redoaction.setEnabled(False)
                 self.parent().structure[page.text(0)][text] = {}
                 quest = QTreeWidgetItem(page, [text])
-                quest.setFlags(quest.flags() & ~Qt.ItemIsDropEnabled)
+                quest.setFlags(quest.flags() & ~Qt.ItemFlag.ItemIsDropEnabled)
                 new_question = {"type": "HLine"}
                 self.parent().structure[page.text(0)][text] = new_question
             else:
                 quest = QTreeWidgetItem(page, self.treeview.currentItem())
                 quest.setText(0, text)
-                quest.setFlags(quest.flags() & ~Qt.ItemIsDropEnabled)
+                quest.setFlags(quest.flags() & ~Qt.ItemFlag.ItemIsDropEnabled)
                 new_question = data.copy()
                 self.parent().structure[page.text(0)][text] = new_question  # data
                 self.update_structure()
@@ -1456,10 +1426,9 @@ class EditGui(QWidget):
                 self.load_preview()
         elif text in self.parent().structure[page.text(0)].keys():
             if text in page_fields:
-                self.set_status_message(
-                    "Cannot create question named {}. A general field is already named that.".format(text))
+                self.set_status_message(f'Cannot create question named {text}. A general field is already named that.')
             else:
-                self.set_status_message("Question {} already exists.".format(text))
+                self.set_status_message(f'Question {text} already exists.')
         else:
             self.set_status_message("Add question aborted.")
 
@@ -1478,7 +1447,7 @@ class EditGui(QWidget):
         self.parent().structure.pop(item.text(0))
         if "save_after" in self.parent().structure.keys() and self.parent().structure["save_after"] == item.text(0):
             self.parent().structure["save_after"] = None
-        sip.delete(item)  # delete AFTER last ref!
+        shiboken6.delete(item)  # delete AFTER last ref!
         self.treeview.clearSelection()
         self.current_item = None
         self.clear_layout(self.edit_layout)
@@ -1498,7 +1467,7 @@ class EditGui(QWidget):
         self.parent().redo_stack.clear()
         self.parent().redoaction.setEnabled(False)
         self.parent().structure[item.parent().text(0)].pop(item.text(0))
-        sip.delete(item)  # delete AFTER last ref!
+        shiboken6.delete(item)  # delete AFTER last ref!
         self.clear_layout(self.edit_layout)
         self.treeview.clearSelection()
         self.current_item = None
@@ -1513,7 +1482,7 @@ class EditGui(QWidget):
         item : QTreeWidgetItem
             the page to be renamed
         """
-        text, ok = QInputDialog.getText(self, "Rename page", "New name for the page:", QLineEdit.Normal)
+        text, ok = QInputDialog.getText(self, "Rename page", "New name for the page:", QLineEdit.EchoMode.Normal)
         if ok and text not in self.parent().structure.keys() and text != '':
             self.parent().undo_stack.append(copy.deepcopy(dict(self.parent().structure)))
             self.parent().undoaction.setEnabled(True)
@@ -1525,10 +1494,9 @@ class EditGui(QWidget):
             self.show_details(self.treeview.indexFromItem(item))
         elif text in self.parent().structure.keys():
             if text in general_fields:
-                self.set_status_message(
-                    "Cannot rename page to {}. A general field is already named that.".format(text))
+                self.set_status_message(f'Cannot rename page to {text}. A general field is already named that.')
             else:
-                self.set_status_message("Page {} already exists.".format(text))
+                self.set_status_message(f'Page {text} already exists.')
         else:
             self.set_status_message("Add page aborted.")
 
@@ -1540,7 +1508,7 @@ class EditGui(QWidget):
         item : QTreeWidgetItem
             the question to be renamed
         """
-        text, ok = QInputDialog.getText(self, "Rename question", "New name for the question:", QLineEdit.Normal)
+        text, ok = QInputDialog.getText(self, "Rename question", "New name for the question:", QLineEdit.EchoMode.Normal)
         if ok and text not in self.parent().structure[item.parent().text(0)].keys() and text != '':
             self.parent().undo_stack.append(copy.deepcopy(dict(self.parent().structure)))
             self.parent().undoaction.setEnabled(True)
@@ -1552,10 +1520,9 @@ class EditGui(QWidget):
             self.show_details(self.treeview.indexFromItem(item))
         elif text in self.parent().structure[item.parent().text(0)].keys():
             if text in page_fields:
-                self.set_status_message(
-                    "Cannot rename question to {}. A general field is already named that.".format(text))
+                self.set_status_message(f'Cannot rename question to {text}. A general field is already named that.')
             else:
-                self.set_status_message("Question {} already exists.".format(text))
+                self.set_status_message(f'Question {text} already exists.')
         else:
             self.set_status_message("Add question aborted.")
 
@@ -1585,12 +1552,12 @@ class EditGui(QWidget):
 
         if pages != self.parent().structure.sections:
             # TODO Testcases
-            for page_no in range(len(pages)):
+            for page_no, pg in enumerate(pages):
                 if page_no < len(self.parent().structure.sections):
-                    if pages[page_no] != self.parent().structure.sections[page_no]:
+                    if pg != self.parent().structure.sections[page_no]:
                         self.parent().structure.pop(self.parent().structure.sections[page_no])
                         while (page_no < len(self.parent().structure.sections)) and (
-                                pages[page_no] != self.parent().structure.sections[page_no]):
+                                pg != self.parent().structure.sections[page_no]):
                             self.parent().structure.pop(self.parent().structure.sections[page_no])
                 else:
                     break
@@ -1656,19 +1623,19 @@ class EditGui(QWidget):
                             else:
                                 # it's the question moved here, it's not been processed yet
                                 diff = []
-                                for other_page in range(len(self.parent().structure.sections)):
-                                    if len(self.parent().structure[self.parent().structure.sections[other_page]].sections) > len(questions[other_page]):
+                                for other_page, sec in enumerate(self.parent().structure.sections):
+                                    if len(self.parent().structure[sec].sections) > len(questions[other_page]):
                                         # find the page it's came from
-                                        diff = [self.parent().structure.sections[other_page]]
+                                        diff = [sec]
                                         # print("other page:", diff)
                                         # print(self.parent().structure[diff[0]])
                                         # print("sec", self.parent().structure[diff[0]].sections)
                                         # print("new quests",questions[other_page])
-                                        for other_sections in self.parent().structure[self.parent().structure.sections[other_page]].sections:
+                                        for other_sections in self.parent().structure[sec].sections:
                                             # print("e2", other_sections)
                                             if other_sections not in questions[other_page]:  # find the question removed
                                                 # print("diff found", other_sections)
-                                                diff.append(self.parent().structure[self.parent().structure.sections[other_page]][other_sections])
+                                                diff.append(self.parent().structure[sec][other_sections])
                                 # print("Adding", questions[page][quest_no], diff[1])
                                 self.parent().structure[pages[page]][questions[page][quest_no]] = diff[1]  # append here
                                 # print("New structure after adding:", self.parent().structure.sections, self.parent().structure[pages[page]].sections)
@@ -1680,4 +1647,4 @@ class EditGui(QWidget):
 if __name__ == '__main__':
     app = QApplication([])
     ex = QEditGuiMain()
-    app.exec_()
+    app.exec()

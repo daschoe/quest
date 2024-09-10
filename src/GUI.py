@@ -13,15 +13,16 @@ import threading
 import time
 
 import zmq
-from PyQt5.QtCore import Qt, QTimer
-from PyQt5.QtGui import QDoubleValidator
-from PyQt5.QtWidgets import QWidget, QPushButton, QLabel, QHBoxLayout, QVBoxLayout, QStackedWidget, QApplication, \
-    QMessageBox, QScrollArea, QButtonGroup, QCheckBox, QLineEdit, QPlainTextEdit, QSlider, QDesktopWidget, QSizePolicy
+from PySide6.QtCore import Qt, QTimer, Signal
+from PySide6.QtGui import QDoubleValidator, QGuiApplication
+from PySide6.QtWidgets import QWidget, QPushButton, QLabel, QHBoxLayout, QVBoxLayout, QStackedWidget, QApplication, \
+    QMessageBox, QScrollArea, QButtonGroup, QCheckBox, QLineEdit, QPlainTextEdit, QSlider, QSizePolicy
 from configobj import ConfigObj
 from ping3 import ping
 from pythonosc import udp_client, osc_server
 from pythonosc.dispatcher import Dispatcher
 
+from src.AnswerCheckBox import CheckBox
 from src.LabeledSlider import LabeledSlider
 from src.MUSHRA import MUSHRA
 from src.MessageBox import ResizeMessageBox
@@ -32,13 +33,13 @@ from src.PupilCoreButton import Button
 from src.RadioMatrix import RadioMatrix
 from src.Slider import Slider
 from src.Validator import listify, validate_questionnaire
-from src.Video import *
+from src.Video import madmapper, vlc
 from src.ABX import ABX
 from src.OSCButton import OSCButton
-from src.randomization import *
+from src.randomization import balanced_latin_squares, order_from_file
 
-TIMEOUT = 0.5  # TODO change this to your liking
-VERSION = "1.0.7"
+TIMEOUT = 1  # TODO timeout in seconds, change this to your liking (has to be int)
+VERSION = "1.1.0"
 
 
 class StackedWindowGui(QWidget):
@@ -75,7 +76,7 @@ class StackedWindowGui(QWidget):
         self.save_message = "Sind Sie bereit den Fragebogen zu beenden und somit Ihre Angaben zu speichern?"
         self.pagecount_text = "Seite {} von {}"
         self.filepath_results = './results/results.csv'
-        self.filepath_log = './results/log_{}_{}.txt'.format(self.get_participant_number(), datetime.datetime.now().strftime("%Y-%m-%d_%H-%M-%S"))
+        self.filepath_log = f'./results/log_{self.get_participant_number()}_{datetime.datetime.now().strftime("%Y-%m-%d_%H-%M-%S")}.txt'
         self.log = ''
         self.delimiter = ';'
         self.audio_ip = None
@@ -107,29 +108,29 @@ class StackedWindowGui(QWidget):
         self.osc_server = None
 
         if not os.path.isfile(file):
-            raise FileNotFoundError("File {} does not exist.".format(file))
+            raise FileNotFoundError(f"File {file} does not exist.")
         else:
-            print("Loading {}".format(file))
+            print(f"Loading {file}")
 
         structure = ConfigObj(file)  # reads the config file into a nested dict, this is all the magic
         error_found, warning_found, warning_det = validate_questionnaire(listify(structure), True)
         if not error_found:
-            ans_continue = QMessageBox.Yes
+            ans_continue = QMessageBox.StandardButton.Yes
             if warning_found and popup:
                 msg = ResizeMessageBox()
                 msg.setWindowTitle("Validation Result")
                 msg.setSizeGripEnabled(True)
-                msg.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Expanding)
-                msg.setIcon(QMessageBox.Warning)
+                msg.setSizePolicy(QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Expanding)
+                msg.setIcon(QMessageBox.Icon.Warning)
                 msg.setText("The validation detected incomplete info. Do you want to continue?")
                 warning_string = ""
                 for warn in warning_det:
                     warning_string += warn + "\n"
                 msg.setDetailedText(warning_string)
-                msg.setStandardButtons(QMessageBox.Yes | QMessageBox.No)
-                msg.setDefaultButton(QMessageBox.No)
-                ans_continue = msg.exec_()
-            if ans_continue == QMessageBox.Yes or not popup:
+                msg.setStandardButtons(QMessageBox.StandardButton.Yes | QMessageBox.StandardButton.No)
+                msg.setDefaultButton(QMessageBox.StandardButton.No)
+                ans_continue = msg.exec()
+            if ans_continue == QMessageBox.StandardButton.Yes or not popup:
                 for key in structure:
                     #  Style properties
                     if key == "stylesheet":
@@ -215,10 +216,10 @@ class StackedWindowGui(QWidget):
                         msg = QMessageBox()
                         msg.setWindowTitle(self.connection_lost_title)
                         msg.setSizeGripEnabled(True)
-                        msg.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Expanding)
-                        msg.setIcon(QMessageBox.Information)
-                        msg.setText("No connection to {}.".format(self.help_ip))
-                        msg.exec_()
+                        msg.setSizePolicy(QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Expanding)
+                        msg.setIcon(QMessageBox.Icon.Information)
+                        msg.setText(f"No connection to {self.help_ip}.")
+                        msg.exec()
                 else:
                     self.help_client = None
                 if self.popup and not self.preview and self.global_osc_ip is not None and self.global_osc_send_port is not None:
@@ -226,12 +227,10 @@ class StackedWindowGui(QWidget):
                 else:
                     self.global_osc_client = None
                 if self.popup and not self.preview and self.global_osc_ip is not None and self.global_osc_recv_port is not None:
-                    #self.global_osc_client = udp_client.SimpleUDPClient(self.global_osc_ip, self.global_osc_send_port)
                     self.global_osc_server_thread = threading.Thread(target=self.osc_listener_default, args=[self.global_osc_recv_port])
                     self.global_osc_server_thread.daemon = True
                     self.global_osc_server_thread.start()
                 else:
-                    #self.global_osc_client = None
                     self.global_osc_server_thread = None
                 no_zmq_connection = False
                 if popup and not self.preview and self.pupil_ip is not None and self.pupil_port is not None:
@@ -239,7 +238,7 @@ class StackedWindowGui(QWidget):
                     self.pupil_remote = zmq.Socket(self.ctx, zmq.REQ)
                     self.pupil_remote.setsockopt(zmq.RCVTIMEO, 2000)
                     self.pupil_remote.connect('tcp://' + self.pupil_ip + ':' + self.pupil_port)
-                    print("Connect to pupil "+'tcp://' + self.pupil_ip + ':' + self.pupil_port)
+                    print("Connect to pupil " + 'tcp://' + self.pupil_ip + ':' + self.pupil_port)
                     self.pupil_remote.send_string("v")
                     retries_left = 3
                     success = False
@@ -255,9 +254,9 @@ class StackedWindowGui(QWidget):
                             if retries_left == 0 and self.popup:
                                 msg = QMessageBox()
                                 msg.setWindowTitle("Error")
-                                msg.setIcon(QMessageBox.Critical)
+                                msg.setIcon(QMessageBox.Icon.Critical)
                                 msg.setText("No connection with Pupil Capture possible!")
-                                msg.exec_()
+                                msg.exec()
                                 no_zmq_connection = True
                             if not no_zmq_connection:
                                 self.pupil_remote = zmq.Socket(self.ctx, zmq.REQ)
@@ -279,12 +278,12 @@ class StackedWindowGui(QWidget):
                     else:
                         self.audio_client = None
                         self.audio_server_thread = None
-                    self.filepath_log = '{}/log_{}_{}.txt'.format(self.filepath_results.rsplit("/", 1)[0], self.get_participant_number(), datetime.datetime.now().strftime("%Y-%m-%d_%H-%M-%S"))
+                    self.filepath_log = f'{self.filepath_results.rsplit("/", 1)[0]}/log_{self.get_participant_number()}_{datetime.datetime.now().strftime("%Y-%m-%d_%H-%M-%S")}.txt'
                     if popup and not self.preview:
                         print(self.filepath_log)
 
                     if not os.path.isfile(stylesheet):
-                        raise FileNotFoundError("File {} does not exist.".format(stylesheet))
+                        raise FileNotFoundError(f"File {stylesheet} does not exist.")
                     else:
                         with open(stylesheet, 'r') as css_file:
                             self.css_data = css_file.read().replace('\n', '')
@@ -294,7 +293,7 @@ class StackedWindowGui(QWidget):
                     self.saved = False
 
                     self.start = datetime.datetime.now()
-                    self.log = "{} - Started GUI".format(self.start.replace(microsecond=0).__str__())
+                    self.log = f"{str(self.start.replace(microsecond=0))} - Started GUI"
 
                     self.Stack = QStackedWidget(self)
                     self.random_groups = []
@@ -358,8 +357,8 @@ class StackedWindowGui(QWidget):
                             for o in order:
                                 self.Stack.addWidget(random_pages[o - 1])
                     elif len(random_pages) > 0 and not popup:
-                        for page in range(len(random_pages)):
-                            self.Stack.addWidget(random_pages[page])
+                        for _, page in enumerate(random_pages):
+                            self.Stack.addWidget(page)
 
                     self.Stack.currentChanged[int].connect(self.on_current_changed)
 
@@ -383,7 +382,7 @@ class StackedWindowGui(QWidget):
                     if self.help_client is not None and self.help_text is not None:
                         self.help_button = QPushButton(self.help_text)
                         self.help_button.clicked.connect(lambda: self.help_client.send_message("/help_request", ""))
-                        self.help_button.clicked.connect(self.__click_animation)
+                        self.help_button.clicked.connect(lambda: self.__click_animation(self.help_button))
                         self.navigation.addWidget(self.help_button)
                         self.navigation.addStretch()
                     elif (self.preview or not self.popup) and self.help_ip is not None and self.help_port is not None and self.help_text is not None:
@@ -412,10 +411,10 @@ class StackedWindowGui(QWidget):
                     self.setLayout(outerlayout)
                     if self.popup and not self.preview:
                         self.showFullScreen()
-                        if self.width() <= QDesktopWidget().availableGeometry().width():
-                            scroll.setHorizontalScrollBarPolicy(Qt.ScrollBarAlwaysOff)
-                        if self.height() <= QDesktopWidget().availableGeometry().height():
-                            scroll.setVerticalScrollBarPolicy(Qt.ScrollBarAlwaysOff)
+                        if self.width() <= QGuiApplication.primaryScreen().availableGeometry().width():
+                            scroll.setHorizontalScrollBarPolicy(Qt.ScrollBarPolicy.ScrollBarAlwaysOff)
+                        if self.height() <= QGuiApplication.primaryScreen().availableGeometry().height():
+                            scroll.setVerticalScrollBarPolicy(Qt.ScrollBarPolicy.ScrollBarAlwaysOff)
                         self.show()
                         self.on_current_changed(0)
                     else:
@@ -426,10 +425,10 @@ class StackedWindowGui(QWidget):
                                 self.disconnect_all(p.layout())
                         if self.preview and self.popup:
                             self.showFullScreen()
-                            if self.width() <= QDesktopWidget().availableGeometry().width():
-                                scroll.setHorizontalScrollBarPolicy(Qt.ScrollBarAlwaysOff)
-                            if self.height() <= QDesktopWidget().availableGeometry().height():
-                                scroll.setVerticalScrollBarPolicy(Qt.ScrollBarAlwaysOff)
+                            if self.width() <= QGuiApplication.primaryScreen().availableGeometry().width():
+                                scroll.setHorizontalScrollBarPolicy(Qt.ScrollBarPolicy.ScrollBarAlwaysOff)
+                            if self.height() <= QGuiApplication.primaryScreen().availableGeometry().height():
+                                scroll.setVerticalScrollBarPolicy(Qt.ScrollBarPolicy.ScrollBarAlwaysOff)
                             self.show()
 
     def osc_listener_reaper(self, port):
@@ -441,7 +440,7 @@ class StackedWindowGui(QWidget):
                 the port to listen on
         """
         ip = socket.gethostbyname(socket.gethostname())
-        print("Listening on {}:{}".format(ip, port))
+        print(f"Listening on {ip}:{port}")
         dispatcher = Dispatcher()
         dispatcher.set_default_handler(self.play_state)
         self.reaper_server = osc_server.OSCUDPServer((ip, port), dispatcher)
@@ -456,27 +455,27 @@ class StackedWindowGui(QWidget):
                 the port to listen on
         """
         ip = socket.gethostbyname(socket.gethostname())
-        print("Listening on {}:{}".format(ip, port))
+        print(f"Listening on {ip}:{port}")
         dispatcher = Dispatcher()
         dispatcher.set_default_handler(self.osc_reply)  # Funktion, die ausgeführt wird
         self.osc_server = osc_server.OSCUDPServer((ip, port), dispatcher)
         self.osc_server.serve_forever()
 
-    def osc_reply(self, address, args):
+    def osc_reply(self, address, osc_args):
         """Monitor the incoming OSC messages from the default OSC listener.
 
             Parameters
             ----------
             address : string
                 OSC address of the message
-            args : tuple
+            osc_args : tuple
                 value(s) of the message
         """
-        print("Received", args)
-        self.global_osc_message = args
-        self.log += "\n{} - Received {} from global OSC".format(datetime.datetime.now().replace(microsecond=0).__str__(), self.global_osc_message)
+        print("Received", osc_args, " from ", address)
+        self.global_osc_message = osc_args
+        self.log += f"\n{str(datetime.datetime.now().replace(microsecond=0))} - Received {self.global_osc_message} from global OSC"
 
-    def play_state(self, address, args):
+    def play_state(self, address, reap_args):
         """ Monitor the play state given by Reaper.
             Reaper will ping back any of the commands with either 0.0 or 1.0.
 
@@ -484,26 +483,25 @@ class StackedWindowGui(QWidget):
             ----------
             address : string
                 OSC address of the message
-            args : tuple
+            reap_args : tuple
                 value(s) of the message
         """
         if address in ["/play", "/pause", "/stop"]:
-            if address == "/play" and args[0] == 1.0:
+            if address == "/play" and reap_args[0] == 1.0:
                 self.global_play_state = "PLAY"
-            elif address == "/pause" and args[0] == 1.0:
+            elif address == "/pause" and reap_args[0] == 1.0:
                 self.global_play_state = "PAUSE"
-            elif address == "/stop" and args[0] == 1.0:
+            elif address == "/stop" and reap_args[0] == 1.0:
                 self.global_play_state = "STOP"
                 if not self.stop_initiated:
                     for player in self.Stack.currentWidget().players:
-                        if player.playing and ((type(player) is Player and (player.timer is None or player.timer.remainingTime() == 0)) or type(player) is MUSHRA):
+                        if player.playing and ((isinstance(player, Player) and (player.timer is None or player.timer.remainingTime() == 0)) or isinstance(player, MUSHRA)):
                             player.stop_button.setEnabled(False)
                             player.playing = False
                 else:
                     self.stop_initiated = False
         elif address.find("/track/") > -1 and int(address.split("/")[2]) > self.audio_tracks:
             self.audio_tracks = address.split("/")[2]
-            print("Changed audio_tracks to", self.audio_tracks)
 
     def disconnect_all(self, layout):
         """ Disconnect all widgets from their function for preview.
@@ -517,11 +515,17 @@ class StackedWindowGui(QWidget):
             child = layout.itemAt(i)
             if child.widget():
                 try:
-                    if type(child.widget()) == LabeledSlider:
-                        child.widget().sl.disconnect()
-                    if type(child.widget()) == Button:
-                        child.widget().button.disconnect()
-                    child.widget().disconnect()
+                    if isinstance(child.widget(), LabeledSlider):
+                        child.widget().sl.valueChanged.disconnect()
+                    if isinstance(child.widget(), Slider):
+                        child.widget().valueChanged.disconnect()
+                        if child.widget().receivers(Signal("mushra_stopped(str)")) > 0:
+                            child.widget().mushra_stopped.disconnect()
+                    if isinstance(child.widget(), Button):
+                        child.widget().button.clicked.disconnect()
+                    if isinstance(child.widget(), CheckBox):
+                        child.widget().toggled.disconnect()
+                    # child.widget().clicked.disconnect()
                 except TypeError:
                     pass
             if child.layout() is not None:
@@ -529,14 +533,14 @@ class StackedWindowGui(QWidget):
 
     def disconnect_nav(self):
         """Disconnect the navigation."""
-        self.forwardbutton.disconnect()
+        self.forwardbutton.clicked.disconnect()
         if self.go_back:
-            self.backbutton.disconnect()
+            self.backbutton.clicked.disconnect()
         if self.help_client is not None:
-            self.help_button.disconnect()
+            self.help_button.clicked.disconnect()
 
-    def __click_animation(self):
-        __btn = self.sender()
+    def __click_animation(self, btn):
+        __btn = btn
         __btn.setDown(True)
         QTimer.singleShot(self.button_fade, lambda: __btn.setDown(False))
 
@@ -550,34 +554,31 @@ class StackedWindowGui(QWidget):
         - When a player has a timer and didn't finish running, don't go to the next page
         """
         for player in self.Stack.currentWidget().players:  # stop current player
-            if player.playing and ((type(player) is Player and (player.timer is None or player.timer.remainingTime() == 0)) or type(player) is MUSHRA):
+            if player.playing and ((isinstance(player, Player) and (player.timer is None or player.timer.remainingTime() == 0)) or isinstance(player, MUSHRA)):
                 player.stop()
-                if type(player) is MUSHRA:
+                if isinstance(player, MUSHRA):
                     self.audio_client.send_message("/action", MUSHRA.unsolo_all)
         # check for required questions
         not_all_answered = False
         for quest in self.Stack.currentWidget().required.keys():
             if self.Stack.currentWidget().required[quest][0]:
                 ans = self.Stack.currentWidget().evaluationvars[quest]
-                if ((type(ans) is QButtonGroup) and (ans.checkedId() == -1)) or \
-                        ((type(ans) is QCheckBox) and not ans.isChecked()) or \
-                        ((type(ans) is QLineEdit or type(ans) is PasswordEntry) and (len(ans.text()) == 0)) or \
-                        ((type(ans) is QPlainTextEdit) and (len(ans.toPlainText()) == 0)) or \
-                        (((type(ans) is Slider) or (type(ans) is LabeledSlider)) and (ans.value() == ans.start) and not ans.get_moved()) or \
-                        ((type(ans) is list) and (len(ans) == 0)
-                         and not self.Stack.currentWidget().required[quest][3]) or \
-                        ((type(ans) is list) and (type(ans[0]) is list) and (0 in (len(x) for x in ans))
-                         and not self.Stack.currentWidget().required[quest][3]) or \
-                        ((type(ans) is bool) and not ans) or \
-                        (type(ans) is ABX and ([] in self.Stack.currentWidget().required[quest][3] or ans.answer.checkedId() == -1) or \
-                         (type(ans) is RadioMatrix) and (-1 in [bg.checkedId() for bg in ans.buttongroups])) or \
-                        ((type(ans) is OSCButton or type(ans) is Button) and not ans.used):
+                if (isinstance(ans, QButtonGroup) and (ans.checkedId() == -1)) or \
+                    (isinstance(ans, QCheckBox) and not ans.isChecked()) or \
+                    (isinstance(ans, (QLineEdit, PasswordEntry)) and (len(ans.text()) == 0)) or \
+                    (isinstance(ans, QPlainTextEdit) and (len(ans.toPlainText()) == 0)) or \
+                    (isinstance(ans, (Slider, LabeledSlider)) and (ans.value() == ans.start) and not ans.get_moved()) or \
+                    (isinstance(ans, list) and (len(ans) == 0) and not self.Stack.currentWidget().required[quest][3]) or \
+                    (isinstance(ans, list) and (isinstance(ans[0], list)) and (0 in (len(x) for x in ans)) and not self.Stack.currentWidget().required[quest][3]) or \
+                    (isinstance(ans, bool) and not ans) or \
+                    (isinstance(ans, ABX) and ([] in self.Stack.currentWidget().required[quest][3] or ans.answer.checkedId() == -1)) or \
+                    (isinstance(ans, RadioMatrix) and (-1 in [bg.checkedId() for bg in ans.buttongroups])) or \
+                    (isinstance(ans, (OSCButton, Button)) and not ans.used):
                     not_all_answered = True
-                    if (type(self.Stack.currentWidget().required[quest][1]) is QLabel) or \
-                            (type(self.Stack.currentWidget().required[quest][1]) is QPushButton):
+                    if isinstance(self.Stack.currentWidget().required[quest][1], (QLabel, QPushButton)):
                         self.Stack.currentWidget().required[quest][1].setObjectName("required")
                         self.Stack.currentWidget().required[quest][1].setStyleSheet(self.css_data)
-                    elif type(ans) is ABX:
+                    elif isinstance(ans, ABX):
                         if ans.answer.checkedId() == -1:
                             ans.label.setObjectName("required")
                         else:
@@ -606,36 +607,33 @@ class StackedWindowGui(QWidget):
                         ans.label.setStyleSheet(self.css_data)
                         self.Stack.currentWidget().required[quest][1][0].play_button.setStyleSheet(self.css_data)
                         self.Stack.currentWidget().required[quest][1][1].play_button.setStyleSheet(self.css_data)
-                    elif type(ans) is RadioMatrix:
+                    elif isinstance(ans, RadioMatrix):
                         for q in range(0, len(ans.questions)):
-                            not_answered = False
                             if ans.buttongroups[q].checkedId() == -1:
                                 self.Stack.currentWidget().required[quest][1][q].setObjectName("required")
-                                self.Stack.currentWidget().required[quest][1][q].setStyleSheet(self.css_data)
                             else:
                                 self.Stack.currentWidget().required[quest][1][q].setObjectName(
                                     str() if self.Stack.currentWidget().required[quest][2] is None else
                                     self.Stack.currentWidget().required[quest][2])
-                                self.Stack.currentWidget().required[quest][1][q].setStyleSheet(self.css_data)
+                            self.Stack.currentWidget().required[quest][1][q].setStyleSheet(self.css_data)
                     else:  # MUSHRA
                         for b in range(0, len(self.Stack.currentWidget().required[quest][1])):
                             if len(ans[b]) < 1:
                                 self.Stack.currentWidget().required[quest][1][b].setObjectName("required")
-                                self.Stack.currentWidget().required[quest][1][b].setStyleSheet(self.css_data)
                             else:
                                 self.Stack.currentWidget().required[quest][1][b].setObjectName(str() if self.Stack.currentWidget().required[quest][2] is None else self.Stack.currentWidget().required[quest][2])
-                                self.Stack.currentWidget().required[quest][1][b].setStyleSheet(self.css_data)
+                            self.Stack.currentWidget().required[quest][1][b].setStyleSheet(self.css_data)
                 else:
-                    if type(self.Stack.currentWidget().required[quest][1]) is QLabel:
+                    if isinstance(self.Stack.currentWidget().required[quest][1], QLabel):
                         if len(self.Stack.currentWidget().required[quest]) <= 2:
                             self.Stack.currentWidget().required[quest][1].setObjectName(str())
                         else:
                             self.Stack.currentWidget().required[quest][1].setObjectName(str() if self.Stack.currentWidget().required[quest][2] is None else self.Stack.currentWidget().required[quest][2])
                         self.Stack.currentWidget().required[quest][1].setStyleSheet(self.css_data)
-                    elif type(self.Stack.currentWidget().required[quest][1]) is QPushButton:
+                    elif isinstance(self.Stack.currentWidget().required[quest][1], QPushButton):
                         self.Stack.currentWidget().required[quest][1].setObjectName(str() if self.Stack.currentWidget().required[quest][2] is None else self.Stack.currentWidget().required[quest][2])
                         self.Stack.currentWidget().required[quest][1].setStyleSheet(self.css_data)
-                    elif type(ans) is ABX:
+                    elif isinstance(ans, ABX):
                         if ans.answer.checkedId() != -1:
                             ans.label.setObjectName(str() if self.Stack.currentWidget().required[quest][2] is None else self.Stack.currentWidget().required[quest][2])
                             ans.label.setStyleSheet(self.css_data)
@@ -648,7 +646,7 @@ class StackedWindowGui(QWidget):
                         if ans.x_button is not None and len(ans.x_button.duration) >= 1:
                             self.Stack.currentWidget().required[quest][1][2].play_button.setObjectName(str() if self.Stack.currentWidget().required[quest][2] is None else self.Stack.currentWidget().required[quest][2])
                             self.Stack.currentWidget().required[quest][1][2].play_button.setStyleSheet(self.css_data)
-                    elif type(ans) is RadioMatrix:
+                    elif isinstance(ans, RadioMatrix):
                         for q in range(0, len(ans.questions)):
                             if ans.buttongroups[q].checkedId() != -1:
                                 self.Stack.currentWidget().required[quest][1][q].setObjectName(
@@ -663,10 +661,10 @@ class StackedWindowGui(QWidget):
         timer_running = False
         pw_valid = True
         for child in self.Stack.currentWidget().children():
-            if type(child) is PasswordEntry:
+            if isinstance(child, PasswordEntry):
                 pw_valid = child.validate()
                 child.setStyleSheet(self.css_data)
-            elif type(child) is Player:
+            elif isinstance(child, Player):
                 if child.timer is not None and child.countdown > 0:
                     timer_running = True
         if not not_all_answered and pw_valid and not timer_running:
@@ -677,20 +675,20 @@ class StackedWindowGui(QWidget):
                 self.Stack.currentWidget().set_osc_message(self.global_osc_message)
             i = self.Stack.currentIndex() + 1
             if i + 1 <= self.Stack.count():
-                self.log += "\n{} - Changed to Page {}".format(datetime.datetime.now().replace(microsecond=0).__str__(), i + 1)
+                self.log += f'\n{str(datetime.datetime.now().replace(microsecond=0))} - Changed to Page {i + 1}'
             if self.go_back and (i == 1) and (self.Stack.count() > 1) and not self.saved:  # enable going back at page 2
                 self.backbutton.setEnabled(True)
-            if i == self.sections.index(self.save_after)+1:
+            if i == self.sections.index(self.save_after) + 1:
                 answer = self.continue_message()
-                if answer == QMessageBox.AcceptRole:
+                if answer in [QMessageBox.ButtonRole.YesRole, QMessageBox.ButtonRole.AcceptRole]:
                     if self.video_client is not None:
-                        self.video_client.send_message(self.video_player_commands['blue_screen'][0] if 'blue_screen' in self.video_player_commands.keys() else self.video_player_commands["stop"][0],
-                                                       self.video_player_commands['blue_screen'][1] if 'blue_screen' in self.video_player_commands.keys() else self.video_player_commands["stop"][1])
+                        self.video_client.send_message(self.video_player_commands['blue_screen'][0] if 'blue_screen' in self.video_player_commands else self.video_player_commands["stop"][0],
+                                                       self.video_player_commands['blue_screen'][1] if 'blue_screen' in self.video_player_commands else self.video_player_commands["stop"][1])
                     if not self.preview:
                         self.collect_and_save_data()
                     self.saved = True
                     self.Stack.setCurrentIndex(i)
-                    if self.Stack.currentIndex() == self.Stack.count()-1:
+                    if self.Stack.currentIndex() == self.Stack.count() - 1:
                         self.forwardbutton.setEnabled(False)
                     else:
                         self.forwardbutton.setText(self.forward_text)
@@ -717,11 +715,11 @@ class StackedWindowGui(QWidget):
         Handling of the back button linking.
         """
         for player in self.Stack.currentWidget().players:
-            if player.playing and ((type(player) is Player and (player.timer is None or player.timer.remainingTime() == 0)) or type(player) is MUSHRA):
+            if player.playing and ((isinstance(player, Player) and (player.timer is None or player.timer.remainingTime() == 0)) or isinstance(player, MUSHRA)):
                 player.stop()
         self.forwardbutton.setText(self.forward_text)
         i = self.Stack.currentIndex() - 1
-        self.log += "\n{} - Changed to Page {}".format(datetime.datetime.now().replace(microsecond=0).__str__(), i + 1)
+        self.log += f'\n{str(datetime.datetime.now().replace(microsecond=0))} - Changed to Page {i + 1}'
         if i > 0:
             self.Stack.setCurrentIndex(i)
             self.forwardbutton.setEnabled(True)
@@ -746,19 +744,19 @@ class StackedWindowGui(QWidget):
             self.page_label = QLabel(self.pagecount_text, None)
         if not self.preview and (len(self.Stack.widget(self.prev_index).players) > 0) and (len(self.Stack.widget(index).players) == 0):
             if self.video_client is not None:
-                self.video_client.send_message(self.video_player_commands['black_screen'][0] if 'black_screen' in self.video_player_commands.keys() else self.video_player_commands["stop"][0],
-                                               self.video_player_commands['black_screen'][1] if 'black_screen' in self.video_player_commands.keys() else self.video_player_commands["stop"][1])
+                self.video_client.send_message(self.video_player_commands['black_screen'][0] if 'black_screen' in self.video_player_commands else self.video_player_commands["stop"][0],
+                                               self.video_player_commands['black_screen'][1] if 'black_screen' in self.video_player_commands else self.video_player_commands["stop"][1])
         self.prev_index = index
 
         for player in self.Stack.currentWidget().players:
-            if type(player) == Player and (player.buttons == [] or "Play" not in player.buttons) and not self.preview and self.popup:
+            if isinstance(player, Player) and (player.buttons == [] or "Play" not in player.buttons) and not self.preview and self.popup:
                 player.play()
 
         if self.help_client is not None:
             help_str = str(index + 1)
             if len(self.Stack.currentWidget().players) > 0:
                 for player in self.Stack.currentWidget().players:
-                    help_str += '\tmarker:'+str(player.start_cue if type(player) != MUSHRA else player.start_cues)+' track:'+str(player.track if type(player) != MUSHRA else player.tracks)
+                    help_str += f'\tmarker:{player.start_cue if not isinstance(player, MUSHRA) else player.start_cues} track:{player.track if not isinstance(player, MUSHRA) else player.tracks}'
             self.help_client.send_message("/page", help_str)
 
     def closeEvent(self, event):
@@ -787,13 +785,14 @@ class StackedWindowGui(QWidget):
             value of the button clicked (True if it is supposed to be saved)
         """
         msg = QMessageBox()
-        msg.setIcon(QMessageBox.Question)
+        msg.setIcon(QMessageBox.Icon.Question)
         msg.setText(self.save_message)
         msg.setWindowFlags(Qt.CustomizeWindowHint)  # removes title bar
-        msg.addButton(self.answer_pos, QMessageBox.AcceptRole)
-        msg.addButton(self.answer_neg, QMessageBox.RejectRole)
+        msg.addButton(self.answer_pos, QMessageBox.ButtonRole.AcceptRole)
+        msg.addButton(self.answer_neg, QMessageBox.ButtonRole.RejectRole)
         msg.setStyleSheet(self.css_data)
-        retval = msg.exec_()
+        msg.exec()
+        retval = msg.buttonRole(msg.clickedButton())
         return retval
 
     def collect_and_save_data(self):
@@ -812,12 +811,12 @@ class StackedWindowGui(QWidget):
                 self.pupil_remote.recv_string()
             except zmq.ZMQError:
                 print("Couldn't connect with Pupil Capture!")
-                
+
         emoji_pattern = re.compile("["
-                                u"\U0001F600-\U0001F64F" # emoticons
-                                u"\U0001F300-\U0001F5FF" # symbols & pictographs
-                                u"\U0001F680-\U0001F6FF" # transport & map symbols
-                                u"\U0001F1E0-\U0001F1FF" # flags (iOS)
+                                u"\U0001F600-\U0001F64F"  # emoticons
+                                u"\U0001F300-\U0001F5FF"  # symbols & pictographs
+                                u"\U0001F680-\U0001F6FF"  # transport & map symbols
+                                u"\U0001F1E0-\U0001F1FF"  # flags (iOS)
                                 u"\U00002500-\U000027B0"
                                 u"\U000024C2-\U0001F251"
                                 u"\U0001f926-\U0001f937"
@@ -839,38 +838,38 @@ class StackedWindowGui(QWidget):
         for s in range(0, self.Stack.count()):
             if self.Stack.widget(s).evaluationvars is not None:
                 for qid, ans in self.Stack.widget(s).evaluationvars.items():
-                    if type(ans) is ABX:
+                    if isinstance(ans, ABX):
                         fields[qid + "_order"] = ans.order
                         fields[qid + "_answer"] = ans.answer.checkedId()
                         fields[qid + "_duration_A"] = ans.a_button.duration
                         fields[qid + "_duration_B"] = ans.b_button.duration
                         if ans.x_button is not None:
                             fields[qid + "_duration_X"] = ans.x_button.duration
-                    elif type(ans) is RadioMatrix:
-                        for pqid in range(len(ans.id_order)):
+                    elif isinstance(ans, RadioMatrix):
+                        for pqid, rmans in enumerate(ans.id_order):
                             if len(ans.questions) >= 10:
-                                fields[qid + "_{0:02d}".format(ans.id_order[pqid])] = ans.buttongroups[pqid].checkedId()
+                                fields[f'{qid}_{rmans:02d}'] = ans.buttongroups[pqid].checkedId()
                             else:
-                                fields[qid + "_{}".format(ans.id_order[pqid])] = ans.buttongroups[pqid].checkedId()
+                                fields[f'{qid}_{rmans}'] = ans.buttongroups[pqid].checkedId()
                         fields[qid + "_order"] = ans.id_order
                     else:
-                        if type(ans) is QButtonGroup:
+                        if isinstance(ans, QButtonGroup):
                             fields[qid] = ans.checkedId()
-                        elif type(ans) is QCheckBox:
+                        elif isinstance(ans, QCheckBox):
                             fields[qid] = ans.isChecked()
-                        elif type(ans) is QLineEdit or type(ans) is PasswordEntry:
-                            if type(ans.validator()) == QDoubleValidator:
+                        elif isinstance(ans, (QLineEdit, PasswordEntry)):
+                            if isinstance(ans.validator(), QDoubleValidator):
                                 ans.setText(ans.text().replace(",", "."))
                             fields[qid] = ans.text()
                             # remove any emojis
-                            fields[qid] = re.sub(emoji_pattern, '', fields[qid]) 
-                        elif type(ans) is QPlainTextEdit:
+                            fields[qid] = re.sub(emoji_pattern, '', fields[qid])
+                        elif isinstance(ans, QPlainTextEdit):
                             fields[qid] = ans.toPlainText().replace("\n", " ")
                             # remove any emojis
-                            fields[qid] = re.sub(emoji_pattern, '', fields[qid])  
-                        elif (type(ans) is Slider) or (type(ans) is LabeledSlider) or (type(ans) is QSlider):
+                            fields[qid] = re.sub(emoji_pattern, '', fields[qid])
+                        elif isinstance(ans, (Slider, LabeledSlider, QSlider)):
                             fields[qid] = ans.value()
-                        elif (type(ans) is Button) or type(ans) is OSCButton:
+                        elif isinstance(ans, (Button, OSCButton)):
                             fields[qid] = ans.used
                         else:
                             fields[qid] = ans
@@ -878,24 +877,24 @@ class StackedWindowGui(QWidget):
             fields["Order"] = []
             for rg in self.random_groups:
                 if not fields["data_row_number"] == -1:
-                    fields["Order"].append(balanced_latin_squares(rg)[(self.get_participant_number()-1) % len(balanced_latin_squares(rg))])
+                    fields["Order"].append(balanced_latin_squares(rg)[(self.get_participant_number() - 1) % len(balanced_latin_squares(rg))])
                 else:
                     fields["Order"] = "unknown"
         elif self.rand == "from file":
-            fields["Order"] = order_from_file(self.rand_file)[self.get_participant_number()-1]
+            fields["Order"] = order_from_file(self.rand_file)[self.get_participant_number() - 1]
 
         end = datetime.datetime.now()
-        self.log += "\n{} - Finished Questionnaire".format(end.replace(microsecond=0).__str__())
-        fields["Start"] = self.start.__str__()
-        fields["End"] = end.__str__()
+        self.log += f'\n{str(end.replace(microsecond=0))} - Finished Questionnaire'
+        fields["Start"] = str(self.start)
+        fields["End"] = str(end)
 
         path = self.filepath_log.rsplit("/", 1)
         if not os.path.exists(self.filepath_log):
             if path[0] != "." and path[0] != [".."]:
                 os.makedirs(path[0] + "/", exist_ok=True)
         # remove any emojis
-        self.log = re.sub(emoji_pattern, '', self.log)   
-        
+        self.log = re.sub(emoji_pattern, '', self.log)
+
         log_file = open(self.filepath_log, 'w')
         log_file.write(self.log)
         log_file.close()
@@ -908,20 +907,22 @@ class StackedWindowGui(QWidget):
                 writer = csv.writer(csvfile, delimiter=self.delimiter)
                 header = fields.keys()
                 writer.writerow(header)
-
+                print("wrote header")
+        print("resultsfile exists", os.path.exists(self.filepath_results))
+        time.sleep(5)
         try:
             headers = []
             with open(self.filepath_results, 'r', newline='', encoding='utf_8') as f:
                 d_reader = csv.DictReader(f, delimiter=self.delimiter)
                 headers = d_reader.fieldnames
-                print(headers)
+                # print("Header",headers)
             time.sleep(2)
             with open(self.filepath_results, "a", newline='', encoding='utf_8') as csvfile:
                 writer = csv.writer(csvfile, delimiter=self.delimiter)
                 row = []
-                print(headers)
-                for field in range(0, len(headers)):
-                    row.append(fields[headers[field]])
+                # print(headers)
+                for _, hfield in enumerate(headers):
+                    row.append(fields[hfield])
                 writer.writerow(row)
         except (PermissionError, KeyError):
             print("Can not access results file, saving backup!")
@@ -929,15 +930,15 @@ class StackedWindowGui(QWidget):
                 participant_number = self.get_participant_number()
             except PermissionError:  # file can't be read
                 participant_number = "unknown"
-            self.filepath_results = path[0]+"/"+str(participant_number)+"_backup_"+datetime.datetime.now().strftime("%Y-%m-%d_%H-%M-%S")+".csv"
-            print("Backup file: {}".format(self.filepath_results))
+            self.filepath_results = f'{path[0]}/{participant_number}_backup_{datetime.datetime.now().strftime("%Y-%m-%d_%H-%M-%S")}.csv'
+            print(f'Backup file: {self.filepath_results}')
             with open(self.filepath_results, "w+", newline='', encoding='utf_8') as csvfile:
                 writer = csv.writer(csvfile, delimiter=self.delimiter)
                 header = list(fields.keys())
                 writer.writerow(header)
                 row = []
-                for field in range(0, len(header)):
-                    row.append(fields[header[field]])
+                for _, hfield in enumerate(header):
+                    row.append(fields[hfield])
                 writer.writerow(row)
 
         print("DONE")
@@ -973,10 +974,10 @@ class StackedWindowGui(QWidget):
                 msg = QMessageBox()
                 msg.setWindowTitle(self.connection_lost_title)
                 msg.setSizeGripEnabled(True)
-                msg.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Expanding)
-                msg.setIcon(QMessageBox.Information)
+                msg.setSizePolicy(QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Expanding)
+                msg.setIcon(QMessageBox.Icon.Information)
                 msg.setText(self.connection_lost_text)
-                msg.exec_()
+                msg.exec()
         if self.video_ip is not None:
             host = self.video_ip
             response = ping(host, timeout=TIMEOUT)
@@ -986,10 +987,10 @@ class StackedWindowGui(QWidget):
                 msg = QMessageBox()
                 msg.setWindowTitle(self.connection_lost_title)
                 msg.setSizeGripEnabled(True)
-                msg.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Expanding)
-                msg.setIcon(QMessageBox.Information)
+                msg.setSizePolicy(QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Expanding)
+                msg.setIcon(QMessageBox.Icon.Information)
                 msg.setText(self.connection_lost_text)
-                msg.exec_()
+                msg.exec()
         if self.pupil_ip is not None:
             host = self.pupil_ip
             response = ping(host, timeout=TIMEOUT)
@@ -999,10 +1000,10 @@ class StackedWindowGui(QWidget):
                 msg = QMessageBox()
                 msg.setWindowTitle(self.connection_lost_title)
                 msg.setSizeGripEnabled(True)
-                msg.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Expanding)
-                msg.setIcon(QMessageBox.Information)
+                msg.setSizePolicy(QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Expanding)
+                msg.setIcon(QMessageBox.Icon.Information)
                 msg.setText(self.connection_lost_text)
-                msg.exec_()
+                msg.exec()
 
 
 if __name__ == '__main__':
@@ -1012,4 +1013,4 @@ if __name__ == '__main__':
 
     app = QApplication(sys.argv)
     ex = StackedWindowGui(args.file)
-    sys.exit(app.exec_())
+    sys.exit(app.exec())
