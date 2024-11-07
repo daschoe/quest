@@ -1347,7 +1347,6 @@ def validate_questionnaire(structure, suppress=False):
                 error_details.append(f'No value for question "{quest}" on page "{page}" was given.\n')
 
             if "receiver" in structure[page][quest].keys():
-                print("OSC Receiver: ", structure[page][quest]["receiver"])
                 if not isinstance(structure[page][quest]["receiver"], list) and not isinstance(structure[page][quest]["receiver"], tuple):
                     error_found = True
                     error_details.append(f'The receiver of question "{quest}" on page "{page}" needs to have the format (IP, Port).\n')

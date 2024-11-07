@@ -515,34 +515,18 @@ class StackedWindowGui(QWidget):
             child = layout.itemAt(i)
             if child.widget():
                 try:
-                    print(type(child.widget()))
                     if isinstance(child.widget(), LabeledSlider):
-                        print("disabeled LabeledSlider")
                         child.widget().sl.valueChanged.disconnect()
                     elif isinstance(child.widget(), Slider):
-                        print("disabeled Slider")
                         child.widget().valueChanged.disconnect()
                         if child.widget().receivers(Signal("mushra_stopped(str)")) > 0:
                             child.widget().mushra_stopped.disconnect()
                     if isinstance(child.widget(), (Button, OSCButton)):
-                        print("Disabeled Pupil or OSC Button")
                         child.widget().button.clicked.disconnect()
                     elif isinstance(child.widget(), CheckBox):
-                        print("disabeled CheckBox")
                         child.widget().toggled.disconnect()
                     if isinstance(child.widget(), QPushButton):
-                        print("disabeled PushButton", child.widget().text())
                         child.widget().clicked.disconnect()
-                    '''if isinstance(child.widget(), Player):
-                        print("disabeled Player")
-                        for btn in child.widget().buttons:
-                            if btn == "Play":
-                                child.widget().play_button.clicked.disconnect()
-                            elif btn == "Pause":
-                                child.widget().pause_button.clicked.disconnect()
-                            elif btn == "Stop":
-                                child.widget().stop_button.clicked.disconnect()
-                    '''
                     
                 except TypeError:
                     pass
