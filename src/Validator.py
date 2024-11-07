@@ -1120,9 +1120,13 @@ def validate_questionnaire(structure, suppress=False):
                         for sc in structure[page][quest]["start_cues"]:
                             if int(sc) != int(structure[page][quest]["start_cues"][0]):
                                 all_same_marker = False
-                        for ec in structure[page][quest]["end_cues"]:
-                            if int(ec) != int(structure[page][quest]["end_cues"][0]):
-                                all_same_marker = False
+                        if "end_cues" not in structure[page][quest].keys(): 
+                            error_found = True
+                            error_details.append(f'No end cues were given for question "{quest}" on page "{page}".\n')
+                        else:
+                            for ec in structure[page][quest]["end_cues"]:
+                                if int(ec) != int(structure[page][quest]["end_cues"][0]):
+                                    all_same_marker = False
                         if not all_same_marker:
                             error_found = True
                             error_details.append(f'Xfade is only applicable if all start- and end-markers are the same each in question "{quest}" on page "{page}".\n')
@@ -1343,6 +1347,7 @@ def validate_questionnaire(structure, suppress=False):
                 error_details.append(f'No value for question "{quest}" on page "{page}" was given.\n')
 
             if "receiver" in structure[page][quest].keys():
+                print("OSC Receiver: ", structure[page][quest]["receiver"])
                 if not isinstance(structure[page][quest]["receiver"], list) and not isinstance(structure[page][quest]["receiver"], tuple):
                     error_found = True
                     error_details.append(f'The receiver of question "{quest}" on page "{page}" needs to have the format (IP, Port).\n')
@@ -1358,8 +1363,12 @@ def validate_questionnaire(structure, suppress=False):
                     except ValueError:
                         error_found = True
                         error_details.append(f'Invalid receiver port in question "{quest}" on page "{page}", could not be converted to a number 0-65535.\n')
+                else:
+                    error_found = True
+                    error_details.append(f'The receiver of question "{quest}" on page "{page}" has not been given an IP and a port.\n')
             elif "type" in structure[page][quest].keys() and structure[page][quest]["type"] == "OSCButton" and \
                     "receiver" not in structure[page][quest].keys():
+                print("No OSC Receiver")
                 error_found = True
                 error_details.append(f'No receiver found for question "{quest}" on page "{page}".\n')
 

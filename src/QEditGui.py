@@ -762,6 +762,7 @@ class EditGui(QWidget):
                                 elif fields_per_type[question_data[k]][0][field] == "QComboBox":
                                     if field == "receiver":
                                         options = QComboBox()
+                                        setattr(options, "allItems", lambda: [options.itemText(i) for i in range(options.count())])
                                         options.setObjectName("receiver")
                                         options.addItems(["<new>"])
                                         if "audio_ip" in self.parent().structure.keys() and "audio_port" in self.parent().structure.keys():
@@ -772,7 +773,19 @@ class EditGui(QWidget):
                                             options.addItems(["video"])
                                         if "global_osc_ip" in self.parent().structure.keys() and "global_osc_send_port" in self.parent().structure.keys():
                                             options.addItems(["global osc"])
-                                        options.setCurrentIndex(0)
+                                        if "receiver" in question_data.keys() and len(question_data["receiver"]) > 0:
+                                            if "audio" in options.allItems() and str(question_data["receiver"][0]) == str(self.parent().structure["audio_ip"]) and str(question_data["receiver"][1]) == str(self.parent().structure["audio_port"]):
+                                                options.setCurrentIndex(options.allItems().index("audio"))
+                                            elif "help" in options.allItems() and str(question_data["receiver"][0]) == str(self.parent().structure["help_ip"]) and str(question_data["receiver"][1]) == str(self.parent().structure["help_port"]):
+                                                options.setCurrentIndex(options.allItems().index("help"))
+                                            elif "video" in options.allItems() and str(question_data["receiver"][0]) == str(self.parent().structure["video_ip"]) and str(question_data["receiver"][1]) == str(self.parent().structure["video_port"]):
+                                                options.setCurrentIndex(options.allItems().index("video"))
+                                            elif "global osc" in options.allItems() and str(question_data["receiver"][0]) == str(self.parent().structure["global_osc_ip"]) and str(question_data["receiver"][1]) == str(self.parent().structure["global_osc_send_port"]):
+                                                options.setCurrentIndex(options.allItems().index("global osc"))
+                                            else:
+                                                options.setCurrentIndex(0)
+                                        else:
+                                            options.setCurrentIndex(0)
                                         options.activated.connect(self.update_val)
                                         rec_layout_outer = QVBoxLayout()
                                         rec_layout_outer.addWidget(options)
@@ -780,6 +793,7 @@ class EditGui(QWidget):
                                         ip_field = QLineEdit(str(question_data["receiver"][0]) if "receiver" in question_data.keys() and len(question_data["receiver"]) > 0 else "")
                                         ip_field.setObjectName("rec_ip")
                                         ip_field.editingFinished.connect(self.edit_done)
+                                        
                                         port_lbl = QLabel("port:")
                                         port_field = QLineEdit(str(question_data["receiver"][1]) if "receiver" in question_data.keys() and len(question_data["receiver"]) > 0 else "")
                                         port_field.setObjectName("rec_port")
@@ -794,6 +808,9 @@ class EditGui(QWidget):
                                         rec_layout_outer.addWidget(ip_port)
                                         val_field = QWidget()
                                         val_field.setLayout(rec_layout_outer)
+                                        if options.currentText() != "<new>":
+                                            ip_field.setEnabled(False)
+                                            port_field.setEnabled(False)
                                     else:
                                         val_field = QComboBox()
                                         val_field.activated.connect(self.update_val)
@@ -964,8 +981,6 @@ class EditGui(QWidget):
                         self.sender().parent().layout().itemAt(pos, QFormLayout.ItemRole.FieldRole).widget().setEnabled(False)
             elif isinstance(self.sender(), QComboBox):
                 if self.sender().objectName() == "receiver":
-                    self.sender().parent().layout().itemAt(1).widget().layout().itemAt(1).widget().setEnabled(False)
-                    self.sender().parent().layout().itemAt(1).widget().layout().itemAt(3).widget().setEnabled(False)
                     if self.sender().currentText() == "<new>":
                         self.sender().parent().layout().itemAt(1).widget().layout().itemAt(1).widget().setText("")
                         self.sender().parent().layout().itemAt(1).widget().layout().itemAt(3).widget().setText("")
@@ -973,16 +988,24 @@ class EditGui(QWidget):
                         self.sender().parent().layout().itemAt(1).widget().layout().itemAt(3).widget().setEnabled(True)
                     elif self.sender().currentText() == "audio":
                         self.sender().parent().layout().itemAt(1).widget().layout().itemAt(1).widget().setText(self.parent().structure["audio_ip"])
+                        self.sender().parent().layout().itemAt(1).widget().layout().itemAt(1).widget().setEnabled(False)
                         self.sender().parent().layout().itemAt(1).widget().layout().itemAt(3).widget().setText(self.parent().structure["audio_port"])
+                        self.sender().parent().layout().itemAt(1).widget().layout().itemAt(3).widget().setEnabled(False)
                     elif self.sender().currentText() == "help":
                         self.sender().parent().layout().itemAt(1).widget().layout().itemAt(1).widget().setText(self.parent().structure["help_ip"])
+                        self.sender().parent().layout().itemAt(1).widget().layout().itemAt(1).widget().setEnabled(False)
                         self.sender().parent().layout().itemAt(1).widget().layout().itemAt(3).widget().setText(self.parent().structure["help_port"])
+                        self.sender().parent().layout().itemAt(1).widget().layout().itemAt(3).widget().setEnabled(False)
                     elif self.sender().currentText() == "video":
                         self.sender().parent().layout().itemAt(1).widget().layout().itemAt(1).widget().setText(self.parent().structure["video_ip"])
+                        self.sender().parent().layout().itemAt(1).widget().layout().itemAt(1).widget().setEnabled(False)
                         self.sender().parent().layout().itemAt(1).widget().layout().itemAt(3).widget().setText(self.parent().structure["video_port"])
+                        self.sender().parent().layout().itemAt(1).widget().layout().itemAt(3).widget().setEnabled(False)
                     elif self.sender().currentText() == "global osc":
                         self.sender().parent().layout().itemAt(1).widget().layout().itemAt(1).widget().setText(self.parent().structure["global_osc_ip"])
+                        self.sender().parent().layout().itemAt(1).widget().layout().itemAt(1).widget().setEnabled(False)
                         self.sender().parent().layout().itemAt(1).widget().layout().itemAt(3).widget().setText(self.parent().structure["global_osc_send_port"])
+                        self.sender().parent().layout().itemAt(1).widget().layout().itemAt(3).widget().setEnabled(False)
                     lbl = "receiver"
                     new_val = [self.sender().parent().layout().itemAt(1).widget().layout().itemAt(1).widget().text(), self.sender().parent().layout().itemAt(1).widget().layout().itemAt(3).widget().text()]
                 elif lbl == "policy":

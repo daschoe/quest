@@ -39,7 +39,7 @@ from src.OSCButton import OSCButton
 from src.randomization import balanced_latin_squares, order_from_file
 
 TIMEOUT = 1  # TODO timeout in seconds, change this to your liking (has to be int)
-VERSION = "1.1.0"
+VERSION = "1.1.1"
 
 
 class StackedWindowGui(QWidget):
@@ -487,11 +487,11 @@ class StackedWindowGui(QWidget):
                 value(s) of the message
         """
         if address in ["/play", "/pause", "/stop"]:
-            if address == "/play" and reap_args[0] == 1.0:
+            if address == "/play" and ((isinstance(reap_args, float) and (reap_args == 1.0)) or (isinstance(reap_args, tuple) and (reap_args[0] == 1.0))):
                 self.global_play_state = "PLAY"
-            elif address == "/pause" and reap_args[0] == 1.0:
+            elif address == "/pause" and ((isinstance(reap_args, float) and (reap_args == 1.0)) or (isinstance(reap_args, tuple) and (reap_args[0] == 1.0))):
                 self.global_play_state = "PAUSE"
-            elif address == "/stop" and reap_args[0] == 1.0:
+            elif address == "/stop" and ((isinstance(reap_args, float) and (reap_args == 1.0)) or (isinstance(reap_args, tuple) and (reap_args[0] == 1.0))):
                 self.global_play_state = "STOP"
                 if not self.stop_initiated:
                     for player in self.Stack.currentWidget().players:
@@ -500,7 +500,7 @@ class StackedWindowGui(QWidget):
                             player.playing = False
                 else:
                     self.stop_initiated = False
-        elif address.find("/track/") > -1 and int(address.split("/")[2]) > self.audio_tracks:
+        elif address.find("/track/") > -1 and int(address.split("/")[2]) > self.audio_tracks:  # not needed anymore?
             self.audio_tracks = address.split("/")[2]
 
     def disconnect_all(self, layout):
@@ -515,17 +515,35 @@ class StackedWindowGui(QWidget):
             child = layout.itemAt(i)
             if child.widget():
                 try:
+                    print(type(child.widget()))
                     if isinstance(child.widget(), LabeledSlider):
+                        print("disabeled LabeledSlider")
                         child.widget().sl.valueChanged.disconnect()
-                    if isinstance(child.widget(), Slider):
+                    elif isinstance(child.widget(), Slider):
+                        print("disabeled Slider")
                         child.widget().valueChanged.disconnect()
                         if child.widget().receivers(Signal("mushra_stopped(str)")) > 0:
                             child.widget().mushra_stopped.disconnect()
-                    if isinstance(child.widget(), Button):
+                    if isinstance(child.widget(), (Button, OSCButton)):
+                        print("Disabeled Pupil or OSC Button")
                         child.widget().button.clicked.disconnect()
-                    if isinstance(child.widget(), CheckBox):
+                    elif isinstance(child.widget(), CheckBox):
+                        print("disabeled CheckBox")
                         child.widget().toggled.disconnect()
-                    # child.widget().clicked.disconnect()
+                    if isinstance(child.widget(), QPushButton):
+                        print("disabeled PushButton", child.widget().text())
+                        child.widget().clicked.disconnect()
+                    '''if isinstance(child.widget(), Player):
+                        print("disabeled Player")
+                        for btn in child.widget().buttons:
+                            if btn == "Play":
+                                child.widget().play_button.clicked.disconnect()
+                            elif btn == "Pause":
+                                child.widget().pause_button.clicked.disconnect()
+                            elif btn == "Stop":
+                                child.widget().stop_button.clicked.disconnect()
+                    '''
+                    
                 except TypeError:
                     pass
             if child.layout() is not None:
