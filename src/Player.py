@@ -98,6 +98,9 @@ class Player(QWidget):
             for _, tra in enumerate(track):
                 tra = int(tra)
         self.track = track
+        if self.audio_tracks < max(self.track):
+            self.audio_tracks = max(self.track)
+            self.gui.audio_tracks = max(self.track)
         self.video = video
         self.start = 0
         self.end = 0
@@ -173,6 +176,8 @@ class Player(QWidget):
             else:
                 self.gui.page_log += f'\n\t{str(datetime.datetime.now().replace(microsecond=0))} - Unpaused Player {self.id}'
         else:
+            if self.audio_tracks != self.gui.audio_tracks:
+                self.audio_tracks = self.gui.audio_tracks
             for i in range(1, self.audio_tracks + 1):
                 if i in self.track:
                     self.audio_client.send_message(f'/track/{i}/mute', 0)
