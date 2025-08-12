@@ -15,11 +15,11 @@ from PySide6.QtWidgets import QApplication, QTreeWidgetItem, QWidget, QHBoxLayou
 from configobj import ConfigObj, ConfigObjError
 from fpdf import FPDF
 
-from src.GUI import StackedWindowGui, VERSION
-from src.TextEdit import TextEdit
-from src.Tree import Tree
-from src.Validator import validate_questionnaire, listify
-from src.tools import general_fields, default_values, tooltips, types, fields_per_type, video_player, randomize_options, page_fields, image_positions, policy_possibilities, player_buttons, function_possibilites
+from QUEST.GUI import StackedWindowGui, VERSION
+from QUEST.TextEdit import TextEdit
+from QUEST.Tree import Tree
+from QUEST.Validator import validate_questionnaire, listify
+from QUEST.tools import general_fields, default_values, tooltips, types, fields_per_type, video_player, randomize_options, page_fields, image_positions, policy_possibilities, player_buttons, function_possibilites
 
 
 class QEditGuiMain(QMainWindow):

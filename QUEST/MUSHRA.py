@@ -5,7 +5,7 @@ from time import time
 from PySide6.QtCore import Qt, QSignalMapper, QTimer
 from PySide6.QtWidgets import QWidget, QPushButton, QHBoxLayout, QVBoxLayout, QLabel, QSlider, QSizePolicy
 
-from src.Slider import Slider
+from QUEST.Slider import Slider
 
 
 class MUSHRA(QWidget):
@@ -42,7 +42,7 @@ class MUSHRA(QWidget):
     solo_track = 41558
     unsolo_all = 41185
 
-    def __init__(self, start_cues, end_cues, tracks, qid, allow_xfade=True, parent=None, objectname=None):
+    def __init__(self, start_cues, end_cues, tracks, qid, allow_xfade=True, hidden_reference=False, random_order=False, parent=None, objectname=None):
         """
             Create the layout.
 
@@ -58,6 +58,10 @@ class MUSHRA(QWidget):
                 id of the question
             allow_xfade : bool, default=True
                 if applicable allow a crossfade between stimuli if desired
+            hidden_reference : bool, default=False
+                if False, the reference will have an own button without a slider
+            random_order : bool, default=False
+                if True, the order of the stimuli will be randomized
             parent : QObject, optional
                 widget/layout this widget is embedded in
             objectname : str, optional
@@ -78,6 +82,9 @@ class MUSHRA(QWidget):
         if isinstance(tracks, str) and ("[" not in tracks and "]" not in tracks and "," not in tracks):
             tracks = [int(tracks)]
         self.tracks = tracks
+        if self.audio_tracks < max(self.track):
+            self.audio_tracks = max(self.track)
+            self.parent().parent().audio_tracks = max(self.track)
         self.start = 0
         self.end = 0
         self.looped = False
@@ -303,6 +310,8 @@ class MUSHRA(QWidget):
             btn: QPushButton, default=None
                 button which initiated play
         """
+        if self.audio_tracks != self.parent().parent().audio_tracks:
+            self.audio_tracks = self.parent().parent().audio_tracks
         for player in self.parent().players:
             if player.playing and (not player == self and not self.conditionsUseSameMarker or (self.conditionsUseSameMarker and not self.xfade.isChecked())):
                 player.stop()

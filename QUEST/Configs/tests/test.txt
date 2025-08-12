@@ -1,0 +1,37 @@
+# Created with QUEST version 1.0.6
+video_player = None
+pupil_ip = 127.0.0.1
+pupil_port = 9001
+go_back = False
+back_text = Zurück
+forward_text = Weiter
+send_text = Absenden
+answer_pos = Ja
+answer_neg = Nein
+save_message = Sind Sie bereit den Fragebogen zu beenden und somit Ihre Angaben zu speichern?
+pagecount_text = Seite {} von {}
+filepath_results = ./results/results.csv
+delimiter = ;
+stylesheet = ./stylesheets/minimal.qss
+button_fade = 100
+randomization = None
+save_after = 2
+[1]
+title = ""
+pupil_on_next = test
+[2]
+title = ""
+[[test]]
+type = Text
+id = t1
+text = dies ist ein Test
+size = 1
+policy = None,
+[[OSC]]
+type = OSCButton
+id = osc
+inscription = Bitte Drücken
+receiver = 127.0.0.1, 9001
+address = /reply
+required = True
+value = page complete

@@ -9,7 +9,7 @@ import zmq
 from PySide6.QtCore import QTimer
 from PySide6.QtGui import QDoubleValidator
 from PySide6.QtWidgets import QPushButton, QWidget, QHBoxLayout, QLineEdit, QPlainTextEdit
-from src.PasswordEntry import PasswordEntry
+from QUEST.PasswordEntry import PasswordEntry
 
 
 class Button(QWidget):

@@ -1,0 +1,45 @@
+# Created with QUEST version 1.1.0.
+video_player = None
+go_back = True
+back_text = Zurück
+forward_text = Weiter
+send_text = Absenden
+answer_pos = Ja
+answer_neg = Nein
+save_message = Sind Sie bereit den Fragebogen zu beenden und somit Ihre Angaben zu speichern?
+pagecount_text = Seite {} von {}
+filepath_results = ./results/results.csv
+delimiter = ;
+stylesheet = C:/Users/Administrator/Desktop/Daphne/GIT/quest/src/stylesheets/minimal.qss
+button_fade = 100
+randomization = None
+save_after = test
+[test]
+title = ""
+[[invfl]]
+type = Slider
+id = invertedfloat
+text = test inverted
+min = 9
+max = 4
+start = 6.5
+step = 0.5
+labelled = True
+[[inv]]
+type = Slider
+id = invertedint
+text = test inverted
+min = 0
+max = -5
+start = -2
+step = 1
+labelled = True
+[[slider]]
+type = Slider
+id = normal
+text = test normal
+min = 0
+max = 5
+start = 3
+step = 1
+labelled = True

@@ -22,21 +22,21 @@ from ping3 import ping
 from pythonosc import udp_client, osc_server
 from pythonosc.dispatcher import Dispatcher
 
-from src.AnswerCheckBox import CheckBox
-from src.LabeledSlider import LabeledSlider
-from src.MUSHRA import MUSHRA
-from src.MessageBox import ResizeMessageBox
-from src.Page import Page
-from src.PasswordEntry import PasswordEntry
-from src.Player import Player
-from src.PupilCoreButton import Button
-from src.RadioMatrix import RadioMatrix
-from src.Slider import Slider
-from src.Validator import listify, validate_questionnaire
-from src.Video import madmapper, vlc
-from src.ABX import ABX
-from src.OSCButton import OSCButton
-from src.randomization import balanced_latin_squares, order_from_file
+from QUEST.AnswerCheckBox import CheckBox
+from QUEST.LabeledSlider import LabeledSlider
+from QUEST.MUSHRA import MUSHRA
+from QUEST.MessageBox import ResizeMessageBox
+from QUEST.Page import Page
+from QUEST.PasswordEntry import PasswordEntry
+from QUEST.Player import Player
+from QUEST.PupilCoreButton import Button
+from QUEST.RadioMatrix import RadioMatrix
+from QUEST.Slider import Slider
+from QUEST.Validator import listify, validate_questionnaire
+from QUEST.Video import madmapper, vlc
+from QUEST.ABX import ABX
+from QUEST.OSCButton import OSCButton
+from QUEST.randomization import balanced_latin_squares, order_from_file
 
 TIMEOUT = 1  # TODO timeout in seconds, change this to your liking (has to be int)
 VERSION = "1.1.1"

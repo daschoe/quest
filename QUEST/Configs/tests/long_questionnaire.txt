@@ -1,0 +1,35 @@
+# Created with QUEST version 1.0.7
+video_player = None
+go_back = True
+back_text = Zurück
+forward_text = Weiter
+send_text = Absenden
+answer_pos = Ja
+answer_neg = Nein
+save_message = Sind Sie bereit den Fragebogen zu beenden und somit Ihre Angaben zu speichern?
+pagecount_text = Seite {} von {}
+filepath_results = ./results/results.csv
+delimiter = ;
+stylesheet = ./stylesheets/minimal.qss
+button_fade = 100
+randomization = None
+save_after = 1
+[0]
+title = ""
+[[c]]
+type = Plain Text
+text = test
+[1]
+title = ""
+[[1]]
+type = Image
+image_file = C:/Users/Administrator/Desktop/Daphne/GIT/quest/src/Images/v0.4_calib_marker_01.jpg
+image_position = top
+[[2]]
+type = Image
+image_file = C:/Users/Administrator/Desktop/Daphne/GIT/quest/src/Images/v0.4_calib_marker_02.jpg
+image_position = here
+[[3]]
+type = Image
+image_file = C:/Users/Administrator/Desktop/Daphne/GIT/quest/src/Images/v0.4_calib_marker_01.jpg
+image_position = bottom

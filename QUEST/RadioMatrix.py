@@ -4,7 +4,7 @@ import random
 from PySide6.QtCore import Qt
 from PySide6.QtWidgets import QWidget, QFormLayout, QLabel, QHBoxLayout
 
-from src.AnswerRadioButton import make_answers
+from QUEST.AnswerRadioButton import make_answers
 
 
 class RadioMatrix(QWidget):

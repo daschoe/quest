@@ -9,7 +9,7 @@ from PySide6.QtCore import QTimer
 from PySide6.QtGui import QDoubleValidator
 from PySide6.QtWidgets import QPushButton, QWidget, QHBoxLayout, QMessageBox, QSizePolicy, QLineEdit, QPlainTextEdit
 
-from src.PasswordEntry import PasswordEntry
+from QUEST.PasswordEntry import PasswordEntry
 TIMEOUT = 1
 
 

@@ -1,0 +1,80 @@
+audio_ip = 172.23.5.200
+audio_port = 8000
+audio_tracks = 2
+video_ip = 172.23.5.200
+video_port = 5005
+video_player = VLC
+go_back = True
+back_text = Zurück
+forward_text = Weiter
+send_text = Absenden
+answer_pos = Ja
+answer_neg = Nein
+save_message = Sind Sie bereit den Fragebogen zu beenden und somit Ihre Angaben zu speichern?
+pagecount_text = Seite {} von {}
+filepath_results = ./results/results.csv
+delimiter = ;
+stylesheet = ./stylesheets/minimal.qss
+button_fade = 100
+randomization = None
+save_after = p6
+[p1]
+title = Page
+[[player]]
+type = Player
+id = pl
+start_cue = 1
+track = 1, 2
+buttons = Play, Pause, Stop
+play_once = False
+video = \\172.23.20.3\Projects\2017_WEA-Akzeptanz\Laborstudie\BA_Dominik\Video\005_01.mp4
+[p2]
+title = Page2
+[[player]]
+type = Player
+id = pl2
+start_cue = 2
+track = 1, 2
+buttons = Play, Pause, Stop
+play_once = False
+video = \\172.23.20.3\Projects\2017_WEA-Akzeptanz\Laborstudie\BA_Dominik\Video\005_02.mp4
+[p3]
+title = Page3
+[[player]]
+type = Player
+id = pl3
+start_cue = 3
+track = 1, 2
+buttons = Play, Pause, Stop
+play_once = False
+video = \\172.23.20.3\Projects\2017_WEA-Akzeptanz\Laborstudie\BA_Dominik\Video\008_01.mp4
+[p4]
+title = Page4
+[[player]]
+type = Player
+id = pl4
+start_cue = 4
+track = 1, 2
+buttons = Play, Pause, Stop
+play_once = False
+video = \\172.23.20.3\Projects\2017_WEA-Akzeptanz\Laborstudie\BA_Dominik\Video\008_02.mp4
+[p5]
+title = Page5
+[[player]]
+type = Player
+id = pl5
+start_cue = 5
+track = 1, 2
+buttons = Play, Pause, Stop
+play_once = False
+video = \\172.23.20.3\Projects\2017_WEA-Akzeptanz\Laborstudie\BA_Dominik\Video\013_01.mp4
+[p6]
+title = Page6
+[[player]]
+type = Player
+id = pl6
+start_cue = 6
+track = 1, 2
+buttons = Play, Pause, Stop
+play_once = False
+video = \\172.23.20.3\Projects\2017_WEA-Akzeptanz\Laborstudie\BA_Dominik\Video\013_02.mp4

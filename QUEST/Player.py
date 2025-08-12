@@ -7,9 +7,9 @@ from time import time
 from PySide6.QtCore import QTimer
 from PySide6.QtWidgets import QWidget, QPushButton, QHBoxLayout, QStyle, QFormLayout
 
-from src.PupilCoreButton import Button
-from src.tools import player_buttons
-from src.Video import madmapper, vlc
+from QUEST.PupilCoreButton import Button
+from QUEST.tools import player_buttons
+from QUEST.Video import madmapper, vlc
 
 
 class Player(QWidget):

@@ -7,19 +7,19 @@ from PySide6.QtCore import QSignalMapper, Qt
 from PySide6.QtWidgets import QWidget, QLabel, QFormLayout, QButtonGroup, QCheckBox, QLineEdit, QPlainTextEdit, \
     QHBoxLayout
 
-from src.ABX import ABX
-from src.AnswerCheckBox import make_answers as mac
-from src.AnswerRadioButton import make_answers as mar
-from src.AnswerSlider import make_answers as mas
-from src.AnswerTextField import make_answers as matf
-from src.Image import Image
-from src.Lines import QHLine
-from src.MUSHRA import MUSHRA
-from src.OSCButton import OSCButton
-from src.PasswordEntry import PasswordEntry
-from src.Player import Player
-from src.PupilCoreButton import Button
-from src.RadioMatrix import RadioMatrix
+from QUEST.ABX import ABX
+from QUEST.AnswerCheckBox import make_answers as mac
+from QUEST.AnswerRadioButton import make_answers as mar
+from QUEST.AnswerSlider import make_answers as mas
+from QUEST.AnswerTextField import make_answers as matf
+from QUEST.Image import Image
+from QUEST.Lines import QHLine
+from QUEST.MUSHRA import MUSHRA
+from QUEST.OSCButton import OSCButton
+from QUEST.PasswordEntry import PasswordEntry
+from QUEST.Player import Player
+from QUEST.PupilCoreButton import Button
+from QUEST.RadioMatrix import RadioMatrix
 
 
 class Page(QWidget):

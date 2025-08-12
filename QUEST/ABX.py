@@ -4,8 +4,8 @@ from random import shuffle
 
 from PySide6.QtWidgets import QWidget, QHBoxLayout, QVBoxLayout, QFormLayout, QLabel
 
-from src.AnswerRadioButton import make_answers as radio
-from src.Player import Player
+from QUEST.AnswerRadioButton import make_answers as radio
+from QUEST.Player import Player
 
 
 class ABX(QWidget):
