@@ -1,6 +1,6 @@
 """Testing the behaviour of Plain text + QEditGui.py"""
 
-from context import pytest, QEditGuiMain, QTimer, open_config_file, StackedWindowGui, QTest, handle_dialog_p, handle_dialog_q, Qt, QFormLayout, QWidgetItem, fields_per_type, default_values, ConfigObj, QHLine, QCheckBox, QLineEdit, page_fields, listify, general_fields, handle_dialog_error, validate_questionnaire, handle_dialog_no_save, handle_dialog, csv, re, os, mock_file
+from tests.context import pytest, QEditGuiMain, QTimer, open_config_file, StackedWindowGui, QTest, handle_dialog_p, handle_dialog_q, Qt, QFormLayout, QWidgetItem, fields_per_type, default_values, ConfigObj, QHLine, QCheckBox, QLineEdit, page_fields, listify, general_fields, handle_dialog_error, validate_questionnaire, handle_dialog_no_save, handle_dialog, csv, re, os, mock_file
 
 
 @pytest.fixture
@@ -13,7 +13,7 @@ def gui_init():
 @pytest.fixture
 def gui_load(gui_init):
     """Start GUI"""
-    QTimer.singleShot(150, lambda: open_config_file("./test/hltest.txt"))
+    QTimer.singleShot(150, lambda: open_config_file(os.path.join(os.getcwd(), "tests/hltest.txt")))
     gui_init.load_file()
     return gui_init
 
@@ -21,7 +21,7 @@ def gui_load(gui_init):
 @pytest.fixture
 def run():
     """Execute the questionnaire."""
-    return StackedWindowGui("./test/hltest.txt")
+    return StackedWindowGui(os.path.join(os.getcwd(), "tests/hltest.txt"))
 
 
 # noinspection PyArgumentList
@@ -123,7 +123,7 @@ def test_execute_questionnaire_no_interaction(run, qtbot):
     QTest.mouseClick(run.forwardbutton, Qt.MouseButton.LeftButton)
 
     results = []
-    with open('./test/results/results_hl.csv', mode='r') as file:
+    with open('./tests/results/results_hl.csv', mode='r') as file:
         csv_file = csv.reader(file, delimiter=';')
 
         for lines in csv_file:
@@ -136,19 +136,19 @@ def test_execute_questionnaire_no_interaction(run, qtbot):
     assert results[0] == '1'  # participant number
     assert re.match(r'\d+-\d+-\d+ \d+:\d+:\d+.\d+', results[1])  # timestamp
     assert re.match(r'\d+-\d+-\d+ \d+:\d+:\d+.\d+', results[2])  # timestamp
-    os.remove("./test/results/results_hl.csv")
+    os.remove("./tests/results/results_hl.csv")
 
 
 # noinspection PyArgumentList
 def test_execute_questionnaire_no_interaction_blocked(run, qtbot):
-    with mock_file(r'./test/results/results_hl.csv'):
+    with mock_file(r'./tests/results/results_hl.csv'):
         assert run.Stack.count() == 1
         QTimer.singleShot(100, handle_dialog)
         QTest.mouseClick(run.forwardbutton, Qt.MouseButton.LeftButton)
         res_file = None
-        for file in os.listdir("./test/results/"):
+        for file in os.listdir("./tests/results/"):
             if file.find("_backup_"):
-                res_file = f'./test/results/{file}'
+                res_file = f'./tests/results/{file}'
         results = []
         with open(res_file, mode='r') as file:
             csv_file = csv.reader(file, delimiter=';')

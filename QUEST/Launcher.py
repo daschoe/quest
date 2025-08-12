@@ -5,8 +5,8 @@ import sys
 
 from PySide6.QtWidgets import QApplication, QWidget, QPushButton, QHBoxLayout, QFileDialog, QMessageBox
 
-from QUEST.GUI import StackedWindowGui, VERSION
-from QUEST.QEditGui import QEditGuiMain
+from GUI import StackedWindowGui, VERSION
+from QEditGui import QEditGuiMain
 
 
 class Launcher(QWidget):

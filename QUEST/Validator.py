@@ -8,8 +8,8 @@ from PySide6.QtGui import QIntValidator, QDoubleValidator, QRegularExpressionVal
 from PySide6.QtWidgets import QSizePolicy, QMessageBox
 from PySide6.QtCore import QRegularExpression
 
-from QUEST.MessageBox import ResizeMessageBox
-from QUEST.tools import fields_per_type, player_buttons, policy_possibilities, randomize_options, image_positions, video_player
+from MessageBox import ResizeMessageBox
+from tools import fields_per_type, player_buttons, policy_possibilities, randomize_options, image_positions, video_player
 
 
 def validate_passwords(file, policy):

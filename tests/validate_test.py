@@ -1,6 +1,6 @@
 """Test if the validate function in Validator.py is working correctly."""
 
-from context import pytest, QTimer, QTest, Qt, ConfigObj, validate_questionnaire, QApplication, QMessageBox, ConfigObjError
+from tests.context import pytest, QTimer, QTest, Qt, ConfigObj, validate_questionnaire, QApplication, QMessageBox, ConfigObjError
 
 
 @pytest.fixture
@@ -481,11 +481,11 @@ def test_global_settings(gui_init):
     assert warn
     assert det[0] == "Path for results file does not exist. It will be created.\n"
     assert -1 <= text.find("Invalid drive name for results file path.\n") > -1
-    structure["filepath_results"] = "./test/results/results.csv"
+    structure["filepath_results"] = "./tests/results/results.csv"
     err, warn, det = validate_questionnaire(structure, True)
     assert not err
     assert not warn
-    structure["filepath_results"] = "./test/results/new/results.csv"
+    structure["filepath_results"] = "./tests/results/new/results.csv"
     err, warn, det = validate_questionnaire(structure, True)
     assert not err
     assert warn
@@ -514,13 +514,13 @@ def test_global_settings(gui_init):
     assert err
     assert not warn
     assert -1 <= text.find("Invalid stylesheet path.\n") > -1
-    structure["stylesheet"] = "./src/Images/RadioChecked.svg"
+    structure["stylesheet"] = "./Images/RadioChecked.svg"
     QTimer.singleShot(150, handle_dialog_error)
     err, warn, det = validate_questionnaire(structure, True)
     assert err
     assert not warn
     assert -1 <= text.find("Invalid file for stylesheet, it has to be *.qss.\n") > -1
-    structure["stylesheet"] = "./src/stylesheets/minimal.qss"
+    structure["stylesheet"] = "./stylesheets/minimal.qss"
     err, warn, det = validate_questionnaire(structure, True)
     assert not err
     assert not warn
@@ -546,19 +546,19 @@ def test_global_settings(gui_init):
     assert err
     assert not warn
     assert -1 <= text.find("Invalid randomization_file path.\n") > -1
-    structure["randomization_file"] = "./src/Images/RadioChecked.svg"
+    structure["randomization_file"] = "./Images/RadioChecked.svg"
     QTimer.singleShot(150, handle_dialog_error)
     err, warn, det = validate_questionnaire(structure, True)
     assert err
     assert not warn
     assert -1 <= text.find("Invalid file for randomization, it has to be *.txt or *.csv.\n") > -1
-    structure["randomization_file"] = "./src/Configs/all_question_types.txt"
+    structure["randomization_file"] = "./Configs/all_question_types.txt"
     QTimer.singleShot(150, handle_dialog_error)
     err, warn, det = validate_questionnaire(structure, True)
     assert err
     assert not warn
     assert -1 <= text.find("Contents of randomization_file invalid.\n") > -1
-    structure["randomization_file"] = "./test/random.txt"
+    structure["randomization_file"] = os.path.join(os.getcwd(), "tests/random.txt")
     err, warn, det = validate_questionnaire(structure, True)
     assert not err
     assert not warn
@@ -618,7 +618,7 @@ def test_page_settings(gui_init):
 
 def test_multiple_pages():
     with pytest.raises(ConfigObjError):
-        ConfigObj("./test/doubled_sections.txt")
+        ConfigObj(os.path.join(os.getcwd(), "tests/doubled_sections.txt"))
 
 
 def test_question_settings(gui_init):
@@ -1750,7 +1750,7 @@ def test_question_settings(gui_init):
     assert not warn
     structure["Page"]["Question"].pop("x_pos")
     structure["Page"]["Question"]["type"] = "Image"
-    structure["Page"]["Question"]["image_file"] = "./test/Logo.png"
+    structure["Page"]["Question"]["image_file"] = "/tests/Logo.png"
     structure["Page"]["Question"]["image_position"] = "free"
     structure["Page"]["Question"]["y_pos"] = 300
     err, warn, det = validate_questionnaire(structure, True)
@@ -1778,7 +1778,7 @@ def test_question_settings(gui_init):
     assert not warn
     structure["Page"]["Question"].pop("y_pos")
     structure["Page"]["Question"]["type"] = "Image"
-    structure["Page"]["Question"]["image_file"] = "./test/Logo.png"
+    structure["Page"]["Question"]["image_file"] = "/tests/Logo.png"
     structure["Page"]["Question"]["image_position"] = "free"
     structure["Page"]["Question"]["x_pos"] = 300
     err, warn, det = validate_questionnaire(structure, True)
@@ -1821,7 +1821,7 @@ def test_question_settings(gui_init):
     assert warn
     assert det[0] == 'Image "Question" on page "Page" is chosen to be positioned freely, but no coordinates were given.\n'
     structure["Page"]["Question"]["type"] = "Image"
-    structure["Page"]["Question"]["image_file"] = "./test/Logo.png"
+    structure["Page"]["Question"]["image_file"] = "/tests/Logo.png"
     structure["Page"]["Question"].pop("image_position")
     QTimer.singleShot(150, handle_dialog_error)
     err, warn, det = validate_questionnaire(structure, True)

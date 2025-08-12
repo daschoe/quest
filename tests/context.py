@@ -7,7 +7,7 @@ import pytest
 from configobj import ConfigObj, ConfigObjError
 from contextlib import contextmanager
 import keyboard
-from MockReceiver import MockReceiver
+from tests.MockReceiver import MockReceiver
 import portalocker
 from pythonosc import osc_server, dispatcher
 from PySide6.QtGui import QIntValidator, QDoubleValidator, QRegularExpressionValidator, QPalette
@@ -26,6 +26,7 @@ def mock_file(filepath):
     filepath : str
         file/path to the file to block
     """
+    filepath = os.path.join(os.getcwd(), filepath)
     file = open(filepath, 'w')
     portalocker.lock(file, portalocker.LockFlags.EXCLUSIVE)
     yield filepath
@@ -39,23 +40,23 @@ def mock_file(filepath):
 
 import os
 import sys
-sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
-print(sys.path)
-from QUEST.ABX import ABX
-from QUEST.GUI import StackedWindowGui
-from QUEST.QEditGui import QEditGuiMain
-from QUEST.Validator import validate_questionnaire, listify, string_to_list
-from QUEST.tools import default_values, general_fields, page_fields, types, fields_per_type, player_buttons
-from QUEST.PasswordEntry import PasswordEntry
-from QUEST.PupilCoreButton import Button
-from QUEST.AnswerCheckBox import make_answers as make_answers_cb
-from QUEST.AnswerRadioButton import make_answers
-from QUEST.Lines import QHLine
-from QUEST.MUSHRA import MUSHRA
-from QUEST.OSCButton import OSCButton
-from QUEST.Player import Player
+if os.path.join(os.getcwd().split("tests")[0],"QUEST") not in sys.path:
+    sys.path.insert(0, os.path.join(os.getcwd().split("tests")[0],"QUEST"))
+from ABX import ABX
+from GUI import StackedWindowGui
+from QEditGui import QEditGuiMain
+from Validator import validate_questionnaire, listify, string_to_list
+from tools import default_values, general_fields, page_fields, types, fields_per_type, player_buttons
+from PasswordEntry import PasswordEntry
+from PupilCoreButton import Button
+from AnswerCheckBox import make_answers as make_answers_cb
+from AnswerRadioButton import make_answers
+from Lines import QHLine
+from MUSHRA import MUSHRA
+from OSCButton import OSCButton
+from Player import Player
 import QUEST.LabeledSlider as LabeledSlider
 import QUEST.Slider as Slider
 import QUEST.RadioMatrix as RadioMatrix
-from QUEST.Image import Image
-from test_helpers import *
+from Image import Image
+from tests.test_helpers import *

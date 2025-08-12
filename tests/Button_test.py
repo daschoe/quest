@@ -1,6 +1,6 @@
 """Testing the behaviour of PupilCoreButton.py + QEditGui.py"""
 
-from context import pytest, QEditGuiMain, QTimer, open_config_file, StackedWindowGui, QTest, handle_dialog_p, handle_dialog_q, Qt, QFormLayout, QWidgetItem, fields_per_type, default_values, QCheckBox, QLineEdit, page_fields, listify, ConfigObj, general_fields, handle_dialog_error, validate_questionnaire, handle_dialog_no_save, find_row_by_label, handle_dialog, csv, re, os, mock_file, open_pupil, Button, handle_dialog_warning
+from tests.context import pytest, QEditGuiMain, QTimer, open_config_file, StackedWindowGui, QTest, handle_dialog_p, handle_dialog_q, Qt, QFormLayout, QWidgetItem, fields_per_type, default_values, QCheckBox, QLineEdit, page_fields, listify, ConfigObj, general_fields, handle_dialog_error, validate_questionnaire, handle_dialog_no_save, find_row_by_label, handle_dialog, csv, re, os, mock_file, open_pupil, Button, handle_dialog_warning
 
 
 recording_path = "C:\\Users\\Administrator\\recordings\\"  # TODO change to your path
@@ -17,7 +17,7 @@ def gui_init():
 def gui_load(gui_init):
     """Start GUI"""
     open_pupil()
-    QTimer.singleShot(150, lambda: open_config_file("./test/pbtest.txt"))
+    QTimer.singleShot(150, lambda: open_config_file(os.path.join(os.getcwd(), "tests/pbtest.txt")))
     gui_init.load_file()
     return gui_init
 
@@ -26,7 +26,7 @@ def gui_load(gui_init):
 def gui_load2(gui_init):
     """Start GUI"""
     open_pupil()
-    QTimer.singleShot(150, lambda: open_config_file("./test/pbtest2.txt"))
+    QTimer.singleShot(150, lambda: open_config_file(os.path.join(os.getcwd(), "tests/pbtest2.txt")))
     gui_init.load_file()
     return gui_init
 
@@ -35,7 +35,7 @@ def gui_load2(gui_init):
 def run():
     """Execute the questionnaire."""
     open_pupil()
-    return StackedWindowGui("./test/pbtest.txt")
+    return StackedWindowGui(os.path.join(os.getcwd(), "tests/pbtest.txt"))
 
 
 # noinspection PyArgumentList
@@ -165,7 +165,7 @@ def test_inscription(gui_load, qtbot, capfd):
     assert not warning_found
     gui_load.gui.refresh_button.click()
     QTest.keyClicks(gui_load, 's', modifier=Qt.KeyboardModifier.ControlModifier, delay=1000)
-    test_gui = StackedWindowGui("./test/pbtest.txt")
+    test_gui = StackedWindowGui(os.path.join(os.getcwd(), "tests/pbtest.txt"))
     assert test_gui.Stack.count() == 1
     for child in test_gui.Stack.currentWidget().children():
         if isinstance(child, Button):
@@ -191,7 +191,7 @@ def test_inscription(gui_load, qtbot, capfd):
     assert warning_found
     QTest.keyClicks(gui_load, 's', modifier=Qt.KeyboardModifier.ControlModifier, delay=1000)
     QTimer.singleShot(500, handle_dialog_warning)
-    test_gui = StackedWindowGui("./test/pbtest.txt")
+    test_gui = StackedWindowGui(os.path.join(os.getcwd(), "tests/pbtest.txt"))
     assert test_gui.Stack.count() == 1
     for child in test_gui.Stack.currentWidget().children():
         if isinstance(child, Button):
@@ -222,7 +222,7 @@ def test_inscription(gui_load, qtbot, capfd):
     assert warning_found
     QTest.keyClicks(gui_load, 's', modifier=Qt.KeyboardModifier.ControlModifier, delay=1000)
     QTimer.singleShot(150, handle_dialog_warning)
-    test_gui = StackedWindowGui("./test/pbtest.txt")
+    test_gui = StackedWindowGui(os.path.join(os.getcwd(), "tests/pbtest.txt"))
     assert test_gui.Stack.count() == 1
     for child in test_gui.Stack.currentWidget().children():
         if isinstance(child, Button):
@@ -252,7 +252,7 @@ def test_inscription(gui_load, qtbot, capfd):
     assert not warning_found
     QTest.keyClicks(gui_load, 's', modifier=Qt.KeyboardModifier.ControlModifier, delay=1000)
 
-    os.remove("./test/results/results_pb.csv")
+    os.remove("./tests/results/results_pb.csv")
     gui_load.close()
 
 
@@ -285,7 +285,7 @@ def test_custom_annotation_text(gui_load, qtbot, capfd):
     gui_load.gui.refresh_button.click()
     assert gui_load.structure["Page 1"]["Question 1"]["annotation"] == "Custom text"
     QTest.keyClicks(gui_load, 's', modifier=Qt.KeyboardModifier.ControlModifier, delay=1000)
-    test_gui = StackedWindowGui("./test/pbtest.txt")
+    test_gui = StackedWindowGui(os.path.join(os.getcwd(), "tests/pbtest.txt"))
     assert test_gui.Stack.count() == 1
     for child in test_gui.Stack.currentWidget().children():
         if isinstance(child, Button):
@@ -352,7 +352,7 @@ def test_custom_recording_name(gui_load, qtbot, capfd):
     gui_load.gui.refresh_button.click()
     assert gui_load.structure["Page 1"]["Question 1"]["recording_name"] == "MyRecording"
     QTest.keyClicks(gui_load, 's', modifier=Qt.KeyboardModifier.ControlModifier, delay=1000)
-    test_gui = StackedWindowGui("./test/pbtest.txt")
+    test_gui = StackedWindowGui(os.path.join(os.getcwd(), "tests/pbtest.txt"))
     assert test_gui.Stack.count() == 1
     for child in test_gui.Stack.currentWidget().children():
         if isinstance(child, Button):
@@ -419,7 +419,7 @@ def test_custom_recording_name_id(gui_load2, qtbot, capfd):
     gui_load2.gui.refresh_button.click()
     assert gui_load2.structure["Page 1"]["Question 1"]["recording_name"] == "id:tf"
     QTest.keyClicks(gui_load2, 's', modifier=Qt.KeyboardModifier.ControlModifier, delay=1000)
-    test_gui = StackedWindowGui("./test/pbtest2.txt")
+    test_gui = StackedWindowGui(os.path.join(os.getcwd(), "tests/pbtest2.txt"))
     assert test_gui.Stack.count() == 1
     for child in test_gui.Stack.currentWidget().children():
         if isinstance(child, QLineEdit):
@@ -469,7 +469,7 @@ def test_function(gui_load, qtbot, capfd):
     func_cb = gui_load.gui.edit_layout.itemAt(func_pos, QFormLayout.ItemRole.FieldRole).widget()
     assert func_cb.currentText() == 'Annotate'
     QTest.keyClicks(gui_load, 's', modifier=Qt.KeyboardModifier.ControlModifier, delay=1000)
-    test_gui = StackedWindowGui("./test/pbtest.txt")
+    test_gui = StackedWindowGui(os.path.join(os.getcwd(), "tests/pbtest.txt"))
     for child in test_gui.Stack.currentWidget().children():
         if isinstance(child, Button):
             child.button.click()
@@ -490,7 +490,7 @@ def test_function(gui_load, qtbot, capfd):
     gui_load.gui.refresh_button.click()
     assert gui_load.structure["Page 1"]["Question 1"]["function"] == "Recording"
     gui_load.save()
-    test_gui = StackedWindowGui("./test/pbtest.txt")
+    test_gui = StackedWindowGui(os.path.join(os.getcwd(), "tests/pbtest.txt"))
     for child in test_gui.Stack.currentWidget().children():
         if isinstance(child, Button):
             child.button.click()
@@ -509,7 +509,7 @@ def test_function(gui_load, qtbot, capfd):
     assert not warning_found
     gui_load.gui.refresh_button.click()
     gui_load.save()
-    test_gui = StackedWindowGui("./test/pbtest.txt")
+    test_gui = StackedWindowGui(os.path.join(os.getcwd(), "tests/pbtest.txt"))
     for child in test_gui.Stack.currentWidget().children():
         if isinstance(child, Button):
             child.button.click()
@@ -525,22 +525,22 @@ def test_function(gui_load, qtbot, capfd):
     assert func_cb.currentText() == 'Annotate'
     QTest.keyClicks(gui_load, 's', modifier=Qt.KeyboardModifier.ControlModifier, delay=1000)
     gui_load.save()
-    os.remove("./test/results/results_pb.csv")
+    os.remove("./tests/results/results_pb.csv")
     gui_load.close()
 
 
 # noinspection PyArgumentList
 @pytest.mark.pupil
 def test_execute_questionnaire_no_interaction(run, qtbot):
-    if os.path.exists("./test/results/results_pb.csv"):
-        os.remove("./test/results/results_pb.csv")
+    if os.path.exists("./tests/results/results_pb.csv"):
+        os.remove("./tests/results/results_pb.csv")
     assert run.Stack.count() == 1
 
     QTimer.singleShot(100, handle_dialog)
     QTest.mouseClick(run.forwardbutton, Qt.MouseButton.LeftButton)
 
     results = []
-    with open('./test/results/results_pb.csv', mode='r') as file:
+    with open('./tests/results/results_pb.csv', mode='r') as file:
         csv_file = csv.reader(file, delimiter=';')
 
         for lines in csv_file:
@@ -555,19 +555,19 @@ def test_execute_questionnaire_no_interaction(run, qtbot):
     assert results[1] == 'False'  # the button was not clicked
     assert re.match(r'\d+-\d+-\d+ \d+:\d+:\d+.\d+', results[2])  # timestamp
     assert re.match(r'\d+-\d+-\d+ \d+:\d+:\d+.\d+', results[3])  # timestamp
-    os.remove("./test/results/results_pb.csv")
+    os.remove("./tests/results/results_pb.csv")
 
 
 # noinspection PyArgumentList
 def test_execute_questionnaire_no_interaction_blocked(run, qtbot):
-    with mock_file(r'./test/results/results_pb.csv'):
+    with mock_file(r'./tests/results/results_pb.csv'):
         assert run.Stack.count() == 1
         QTimer.singleShot(100, handle_dialog)
         QTest.mouseClick(run.forwardbutton, Qt.MouseButton.LeftButton)
         res_file = None
-        for file in os.listdir("./test/results/"):
+        for file in os.listdir("./tests/results/"):
             if file.find("_backup_"):
-                res_file = f'./test/results/{file}'
+                res_file = f'./tests/results/{file}'
         results = []
         with open(res_file, mode='r') as file:
             csv_file = csv.reader(file, delimiter=';')
@@ -590,8 +590,8 @@ def test_execute_questionnaire_no_interaction_blocked(run, qtbot):
 # noinspection PyArgumentList
 @pytest.mark.pupil
 def test_execute_questionnaire(run, qtbot, capfd):
-    if os.path.exists("./test/results/results_pb.csv"):
-        os.remove("./test/results/results_pb.csv")
+    if os.path.exists("./tests/results/results_pb.csv"):
+        os.remove("./tests/results/results_pb.csv")
     assert run.Stack.count() == 1
     for child in run.Stack.currentWidget().children():
         if isinstance(child, Button):
@@ -604,7 +604,7 @@ def test_execute_questionnaire(run, qtbot, capfd):
     QTest.mouseClick(run.forwardbutton, Qt.MouseButton.LeftButton)
 
     results = []
-    with open('./test/results/results_pb.csv', mode='r') as file:
+    with open('./tests/results/results_pb.csv', mode='r') as file:
         csv_file = csv.reader(file, delimiter=';')
 
         for lines in csv_file:
@@ -619,13 +619,13 @@ def test_execute_questionnaire(run, qtbot, capfd):
     assert results[1] == 'True'  # button was clicked
     assert re.match(r'\d+-\d+-\d+ \d+:\d+:\d+.\d+', results[2])  # timestamp
     assert re.match(r'\d+-\d+-\d+ \d+:\d+:\d+.\d+', results[3])  # timestamp
-    os.remove("./test/results/results_pb.csv")
+    os.remove("./tests/results/results_pb.csv")
 
 
 # noinspection PyArgumentList
 @pytest.mark.pupil
 def test_execute_questionnaire_blocked(run, qtbot, capfd):
-    with mock_file(r'./test/results/results_pb.csv'):
+    with mock_file(r'./tests/results/results_pb.csv'):
         assert run.Stack.count() == 1
         for child in run.Stack.currentWidget().children():
             if isinstance(child, Button):
@@ -636,9 +636,9 @@ def test_execute_questionnaire_blocked(run, qtbot, capfd):
         QTimer.singleShot(100, handle_dialog)
         QTest.mouseClick(run.forwardbutton, Qt.MouseButton.LeftButton)
         res_file = None
-        for file in os.listdir("./test/results/"):
+        for file in os.listdir("./tests/results/"):
             if file.find("_backup_"):
-                res_file = f'./test/results/{file}'
+                res_file = f'./tests/results/{file}'
         results = []
         with open(res_file, mode='r') as file:
             csv_file = csv.reader(file, delimiter=';')

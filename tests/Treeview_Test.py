@@ -2,7 +2,7 @@
 Ref how to auto-dialog: https://stackoverflow.com/a/59148220
 """
 
-from context import pytest, QEditGuiMain, QTimer, open_config_file, QTest, handle_dialog_p, handle_dialog_q, Qt, default_values, page_fields, listify, ConfigObj, general_fields, handle_dialog_error, validate_questionnaire, handle_dialog_sa
+from tests.context import pytest, QEditGuiMain, QTimer, open_config_file, QTest, handle_dialog_p, handle_dialog_q, Qt, default_values, page_fields, listify, ConfigObj, general_fields, handle_dialog_error, validate_questionnaire, handle_dialog_sa
 
 
 @pytest.fixture
@@ -57,7 +57,7 @@ def test_add_page(gui_init, qtbot):
 
 
 def test_load_file(gui_init, qtbot):
-    QTimer.singleShot(150, lambda: open_config_file("./test/onepage.txt"))
+    QTimer.singleShot(150, lambda: open_config_file(os.path.join(os.getcwd(), "tests/onepage.txt")))
     gui_init.load_file()
     tv = gui_init.gui.treeview
     assert tv.itemAt(0, 0).text(0) == "onepage.txt"
@@ -93,7 +93,7 @@ def test_add_page_add_question(gui_init, qtbot):
 
 # noinspection PyArgumentList
 def test_add_question_after_load(gui_init, qtbot):
-    QTimer.singleShot(150, lambda: open_config_file("./test/onepage.txt"))
+    QTimer.singleShot(150, lambda: open_config_file(os.path.join(os.getcwd(), "tests/onepage.txt")))
     gui_init.load_file()
     tv = gui_init.gui.treeview
     tv.setCurrentItem(tv.topLevelItem(0).child(0))
@@ -114,7 +114,7 @@ def test_add_question_after_load(gui_init, qtbot):
 
 # noinspection PyArgumentList
 def test_add_page_after_load(gui_init, qtbot):
-    QTimer.singleShot(150, lambda: open_config_file("./test/onepage.txt"))
+    QTimer.singleShot(150, lambda: open_config_file(os.path.join(os.getcwd(), "tests/onepage.txt")))
     gui_init.load_file()
     tv = gui_init.gui.treeview
     tv.setCurrentItem(tv.topLevelItem(0))

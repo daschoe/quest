@@ -1,6 +1,6 @@
 """Testing the behaviour of Image.py + QEditGui.py"""
 
-from context import pytest, QEditGuiMain, QTimer, open_config_file, StackedWindowGui, QTest, handle_dialog_p, handle_dialog_q, QHBoxLayout, keyboard, Qt, QFormLayout, QWidgetItem, fields_per_type, default_values, QCheckBox, QLineEdit, page_fields, listify, ConfigObj, general_fields, handle_dialog_error, validate_questionnaire, handle_dialog_no_save, find_row_by_label, handle_dialog, csv, re, os, mock_file, Image
+from tests.context import pytest, QEditGuiMain, QTimer, open_config_file, StackedWindowGui, QTest, handle_dialog_p, handle_dialog_q, QHBoxLayout, keyboard, Qt, QFormLayout, QWidgetItem, fields_per_type, default_values, QCheckBox, QLineEdit, page_fields, listify, ConfigObj, general_fields, handle_dialog_error, validate_questionnaire, handle_dialog_no_save, find_row_by_label, handle_dialog, csv, re, os, mock_file, Image
 
 
 @pytest.fixture
@@ -13,7 +13,7 @@ def gui_init():
 @pytest.fixture
 def gui_load(gui_init):
     """Start GUI"""
-    QTimer.singleShot(150, lambda: open_config_file("./test/imgtest.txt"))
+    QTimer.singleShot(150, lambda: open_config_file(os.path.join(os.getcwd(), "tests/imgtest.txt")))
     gui_init.load_file()
     return gui_init
 
@@ -21,7 +21,7 @@ def gui_load(gui_init):
 @pytest.fixture
 def run():
     """Execute the questionnaire."""
-    return StackedWindowGui("./test/imgtest.txt")
+    return StackedWindowGui(os.path.join(os.getcwd(), "tests/imgtest.txt"))
 
 
 # noinspection PyArgumentList
@@ -145,7 +145,7 @@ def test_file(gui_load, qtbot):
     QTest.mouseClick(tv.viewport(), Qt.MouseButton.LeftButton, Qt.KeyboardModifier.NoModifier, rect.center())
     img_str = find_row_by_label(gui_load.gui.edit_layout, 'image_file')
     imgfile = gui_load.gui.edit_layout.itemAt(img_str[0], QFormLayout.ItemRole.FieldRole).itemAt(img_str[1]).widget().text()
-    assert imgfile == './src/Configs/Logo.png'
+    assert imgfile == './Configs/Logo.png'
 
     def handle_file_chooser():
         """Type filename."""
@@ -208,7 +208,7 @@ def test_scale(gui_load, qtbot):
     assert not warning_found
     QTest.keyClicks(gui_load, 's', modifier=Qt.KeyboardModifier.ControlModifier, delay=1000)
     QTest.qWait(2000)
-    test_gui = StackedWindowGui("./test/imgtest.txt")
+    test_gui = StackedWindowGui(os.path.join(os.getcwd(), "tests/imgtest.txt"))
     for child in test_gui.Stack.currentWidget().children():
         if isinstance(child, Image):
             assert child.width() == 99
@@ -284,7 +284,7 @@ def test_scale(gui_load, qtbot):
     QTest.keyClicks(gui_load, 's', modifier=Qt.KeyboardModifier.ControlModifier, delay=1000)
     QTest.qWait(2000)
     gui_load.close()
-    os.remove("./test/results/results_img.csv")
+    os.remove("./tests/results/results_img.csv")
 
 
 # noinspection PyArgumentList
@@ -332,7 +332,7 @@ def test_move(gui_load, qtbot):
     assert not warning_found
     QTest.keyClicks(gui_load, 's', modifier=Qt.KeyboardModifier.ControlModifier, delay=1000)
     QTest.qWait(2000)
-    test_gui = StackedWindowGui("./test/imgtest.txt")
+    test_gui = StackedWindowGui(os.path.join(os.getcwd(), "tests/imgtest.txt"))
     for child in test_gui.Stack.currentWidget().children():
         if isinstance(child, Image):
             assert child.x() == 99
@@ -406,7 +406,7 @@ def test_move(gui_load, qtbot):
     QTest.keyClicks(gui_load, 's', modifier=Qt.KeyboardModifier.ControlModifier, delay=1000)
     QTest.qWait(2000)
     gui_load.close()
-    os.remove("./test/results/results_img.csv")
+    os.remove("./tests/results/results_img.csv")
 
 
 # noinspection PyArgumentList
@@ -429,7 +429,7 @@ def test_image_position(gui_load, qtbot, capfd):
     pos_cb = gui_load.gui.edit_layout.itemAt(pos_pos, QFormLayout.ItemRole.FieldRole).widget()
     assert pos_cb.currentText() == 'free'
     QTest.keyClicks(gui_load, 's', modifier=Qt.KeyboardModifier.ControlModifier, delay=1000)
-    test_gui = StackedWindowGui("./test/imgtest.txt")
+    test_gui = StackedWindowGui(os.path.join(os.getcwd(), "tests/imgtest.txt"))
     for child in test_gui.Stack.currentWidget().children():
         if isinstance(child, Image):
             assert child.x() == 1800
@@ -448,7 +448,7 @@ def test_image_position(gui_load, qtbot, capfd):
     gui_load.gui.refresh_button.click()
     assert gui_load.structure["Page 1"]["Image"]["image_position"] == "right"
     gui_load.save()
-    test_gui = StackedWindowGui("./test/imgtest.txt")
+    test_gui = StackedWindowGui(os.path.join(os.getcwd(), "tests/imgtest.txt"))
     for child in test_gui.Stack.currentWidget().children():
         if isinstance(child, Image):
             assert isinstance(child.parent().layout(), QHBoxLayout)
@@ -467,7 +467,7 @@ def test_image_position(gui_load, qtbot, capfd):
     gui_load.gui.refresh_button.click()
     assert gui_load.structure["Page 1"]["Image"]["image_position"] == "left"
     gui_load.save()
-    test_gui = StackedWindowGui("./test/imgtest.txt")
+    test_gui = StackedWindowGui(os.path.join(os.getcwd(), "tests/imgtest.txt"))
     for child in test_gui.Stack.currentWidget().children():
         if isinstance(child, Image):
             assert isinstance(child.parent().layout(), QHBoxLayout)
@@ -486,7 +486,7 @@ def test_image_position(gui_load, qtbot, capfd):
     gui_load.gui.refresh_button.click()
     assert gui_load.structure["Page 1"]["Image"]["image_position"] == "bottom"
     gui_load.save()
-    test_gui = StackedWindowGui("./test/imgtest.txt")
+    test_gui = StackedWindowGui(os.path.join(os.getcwd(), "tests/imgtest.txt"))
     for child in test_gui.Stack.currentWidget().children():
         if isinstance(child, Image):
             assert isinstance(child.parent().layout(), QFormLayout)
@@ -504,7 +504,7 @@ def test_image_position(gui_load, qtbot, capfd):
     gui_load.gui.refresh_button.click()
     assert gui_load.structure["Page 1"]["Image"]["image_position"] == "top"
     gui_load.save()
-    test_gui = StackedWindowGui("./test/imgtest.txt")
+    test_gui = StackedWindowGui(os.path.join(os.getcwd(), "tests/imgtest.txt"))
     for child in test_gui.Stack.currentWidget().children():
         if isinstance(child, Image):
             assert isinstance(child.parent().layout(), QFormLayout)
@@ -523,7 +523,7 @@ def test_image_position(gui_load, qtbot, capfd):
     gui_load.gui.refresh_button.click()
     assert gui_load.structure["Page 1"]["Image"]["image_position"] == "here"
     gui_load.save()
-    test_gui = StackedWindowGui("./test/imgtest.txt")
+    test_gui = StackedWindowGui(os.path.join(os.getcwd(), "tests/imgtest.txt"))
     for child in test_gui.Stack.currentWidget().children():
         if isinstance(child, Image):
             assert isinstance(child.parent().layout(), QFormLayout)
@@ -542,7 +542,7 @@ def test_image_position(gui_load, qtbot, capfd):
     gui_load.structure["Page 1"]["Image"]["y_pos"] = 400
     QTest.keyClicks(gui_load, 's', modifier=Qt.KeyboardModifier.ControlModifier, delay=1000)
     gui_load.save()
-    os.remove("./test/results/results_img.csv")
+    os.remove("./tests/results/results_img.csv")
     gui_load.close()
 
 
@@ -559,7 +559,7 @@ def test_execute_questionnaire_no_interaction(run, qtbot):
     QTest.mouseClick(run.forwardbutton, Qt.MouseButton.LeftButton)
 
     results = []
-    with open('./test/results/results_img.csv', mode='r') as file:
+    with open('./tests/results/results_img.csv', mode='r') as file:
         csv_file = csv.reader(file, delimiter=';')
 
         for lines in csv_file:
@@ -572,19 +572,19 @@ def test_execute_questionnaire_no_interaction(run, qtbot):
     assert results[0] == '1'  # participant number
     assert re.match(r'\d+-\d+-\d+ \d+:\d+:\d+.\d+', results[1])  # timestamp
     assert re.match(r'\d+-\d+-\d+ \d+:\d+:\d+.\d+', results[2])  # timestamp
-    os.remove("./test/results/results_img.csv")
+    os.remove("./tests/results/results_img.csv")
 
 
 # noinspection PyArgumentList
 def test_execute_questionnaire_no_interaction_blocked(run, qtbot):
-    with mock_file(r'./test/results/results_img.csv'):
+    with mock_file(r'./tests/results/results_img.csv'):
         assert run.Stack.count() == 1
         QTimer.singleShot(100, handle_dialog)
         QTest.mouseClick(run.forwardbutton, Qt.MouseButton.LeftButton)
         res_file = None
-        for file in os.listdir("./test/results/"):
+        for file in os.listdir("./tests/results/"):
             if file.find("_backup_"):
-                res_file = f'./test/results/{file}'
+                res_file = f'./tests/results/{file}'
         results = []
         with open(res_file, mode='r') as file:
             csv_file = csv.reader(file, delimiter=';')

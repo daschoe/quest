@@ -1,6 +1,6 @@
 """Testing the behaviour of RadioMatrix.py + QEditGui.py"""
 
-from context import pytest, QEditGuiMain, QTimer, open_config_file, StackedWindowGui, QTest, handle_dialog_p, handle_dialog_q, Qt, QFormLayout, QWidgetItem, fields_per_type, default_values, QLineEdit, page_fields, listify, ConfigObj, general_fields, handle_dialog_error, validate_questionnaire, handle_dialog_no_save, find_row_by_label, handle_dialog, csv, re, os, mock_file, RadioMatrix, handle_dialog_warning, QRadioButton
+from tests.context import pytest, QEditGuiMain, QTimer, open_config_file, StackedWindowGui, QTest, handle_dialog_p, handle_dialog_q, Qt, QFormLayout, QWidgetItem, fields_per_type, default_values, QLineEdit, page_fields, listify, ConfigObj, general_fields, handle_dialog_error, validate_questionnaire, handle_dialog_no_save, find_row_by_label, handle_dialog, csv, re, os, mock_file, RadioMatrix, handle_dialog_warning, QRadioButton
 
 
 @pytest.fixture
@@ -13,7 +13,7 @@ def gui_init():
 @pytest.fixture
 def gui_load(gui_init):
     """Start GUI"""
-    QTimer.singleShot(150, lambda: open_config_file("./test/rmtest.txt"))
+    QTimer.singleShot(150, lambda: open_config_file(os.path.join(os.getcwd(), "tests/rmtest.txt")))
     gui_init.load_file()
     return gui_init
 
@@ -21,7 +21,7 @@ def gui_load(gui_init):
 @pytest.fixture
 def gui_load_2(gui_init):
     """Start GUI"""
-    QTimer.singleShot(150, lambda: open_config_file("./test/rm_two_pages.txt"))
+    QTimer.singleShot(150, lambda: open_config_file(os.path.join(os.getcwd(), "tests/rm_two_pages.txt")))
     gui_init.load_file()
     return gui_init
 
@@ -29,13 +29,13 @@ def gui_load_2(gui_init):
 @pytest.fixture
 def run():
     """Execute the questionnaire."""
-    return StackedWindowGui("./test/rmtest.txt")
+    return StackedWindowGui(os.path.join(os.getcwd(), "tests/rmtest.txt"))
 
 
 @pytest.fixture
 def run_2():
     """Execute the questionnaire."""
-    return StackedWindowGui("./test/rm_two_pages.txt")
+    return StackedWindowGui(os.path.join(os.getcwd(), "tests/rm_two_pages.txt"))
 
 
 # noinspection PyArgumentList
@@ -171,7 +171,7 @@ def test_answers(gui_load, qtbot):
     gui_load.gui.refresh_button.click()
     QTest.keyClicks(gui_load, 's', modifier=Qt.KeyboardModifier.ControlModifier, delay=1000)
     QTest.qWait(2000)
-    test_gui = StackedWindowGui("./test/rmtest.txt")
+    test_gui = StackedWindowGui(os.path.join(os.getcwd(), "tests/rmtest.txt"))
     assert test_gui.Stack.count() == 1
     for child in test_gui.Stack.currentWidget().children():
         if isinstance(child, RadioMatrix.RadioMatrix):
@@ -200,7 +200,7 @@ def test_answers(gui_load, qtbot):
     assert not warning_found
     QTest.keyClicks(gui_load, 's', modifier=Qt.KeyboardModifier.ControlModifier, delay=1000)
     QTest.qWait(2000)
-    test_gui = StackedWindowGui("./test/rmtest.txt")
+    test_gui = StackedWindowGui(os.path.join(os.getcwd(), "tests/rmtest.txt"))
     assert test_gui.Stack.count() == 1
     for child in test_gui.Stack.currentWidget().children():
         if isinstance(child, RadioMatrix.RadioMatrix):
@@ -230,7 +230,7 @@ def test_answers(gui_load, qtbot):
     assert gui_load.structure["Page 1"]["Question 1"]["answers"] == ["one", "two", "three"]
     QTest.keyClicks(gui_load, 's', modifier=Qt.KeyboardModifier.ControlModifier, delay=1000)
     QTest.qWait(2000)
-    test_gui = StackedWindowGui("./test/rmtest.txt")
+    test_gui = StackedWindowGui(os.path.join(os.getcwd(), "tests/rmtest.txt"))
     assert test_gui.Stack.count() == 1
     for child in test_gui.Stack.currentWidget().children():
         if isinstance(child, RadioMatrix.RadioMatrix):
@@ -260,7 +260,7 @@ def test_answers(gui_load, qtbot):
     QTest.qWait(2000)
 
     QTimer.singleShot(150, handle_dialog_warning)
-    test_gui = StackedWindowGui("./test/rmtest.txt")
+    test_gui = StackedWindowGui(os.path.join(os.getcwd(), "tests/rmtest.txt"))
     assert test_gui.Stack.count() == 1
     for child in test_gui.Stack.currentWidget().children():
         if isinstance(child, RadioMatrix.RadioMatrix):
@@ -290,7 +290,7 @@ def test_answers(gui_load, qtbot):
     assert gui_load.structure["Page 1"]["Question 1"]["answers"] == (1, 2, 3, 4, 5)
     QTest.keyClicks(gui_load, 's', modifier=Qt.KeyboardModifier.ControlModifier, delay=1000)
     QTest.qWait(2000)
-    test_gui = StackedWindowGui("./test/rmtest.txt")
+    test_gui = StackedWindowGui(os.path.join(os.getcwd(), "tests/rmtest.txt"))
     assert test_gui.Stack.count() == 1
     for child in test_gui.Stack.currentWidget().children():
         if isinstance(child, RadioMatrix.RadioMatrix):
@@ -305,8 +305,8 @@ def test_answers(gui_load, qtbot):
 
 # noinspection PyArgumentList
 def test_start_id(gui_load, qtbot):
-    if os.path.exists("./test/results/results_rm.csv"):
-        os.remove("./test/results/results_rm.csv")
+    if os.path.exists("./tests/results/results_rm.csv"):
+        os.remove("./tests/results/results_rm.csv")
 
     QTimer.singleShot(150, handle_dialog_error)
     error_found, warning_found, warning_details = validate_questionnaire(gui_load.structure)
@@ -338,7 +338,7 @@ def test_start_id(gui_load, qtbot):
 
     QTest.keyClicks(gui_load, 's', modifier=Qt.KeyboardModifier.ControlModifier, delay=1000)
     QTest.qWait(2000)
-    test_gui = StackedWindowGui("./test/rmtest.txt")
+    test_gui = StackedWindowGui(os.path.join(os.getcwd(), "tests/rmtest.txt"))
     assert test_gui.Stack.count() == 1
     for child in test_gui.Stack.currentWidget().children():
         if isinstance(child, RadioMatrix.RadioMatrix):
@@ -349,7 +349,7 @@ def test_start_id(gui_load, qtbot):
     QTest.mouseClick(test_gui.forwardbutton, Qt.MouseButton.LeftButton, delay=1000)
     test_gui.close()
     results = []
-    with open('./test/results/results_rm.csv', mode='r') as file:
+    with open('./tests/results/results_rm.csv', mode='r') as file:
         csv_file = csv.reader(file, delimiter=';')
 
         for lines in csv_file:
@@ -361,7 +361,7 @@ def test_start_id(gui_load, qtbot):
     assert results[3] == '[1, 2]'  # order
     assert re.match(r'\d+-\d+-\d+ \d+:\d+:\d+.\d+', results[4])  # timestamp
     assert re.match(r'\d+-\d+-\d+ \d+:\d+:\d+.\d+', results[5])  # timestamp
-    os.remove("./test/results/results_rm.csv")
+    os.remove("./tests/results/results_rm.csv")
 
     #  -------- -1 ---------
     QTimer.singleShot(150, handle_dialog_error)
@@ -425,7 +425,7 @@ def test_start_id(gui_load, qtbot):
 
     QTest.keyClicks(gui_load, 's', modifier=Qt.KeyboardModifier.ControlModifier, delay=1000)
     QTest.qWait(2000)
-    test_gui = StackedWindowGui("./test/rmtest.txt")
+    test_gui = StackedWindowGui(os.path.join(os.getcwd(), "tests/rmtest.txt"))
     assert test_gui.Stack.count() == 1
     for child in test_gui.Stack.currentWidget().children():
         if isinstance(child, RadioMatrix.RadioMatrix):
@@ -436,7 +436,7 @@ def test_start_id(gui_load, qtbot):
     QTest.mouseClick(test_gui.forwardbutton, Qt.MouseButton.LeftButton, delay=1000)
 
     results = []
-    with open('./test/results/results_rm.csv', mode='r') as file:
+    with open('./tests/results/results_rm.csv', mode='r') as file:
         csv_file = csv.reader(file, delimiter=';')
 
         for lines in csv_file:
@@ -448,7 +448,7 @@ def test_start_id(gui_load, qtbot):
     assert results[3] == '[1, 2]'  # order
     assert re.match(r'\d+-\d+-\d+ \d+:\d+:\d+.\d+', results[4])  # timestamp
     assert re.match(r'\d+-\d+-\d+ \d+:\d+:\d+.\d+', results[5])  # timestamp
-    os.remove("./test/results/results_rm.csv")
+    os.remove("./tests/results/results_rm.csv")
     gui_load.close()
 
 
@@ -484,7 +484,7 @@ def test_questions(gui_load, qtbot):
     gui_load.gui.refresh_button.click()
     QTest.keyClicks(gui_load, 's', modifier=Qt.KeyboardModifier.ControlModifier, delay=1000)
     QTest.qWait(2000)
-    test_gui = StackedWindowGui("./test/rmtest.txt")
+    test_gui = StackedWindowGui(os.path.join(os.getcwd(), "tests/rmtest.txt"))
     assert test_gui.Stack.count() == 1
     for child in test_gui.Stack.currentWidget().children():
         if isinstance(child, RadioMatrix.RadioMatrix):
@@ -505,7 +505,7 @@ def test_questions(gui_load, qtbot):
     assert not warning_found
     QTest.keyClicks(gui_load, 's', modifier=Qt.KeyboardModifier.ControlModifier, delay=1000)
     QTest.qWait(2000)
-    test_gui = StackedWindowGui("./test/rmtest.txt")
+    test_gui = StackedWindowGui(os.path.join(os.getcwd(), "tests/rmtest.txt"))
     assert test_gui.Stack.count() == 1
     for child in test_gui.Stack.currentWidget().children():
         if isinstance(child, RadioMatrix.RadioMatrix):
@@ -528,7 +528,7 @@ def test_questions(gui_load, qtbot):
     assert gui_load.structure["Page 1"]["Question 1"]["questions"] == ["one", "two", "three"]
     QTest.keyClicks(gui_load, 's', modifier=Qt.KeyboardModifier.ControlModifier, delay=1000)
     QTest.qWait(2000)
-    test_gui = StackedWindowGui("./test/rmtest.txt")
+    test_gui = StackedWindowGui(os.path.join(os.getcwd(), "tests/rmtest.txt"))
     assert test_gui.Stack.count() == 1
     for child in test_gui.Stack.currentWidget().children():
         if isinstance(child, RadioMatrix.RadioMatrix):
@@ -551,7 +551,7 @@ def test_questions(gui_load, qtbot):
     QTest.qWait(2000)
 
     QTimer.singleShot(150, handle_dialog_warning)
-    test_gui = StackedWindowGui("./test/rmtest.txt")
+    test_gui = StackedWindowGui(os.path.join(os.getcwd(), "tests/rmtest.txt"))
     assert test_gui.Stack.count() == 1
     for child in test_gui.Stack.currentWidget().children():
         if isinstance(child, RadioMatrix.RadioMatrix):
@@ -574,7 +574,7 @@ def test_questions(gui_load, qtbot):
     assert gui_load.structure["Page 1"]["Question 1"]["questions"] == ["I like it very much.", "I don't like it at all."]
     QTest.keyClicks(gui_load, 's', modifier=Qt.KeyboardModifier.ControlModifier, delay=1000)
     QTest.qWait(2000)
-    test_gui = StackedWindowGui("./test/rmtest.txt")
+    test_gui = StackedWindowGui(os.path.join(os.getcwd(), "tests/rmtest.txt"))
     assert test_gui.Stack.count() == 1
     for child in test_gui.Stack.currentWidget().children():
         if isinstance(child, RadioMatrix.RadioMatrix):
@@ -588,15 +588,15 @@ def test_questions(gui_load, qtbot):
 
 # noinspection PyArgumentList
 def test_execute_questionnaire_no_interaction(run, qtbot):
-    if os.path.exists("./test/results/results_rm.csv"):
-        os.remove("./test/results/results_rm.csv")
+    if os.path.exists("./tests/results/results_rm.csv"):
+        os.remove("./tests/results/results_rm.csv")
     assert run.Stack.count() == 1
 
     QTimer.singleShot(100, handle_dialog)
     QTest.mouseClick(run.forwardbutton, Qt.MouseButton.LeftButton)
 
     results = []
-    with open('./test/results/results_rm.csv', mode='r') as file:
+    with open('./tests/results/results_rm.csv', mode='r') as file:
         csv_file = csv.reader(file, delimiter=';')
 
         for lines in csv_file:
@@ -615,19 +615,19 @@ def test_execute_questionnaire_no_interaction(run, qtbot):
     assert results[3] == '[1, 2]'  # order
     assert re.match(r'\d+-\d+-\d+ \d+:\d+:\d+.\d+', results[4])  # timestamp
     assert re.match(r'\d+-\d+-\d+ \d+:\d+:\d+.\d+', results[5])  # timestamp
-    os.remove("./test/results/results_rm.csv")
+    os.remove("./tests/results/results_rm.csv")
 
 
 # noinspection PyArgumentList
 def test_execute_questionnaire_no_interaction_blocked(run, qtbot):
-    with mock_file(r'./test/results/results_rm.csv'):
+    with mock_file(r'./tests/results/results_rm.csv'):
         assert run.Stack.count() == 1
         QTimer.singleShot(100, handle_dialog)
         QTest.mouseClick(run.forwardbutton, Qt.MouseButton.LeftButton)
         res_file = None
-        for file in os.listdir("./test/results/"):
+        for file in os.listdir("./tests/results/"):
             if file.find("_backup_"):
-                res_file = f'./test/results/{file}'
+                res_file = f'./tests/results/{file}'
         results = []
         with open(res_file, mode='r') as file:
             csv_file = csv.reader(file, delimiter=';')
@@ -653,8 +653,8 @@ def test_execute_questionnaire_no_interaction_blocked(run, qtbot):
 
 # noinspection PyArgumentList
 def test_execute_questionnaire(run, qtbot):
-    if os.path.exists("./test/results/results_rm.csv"):
-        os.remove("./test/results/results_rm.csv")
+    if os.path.exists("./tests/results/results_rm.csv"):
+        os.remove("./tests/results/results_rm.csv")
     assert run.Stack.count() == 1
     for child in run.Stack.currentWidget().children():
         if isinstance(child, RadioMatrix.RadioMatrix):
@@ -665,7 +665,7 @@ def test_execute_questionnaire(run, qtbot):
     QTest.mouseClick(run.forwardbutton, Qt.MouseButton.LeftButton, delay=1000)
 
     results = []
-    with open('./test/results/results_rm.csv', mode='r') as file:
+    with open('./tests/results/results_rm.csv', mode='r') as file:
         csv_file = csv.reader(file, delimiter=';')
 
         for lines in csv_file:
@@ -677,12 +677,12 @@ def test_execute_questionnaire(run, qtbot):
     assert results[3] == '[1, 2]'  # order
     assert re.match(r'\d+-\d+-\d+ \d+:\d+:\d+.\d+', results[4])  # timestamp
     assert re.match(r'\d+-\d+-\d+ \d+:\d+:\d+.\d+', results[5])  # timestamp
-    os.remove("./test/results/results_rm.csv")
+    os.remove("./tests/results/results_rm.csv")
 
 
 # noinspection PyArgumentList
 def test_execute_questionnaire_blocked(run, qtbot):
-    with mock_file(r'./test/results/results_rm.csv'):
+    with mock_file(r'./tests/results/results_rm.csv'):
         assert run.Stack.count() == 1
         for child in run.Stack.currentWidget().children():
             if isinstance(child, RadioMatrix.RadioMatrix):
@@ -691,9 +691,9 @@ def test_execute_questionnaire_blocked(run, qtbot):
         QTimer.singleShot(100, handle_dialog)
         QTest.mouseClick(run.forwardbutton, Qt.MouseButton.LeftButton)
         res_file = None
-        for file in os.listdir("./test/results/"):
+        for file in os.listdir("./tests/results/"):
             if file.find("_backup_"):
-                res_file = f'./test/results/{file}'
+                res_file = f'./tests/results/{file}'
         results = []
         with open(res_file, mode='r') as file:
             csv_file = csv.reader(file, delimiter=';')
@@ -719,8 +719,8 @@ def test_execute_questionnaire_blocked(run, qtbot):
 
 # noinspection PyArgumentList
 def test_two_pages(run_2, qtbot):
-    if os.path.exists("./test/results/results_rm.csv"):
-        os.remove("./test/results/results_rm.csv")
+    if os.path.exists("./tests/results/results_rm.csv"):
+        os.remove("./tests/results/results_rm.csv")
     assert run_2.Stack.count() == 2
 
     QTest.mouseClick(run_2.forwardbutton, Qt.MouseButton.LeftButton)
@@ -728,7 +728,7 @@ def test_two_pages(run_2, qtbot):
     QTest.mouseClick(run_2.forwardbutton, Qt.MouseButton.LeftButton)
 
     results = []
-    with open('./test/results/results_rm.csv', mode='r') as file:
+    with open('./tests/results/results_rm.csv', mode='r') as file:
         csv_file = csv.reader(file, delimiter=';')
 
         for lines in csv_file:
@@ -753,13 +753,13 @@ def test_two_pages(run_2, qtbot):
     assert results[6] == '[1, 2]'  # order
     assert re.match(r'\d+-\d+-\d+ \d+:\d+:\d+.\d+', results[7])  # timestamp
     assert re.match(r'\d+-\d+-\d+ \d+:\d+:\d+.\d+', results[8])  # timestamp
-    os.remove("./test/results/results_rm.csv")
+    os.remove("./tests/results/results_rm.csv")
 
 
 # noinspection PyArgumentList
 def test_randomize(gui_load_2, qtbot):
-    if os.path.exists("./test/results/results_rm.csv"):
-        os.remove("./test/results/results_rm.csv")
+    if os.path.exists("./tests/results/results_rm.csv"):
+        os.remove("./tests/results/results_rm.csv")
 
     QTimer.singleShot(150, handle_dialog_error)
     error_found, warning_found, warning_details = validate_questionnaire(gui_load_2.structure)
@@ -800,7 +800,7 @@ def test_randomize(gui_load_2, qtbot):
     assert not warning_found
 
     QTest.keyClicks(gui_load_2, 's', modifier=Qt.KeyboardModifier.ControlModifier)
-    test_gui = StackedWindowGui("./test/rm_two_pages.txt")
+    test_gui = StackedWindowGui(os.path.join(os.getcwd(), "tests/rm_two_pages.txt"))
     assert test_gui.Stack.count() == 2
     for child in test_gui.Stack.currentWidget().children():
         if isinstance(child, RadioMatrix.RadioMatrix):
@@ -820,7 +820,7 @@ def test_randomize(gui_load_2, qtbot):
     QTest.mouseClick(test_gui.forwardbutton, Qt.MouseButton.LeftButton, delay=1000)
     test_gui.close()
     results = []
-    with open('./test/results/results_rm.csv', mode='r') as file:
+    with open('./tests/results/results_rm.csv', mode='r') as file:
         csv_file = csv.reader(file, delimiter=';')
 
         for lines in csv_file:
@@ -832,7 +832,7 @@ def test_randomize(gui_load_2, qtbot):
     assert results[3] == results[6]  # order
     assert re.match(r'\d+-\d+-\d+ \d+:\d+:\d+.\d+', results[7])  # timestamp
     assert re.match(r'\d+-\d+-\d+ \d+:\d+:\d+.\d+', results[8])  # timestamp
-    os.remove("./test/results/results_rm.csv")
+    os.remove("./tests/results/results_rm.csv")
 
     #  --set to False --
     QTimer.singleShot(150, handle_dialog_error)
@@ -876,7 +876,7 @@ def test_randomize(gui_load_2, qtbot):
     QTest.keyClicks(gui_load_2, 's', modifier=Qt.KeyboardModifier.ControlModifier)
     gui_load_2.save()
     QTest.qWait(1000)
-    test_gui = StackedWindowGui("./test/rm_two_pages.txt")
+    test_gui = StackedWindowGui(os.path.join(os.getcwd(), "tests/rm_two_pages.txt"))
     assert test_gui.Stack.count() == 2
     for child in test_gui.Stack.currentWidget().children():
         if isinstance(child, RadioMatrix.RadioMatrix):
@@ -896,7 +896,7 @@ def test_randomize(gui_load_2, qtbot):
     QTest.mouseClick(test_gui.forwardbutton, Qt.MouseButton.LeftButton, delay=1000)
     test_gui.close()
     results = []
-    with open('./test/results/results_rm.csv', mode='r') as file:
+    with open('./tests/results/results_rm.csv', mode='r') as file:
         csv_file = csv.reader(file, delimiter=';')
 
         for lines in csv_file:
@@ -908,5 +908,5 @@ def test_randomize(gui_load_2, qtbot):
     assert results[3] == results[6]  # order
     assert re.match(r'\d+-\d+-\d+ \d+:\d+:\d+.\d+', results[7])  # timestamp
     assert re.match(r'\d+-\d+-\d+ \d+:\d+:\d+.\d+', results[8])  # timestamp
-    os.remove("./test/results/results_rm.csv")
+    os.remove("./tests/results/results_rm.csv")
     gui_load_2.close()

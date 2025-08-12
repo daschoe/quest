@@ -1,6 +1,6 @@
 """Testing the behaviour of PasswordEntry.py + QEditGui.py"""
 
-from context import pytest, QEditGuiMain, PasswordEntry, QHBoxLayout, keyboard, QIntValidator, QDoubleValidator, QRegularExpressionValidator, QPalette, QTimer, open_config_file, StackedWindowGui, QTest, handle_dialog_p, handle_dialog_q, Qt, QFormLayout, QWidgetItem, fields_per_type, default_values, QCheckBox, QLineEdit, page_fields, listify, ConfigObj, general_fields, handle_dialog_error, validate_questionnaire, handle_dialog_no_save, find_row_by_label, handle_dialog, csv, re, os, mock_file
+from tests.context import pytest, QEditGuiMain, PasswordEntry, QHBoxLayout, keyboard, QIntValidator, QDoubleValidator, QRegularExpressionValidator, QPalette, QTimer, open_config_file, StackedWindowGui, QTest, handle_dialog_p, handle_dialog_q, Qt, QFormLayout, QWidgetItem, fields_per_type, default_values, QCheckBox, QLineEdit, page_fields, listify, ConfigObj, general_fields, handle_dialog_error, validate_questionnaire, handle_dialog_no_save, find_row_by_label, handle_dialog, csv, re, os, mock_file
 
 
 @pytest.fixture
@@ -13,7 +13,7 @@ def gui_init():
 @pytest.fixture
 def gui_load(gui_init):
     """Start GUI"""
-    QTimer.singleShot(150, lambda: open_config_file("./test/pwtest.txt"))
+    QTimer.singleShot(150, lambda: open_config_file(os.path.join(os.getcwd(), "tests/pwtest.txt")))
     gui_init.load_file()
     return gui_init
 
@@ -21,7 +21,7 @@ def gui_load(gui_init):
 @pytest.fixture
 def run():
     """Execute the questionnaire."""
-    return StackedWindowGui("./test/pwtest.txt")
+    return StackedWindowGui(os.path.join(os.getcwd(), "tests/pwtest.txt"))
 
 
 # noinspection PyArgumentList
@@ -185,7 +185,7 @@ def test_policy(gui_load, qtbot):
     assert find_row_by_label(gui_load.gui.edit_layout, "dec") is None
     assert find_row_by_label(gui_load.gui.edit_layout, "exp") is None
     QTest.keyClicks(gui_load, 's', modifier=Qt.KeyboardModifier.ControlModifier, delay=1000)
-    test_gui = StackedWindowGui("./test/pwtest.txt")
+    test_gui = StackedWindowGui(os.path.join(os.getcwd(), "tests/pwtest.txt"))
     for child in test_gui.Stack.currentWidget().children():
         if isinstance(child, PasswordEntry):
             assert child.validator() is None
@@ -209,15 +209,15 @@ def test_policy(gui_load, qtbot):
     QTest.keyClicks(gui_load.gui.edit_layout.itemAt(max_b[0], QFormLayout.ItemRole.FieldRole).itemAt(max_b[1]).widget(), '9999')
     gui_load.gui.edit_layout.itemAt(max_b[0], QFormLayout.ItemRole.FieldRole).itemAt(max_b[1]).widget().editingFinished.emit()
     assert gui_load.gui.edit_layout.itemAt(max_b[0], QFormLayout.ItemRole.FieldRole).itemAt(max_b[1]).widget().text() == '9999'
-    gui_load.structure["Page 1"]["Question 1"]["password_file"] = "./test/mock_pws_int.txt"
-    pwfile.setText("./test/mock_pws_int.txt")
+    gui_load.structure["Page 1"]["Question 1"]["password_file"] = os.path.join(os.getcwd(), "tests/mock_pws_int.txt")
+    pwfile.setText(os.path.join(os.getcwd(), "tests/mock_pws_int.txt"))
     gui_load.gui.refresh_button.click()
     QTest.qWait(2000)
     assert gui_load.structure["Page 1"]["Question 1"]["policy"] == ['int', '1000', '9999']
     QTest.keyClicks(gui_load, 's', modifier=Qt.KeyboardModifier.ControlModifier, delay=1000)
     gui_load.save() # have to enforce save since focus is lost somwhow....
     QTest.qWait(1000)
-    test_gui = StackedWindowGui("./test/pwtest.txt")
+    test_gui = StackedWindowGui(os.path.join(os.getcwd(), "tests/pwtest.txt"))
     for child in test_gui.Stack.currentWidget().children():
         if isinstance(child, PasswordEntry):
             assert isinstance(child.validator(), QIntValidator)
@@ -243,14 +243,14 @@ def test_policy(gui_load, qtbot):
     QTest.keyClicks(gui_load.gui.edit_layout.itemAt(dec_b[0], QFormLayout.ItemRole.FieldRole).itemAt(dec_b[1]).widget(), '2')
     gui_load.gui.edit_layout.itemAt(dec_b[0], QFormLayout.ItemRole.FieldRole).itemAt(dec_b[1]).widget().editingFinished.emit()
     assert gui_load.gui.edit_layout.itemAt(dec_b[0], QFormLayout.ItemRole.FieldRole).itemAt(dec_b[1]).widget().text() == '2'
-    gui_load.structure["Page 1"]["Question 1"]["password_file"] = "./test/mock_pws_double.txt"
-    pwfile.setText("./test/mock_pws_double.txt")
+    gui_load.structure["Page 1"]["Question 1"]["password_file"] = os.path.join(os.getcwd(), "tests/mock_pws_double.txt")
+    pwfile.setText(os.path.join(os.getcwd(), "tests/mock_pws_double.txt"))
     gui_load.gui.refresh_button.click()
     assert gui_load.structure["Page 1"]["Question 1"]["policy"] == ['double', '1', '100', '2']
     QTest.keyClicks(gui_load, 's', modifier=Qt.KeyboardModifier.ControlModifier, delay=1000)
     gui_load.save() # have to enforce save since focus is lost somwhow....
     QTest.qWait(1000)
-    test_gui = StackedWindowGui("./test/pwtest.txt")
+    test_gui = StackedWindowGui(os.path.join(os.getcwd(), "tests/pwtest.txt"))
     for child in test_gui.Stack.currentWidget().children():
         if isinstance(child, PasswordEntry):
             assert isinstance(child.validator(), QDoubleValidator)
@@ -268,14 +268,14 @@ def test_policy(gui_load, qtbot):
     QTest.keyClicks(gui_load.gui.edit_layout.itemAt(exp_b[0], QFormLayout.ItemRole.FieldRole).itemAt(exp_b[1]).widget(), '[A-Z]\\d')
     gui_load.gui.edit_layout.itemAt(exp_b[0], QFormLayout.ItemRole.FieldRole).itemAt(exp_b[1]).widget().editingFinished.emit()
     assert gui_load.gui.edit_layout.itemAt(exp_b[0], QFormLayout.ItemRole.FieldRole).itemAt(exp_b[1]).widget().text() == '[A-Z]\\d'
-    gui_load.structure["Page 1"]["Question 1"]["password_file"] = "./test/mock_pws_regex.txt"
-    pwfile.setText("./test/mock_pws_regex.txt")
+    gui_load.structure["Page 1"]["Question 1"]["password_file"] = os.path.join(os.getcwd(), "tests/mock_pws_regex.txt")
+    pwfile.setText(os.path.join(os.getcwd(), "tests/mock_pws_regex.txt"))
     gui_load.gui.refresh_button.click()
     assert gui_load.structure["Page 1"]["Question 1"]["policy"] == ['regex', '[A-Z]\\d']
     QTest.keyClicks(gui_load, 's', modifier=Qt.KeyboardModifier.ControlModifier, delay=1000)
     gui_load.save() # have to enforce save since focus is lost somwhow....
     QTest.qWait(2000)
-    test_gui = StackedWindowGui("./test/pwtest.txt")
+    test_gui = StackedWindowGui(os.path.join(os.getcwd(), "tests/pwtest.txt"))
     for child in test_gui.Stack.currentWidget().children():
         if isinstance(child, PasswordEntry):
             assert isinstance(child.validator(), QRegularExpressionValidator)
@@ -291,8 +291,8 @@ def test_policy(gui_load, qtbot):
     assert find_row_by_label(gui_load.gui.edit_layout, "max") is None
     assert find_row_by_label(gui_load.gui.edit_layout, "dec") is None
     assert find_row_by_label(gui_load.gui.edit_layout, "exp") is None
-    gui_load.structure["Page 1"]["Question 1"]["password_file"] = "./test/mock_pws.txt"
-    pwfile.setText("./test/mock_pws.txt")
+    gui_load.structure["Page 1"]["Question 1"]["password_file"] = os.path.join(os.getcwd(), "tests/mock_pws.txt")
+    pwfile.setText(os.path.join(os.getcwd(), "tests/mock_pws.txt"))
     QTest.keyClicks(gui_load, 's', modifier=Qt.KeyboardModifier.ControlModifier, delay=1000)
     gui_load.save() # have to enforce save since focus is lost somwhow....
     gui_load.close()
@@ -300,15 +300,15 @@ def test_policy(gui_load, qtbot):
 
 # noinspection PyArgumentList
 def test_execute_questionnaire_no_interaction(run, qtbot):
-    if os.path.exists("./test/results/results_pw.csv"):
-        os.remove("./test/results/results_pw.csv")
+    if os.path.exists("./tests/results/results_pw.csv"):
+        os.remove("./tests/results/results_pw.csv")
     assert run.Stack.count() == 1
 
     QTimer.singleShot(100, handle_dialog)
     QTest.mouseClick(run.forwardbutton, Qt.MouseButton.LeftButton)
 
     results = []
-    with open('./test/results/results_pw.csv', mode='r') as file:
+    with open('./tests/results/results_pw.csv', mode='r') as file:
         csv_file = csv.reader(file, delimiter=';')
 
         for lines in csv_file:
@@ -323,19 +323,19 @@ def test_execute_questionnaire_no_interaction(run, qtbot):
     assert results[1] == ''
     assert re.match(r'\d+-\d+-\d+ \d+:\d+:\d+.\d+', results[2])  # timestamp
     assert re.match(r'\d+-\d+-\d+ \d+:\d+:\d+.\d+', results[3])  # timestamp
-    os.remove("./test/results/results_pw.csv")
+    os.remove("./tests/results/results_pw.csv")
 
 
 # noinspection PyArgumentList
 def test_execute_questionnaire_no_interaction_blocked(run, qtbot):
-    with mock_file(r'./test/results/results_pw.csv'):
+    with mock_file(r'./tests/results/results_pw.csv'):
         assert run.Stack.count() == 1
         QTimer.singleShot(100, handle_dialog)
         QTest.mouseClick(run.forwardbutton, Qt.MouseButton.LeftButton)
         res_file = None
-        for file in os.listdir("./test/results/"):
+        for file in os.listdir("./tests/results/"):
             if file.find("_backup_"):
-                res_file = f'./test/results/{file}'
+                res_file = f'./tests/results/{file}'
         results = []
         with open(res_file, mode='r') as file:
             csv_file = csv.reader(file, delimiter=';')
@@ -357,8 +357,8 @@ def test_execute_questionnaire_no_interaction_blocked(run, qtbot):
 
 # noinspection PyArgumentList
 def test_execute_questionnaire_type_pw(run, qtbot):
-    if os.path.exists("./test/results/results_pw.csv"):
-        os.remove("./test/results/results_pw.csv")
+    if os.path.exists("./tests/results/results_pw.csv"):
+        os.remove("./tests/results/results_pw.csv")
     assert run.Stack.count() == 1
     for child in run.Stack.currentWidget().children():
         if isinstance(child, PasswordEntry):
@@ -380,7 +380,7 @@ def test_execute_questionnaire_type_pw(run, qtbot):
     QTest.mouseClick(run.forwardbutton, Qt.MouseButton.LeftButton)
 
     results = []
-    with open('./test/results/results_pw.csv', mode='r') as file:
+    with open('./tests/results/results_pw.csv', mode='r') as file:
         csv_file = csv.reader(file, delimiter=';')
 
         for lines in csv_file:
@@ -395,12 +395,12 @@ def test_execute_questionnaire_type_pw(run, qtbot):
     assert results[1] == 'password'
     assert re.match(r'\d+-\d+-\d+ \d+:\d+:\d+.\d+', results[2])  # timestamp
     assert re.match(r'\d+-\d+-\d+ \d+:\d+:\d+.\d+', results[3])  # timestamp
-    os.remove("./test/results/results_pw.csv")
+    os.remove("./tests/results/results_pw.csv")
 
 
 # noinspection PyArgumentList
 def test_execute_questionnaire_blocked(run, qtbot):
-    with mock_file(r'./test/results/results_pw.csv'):
+    with mock_file(r'./tests/results/results_pw.csv'):
         assert run.Stack.count() == 1
         for child in run.Stack.currentWidget().children():
             if isinstance(child, PasswordEntry):
@@ -420,9 +420,9 @@ def test_execute_questionnaire_blocked(run, qtbot):
         QTimer.singleShot(100, handle_dialog)
         QTest.mouseClick(run.forwardbutton, Qt.MouseButton.LeftButton)
         res_file = None
-        for file in os.listdir("./test/results/"):
+        for file in os.listdir("./tests/results/"):
             if file.find("_backup_"):
-                res_file = f'./test/results/{file}'
+                res_file = f'./tests/results/{file}'
         results = []
         with open(res_file, mode='r') as file:
             csv_file = csv.reader(file, delimiter=';')
@@ -444,8 +444,8 @@ def test_execute_questionnaire_blocked(run, qtbot):
 
 # noinspection PyArgumentList
 def test_execute_questionnaire_type_wrong_pw(run, qtbot):
-    if os.path.exists("./test/results/results_pw.csv"):
-        os.remove("./test/results/results_pw.csv")
+    if os.path.exists("./tests/results/results_pw.csv"):
+        os.remove("./tests/results/results_pw.csv")
     assert run.Stack.count() == 1
     for child in run.Stack.currentWidget().children():
         if isinstance(child, PasswordEntry):
@@ -470,7 +470,7 @@ def test_execute_questionnaire_type_wrong_pw(run, qtbot):
     QTest.mouseClick(run.forwardbutton, Qt.MouseButton.LeftButton)
 
     results = []
-    with open('./test/results/results_pw.csv', mode='r') as file:
+    with open('./tests/results/results_pw.csv', mode='r') as file:
         csv_file = csv.reader(file, delimiter=';')
 
         for lines in csv_file:
@@ -485,4 +485,4 @@ def test_execute_questionnaire_type_wrong_pw(run, qtbot):
     assert results[1] == 'password'
     assert re.match(r'\d+-\d+-\d+ \d+:\d+:\d+.\d+', results[2])  # timestamp
     assert re.match(r'\d+-\d+-\d+ \d+:\d+:\d+.\d+', results[3])  # timestamp
-    os.remove("./test/results/results_pw.csv")
+    os.remove("./tests/results/results_pw.csv")

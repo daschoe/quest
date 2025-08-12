@@ -1,6 +1,6 @@
 """Test if the string_to_list function in Validator.py is working correctly."""
 
-from context import string_to_list
+from tests.context import string_to_list
 
 
 def test_single_string():

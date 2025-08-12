@@ -66,8 +66,8 @@ def open_config_file(conf_name):
     """Type filename."""
     QTest.qWait(50)
     dialog = QApplication.activeModalWidget()
-    if dialog.directory().dirName() != "test":
-        dialog.setDirectory(dialog.directory().path() + "\\test")
+    if dialog.directory().dirName() != "tests":
+        dialog.setDirectory(dialog.directory().path() + "\\tests")
     fp = conf_name.split("/")
     QTest.qWait(50)
     keyboard.write(fp[-1])

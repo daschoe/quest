@@ -7,9 +7,9 @@ answer_pos = Ja
 answer_neg = Nein
 save_message = Sind Sie bereit den Fragebogen zu beenden und somit Ihre Angaben zu speichern?
 pagecount_text = Seite {} von {}
-filepath_results = ./test/results/results_img.csv
+filepath_results = ./tests/results/results_img.csv
 delimiter = ;
-stylesheet = ./src/stylesheets/minimal.qss
+stylesheet = ./stylesheets/minimal.qss
 button_fade = 100
 save_after = Page 1
 [Page 1]
@@ -20,7 +20,7 @@ save_after = Page 1
     [[Image]]
         type = Image
         objectName = image
-        image_file = ./src/Configs/Logo.png
+        image_file = ./QUEST/Configs/Logo.png
         image_position = free
         x_pos = 1800
         y_pos = 400

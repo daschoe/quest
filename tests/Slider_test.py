@@ -1,6 +1,6 @@
 """Testing the behaviour of AnswerSlider.py + QEditGui.py"""
 
-from context import pytest, QEditGuiMain, QTimer, open_config_file, StackedWindowGui, QTest, handle_dialog_p, handle_dialog_q, Qt, QFormLayout, QWidgetItem, fields_per_type, default_values, QLineEdit, page_fields, listify, ConfigObj, general_fields, handle_dialog_error, validate_questionnaire, handle_dialog_no_save, find_row_by_label, handle_dialog, csv, re, os, mock_file, Slider, LabeledSlider, QRadioButton
+from tests.context import pytest, QEditGuiMain, QTimer, open_config_file, StackedWindowGui, QTest, handle_dialog_p, handle_dialog_q, Qt, QFormLayout, QWidgetItem, fields_per_type, default_values, QLineEdit, page_fields, listify, ConfigObj, general_fields, handle_dialog_error, validate_questionnaire, handle_dialog_no_save, find_row_by_label, handle_dialog, csv, re, os, mock_file, Slider, LabeledSlider, QRadioButton
 
 
 @pytest.fixture
@@ -13,7 +13,7 @@ def gui_init():
 @pytest.fixture
 def gui_load(gui_init):
     """Start GUI"""
-    QTimer.singleShot(150, lambda: open_config_file("./test/sltest.txt"))
+    QTimer.singleShot(150, lambda: open_config_file(os.path.join(os.getcwd(), "tests/sltest.txt")))
     gui_init.load_file()
     return gui_init
 
@@ -21,7 +21,7 @@ def gui_load(gui_init):
 @pytest.fixture
 def run():
     """Execute the questionnaire."""
-    return StackedWindowGui("./test/sltest.txt")
+    return StackedWindowGui(os.path.join(os.getcwd(), "tests/sltest.txt"))
 
 
 # noinspection PyArgumentList
@@ -149,7 +149,7 @@ def test_labels(gui_load, qtbot):
     assert "label" not in gui_load.structure["Page 1"]["Question 1"].keys()
     assert gui_load.structure["Page 1"]["Question 1"]["labelled"]
     QTest.keyClicks(gui_load, 's', modifier=Qt.KeyboardModifier.ControlModifier, delay=1000)
-    test_gui = StackedWindowGui("./test/sltest.txt")
+    test_gui = StackedWindowGui(os.path.join(os.getcwd(), "tests/sltest.txt"))
     assert test_gui.Stack.count() == 1
     for child in test_gui.Stack.currentWidget().children():
         if isinstance(child, LabeledSlider.LabeledSlider):
@@ -215,7 +215,7 @@ def test_labels(gui_load, qtbot):
     assert not error_found
     assert not warning_found
     QTest.keyClicks(gui_load, 's', modifier=Qt.KeyboardModifier.ControlModifier, delay=1000)
-    test_gui = StackedWindowGui("./test/sltest.txt")
+    test_gui = StackedWindowGui(os.path.join(os.getcwd(), "tests/sltest.txt"))
     assert test_gui.Stack.count() == 1
     for child in test_gui.Stack.currentWidget().children():
         if isinstance(child, LabeledSlider.LabeledSlider):
@@ -266,7 +266,7 @@ def test_labels(gui_load, qtbot):
     assert not error_found
     assert not warning_found
     QTest.keyClicks(gui_load, 's', modifier=Qt.KeyboardModifier.ControlModifier, delay=1000)
-    test_gui = StackedWindowGui("./test/sltest.txt")
+    test_gui = StackedWindowGui(os.path.join(os.getcwd(), "tests/sltest.txt"))
     assert test_gui.Stack.count() == 1
     for child in test_gui.Stack.currentWidget().children():
         if isinstance(child, LabeledSlider.LabeledSlider):
@@ -292,7 +292,7 @@ def test_labels(gui_load, qtbot):
     # assert "label" not in gui_load.structure["Page 1"]["Question 1"].keys()  # they stay, they are just not loaded
     assert not gui_load.structure["Page 1"]["Question 1"]["labelled"]
     QTest.keyClicks(gui_load, 's', modifier=Qt.KeyboardModifier.ControlModifier, delay=1000)
-    test_gui = StackedWindowGui("./test/sltest.txt")
+    test_gui = StackedWindowGui(os.path.join(os.getcwd(), "tests/sltest.txt"))
     assert test_gui.Stack.count() == 1
     for child in test_gui.Stack.currentWidget().children():
         if isinstance(child, Slider.Slider):
@@ -324,7 +324,7 @@ def test_labels(gui_load, qtbot):
     assert "label" not in gui_load.structure["Page 1"]["Question 1"].keys()
     assert not gui_load.structure["Page 1"]["Question 1"]["labelled"]
     QTest.keyClicks(gui_load, 's', modifier=Qt.KeyboardModifier.ControlModifier, delay=1000)
-    test_gui = StackedWindowGui("./test/sltest.txt")
+    test_gui = StackedWindowGui(os.path.join(os.getcwd(), "tests/sltest.txt"))
     assert test_gui.Stack.count() == 1
     for child in test_gui.Stack.currentWidget().children():
         if isinstance(child, Slider.Slider):
@@ -340,8 +340,8 @@ def test_labels(gui_load, qtbot):
 
 # noinspection PyArgumentList
 def test_start(gui_load, qtbot):
-    if os.path.exists("./test/results/results_sl.csv"):
-        os.remove("./test/results/results_sl.csv")
+    if os.path.exists("./tests/results/results_sl.csv"):
+        os.remove("./tests/results/results_sl.csv")
 
     QTimer.singleShot(150, handle_dialog_error)
     error_found, warning_found, warning_details = validate_questionnaire(gui_load.structure)
@@ -384,7 +384,7 @@ def test_start(gui_load, qtbot):
     assert not warning_found
 
     QTest.keyClicks(gui_load, 's', modifier=Qt.KeyboardModifier.ControlModifier, delay=1000)
-    test_gui = StackedWindowGui("./test/sltest.txt")
+    test_gui = StackedWindowGui(os.path.join(os.getcwd(), "tests/sltest.txt"))
     assert test_gui.Stack.count() == 1
     for child in test_gui.Stack.currentWidget().children():
         if isinstance(child, Slider.Slider):
@@ -394,7 +394,7 @@ def test_start(gui_load, qtbot):
     QTest.mouseClick(test_gui.forwardbutton, Qt.MouseButton.LeftButton, delay=1000)
     test_gui.close()
     results = []
-    with open('./test/results/results_sl.csv', mode='r') as file:
+    with open('./tests/results/results_sl.csv', mode='r') as file:
         csv_file = csv.reader(file, delimiter=';')
 
         for lines in csv_file:
@@ -404,7 +404,7 @@ def test_start(gui_load, qtbot):
     assert results[1] == '4'  # initial value within bounds (min<max<start)->max
     assert re.match(r'\d+-\d+-\d+ \d+:\d+:\d+.\d+', results[2])  # timestamp
     assert re.match(r'\d+-\d+-\d+ \d+:\d+:\d+.\d+', results[3])  # timestamp
-    os.remove("./test/results/results_sl.csv")
+    os.remove("./tests/results/results_sl.csv")
 
     # smaller than min
     gui_load.gui.edit_layout.itemAt(start_pos, QFormLayout.ItemRole.FieldRole).widget().clear()
@@ -422,7 +422,7 @@ def test_start(gui_load, qtbot):
     assert not warning_found
 
     QTest.keyClicks(gui_load, 's', modifier=Qt.KeyboardModifier.ControlModifier, delay=1000)
-    test_gui = StackedWindowGui("./test/sltest.txt")
+    test_gui = StackedWindowGui(os.path.join(os.getcwd(), "tests/sltest.txt"))
     assert test_gui.Stack.count() == 1
     for child in test_gui.Stack.currentWidget().children():
         if isinstance(child, Slider.Slider):
@@ -432,7 +432,7 @@ def test_start(gui_load, qtbot):
     QTest.mouseClick(test_gui.forwardbutton, Qt.MouseButton.LeftButton, delay=1000)
     test_gui.close()
     results = []
-    with open('./test/results/results_sl.csv', mode='r') as file:
+    with open('./tests/results/results_sl.csv', mode='r') as file:
         csv_file = csv.reader(file, delimiter=';')
 
         for lines in csv_file:
@@ -442,7 +442,7 @@ def test_start(gui_load, qtbot):
     assert results[1] == str(int(gui_load.structure["Page 1"]["Question 1"]["start"]))  # initial value within bounds (start<min<max)->min
     assert re.match(r'\d+-\d+-\d+ \d+:\d+:\d+.\d+', results[2])  # timestamp
     assert re.match(r'\d+-\d+-\d+ \d+:\d+:\d+.\d+', results[3])  # timestamp
-    os.remove("./test/results/results_sl.csv")
+    os.remove("./tests/results/results_sl.csv")
 
     # somewhere in between
     gui_load.gui.edit_layout.itemAt(start_pos, QFormLayout.ItemRole.FieldRole).widget().clear()
@@ -460,7 +460,7 @@ def test_start(gui_load, qtbot):
     assert not warning_found
 
     QTest.keyClicks(gui_load, 's', modifier=Qt.KeyboardModifier.ControlModifier, delay=1000)
-    test_gui = StackedWindowGui("./test/sltest.txt")
+    test_gui = StackedWindowGui(os.path.join(os.getcwd(), "tests/sltest.txt"))
     assert test_gui.Stack.count() == 1
     for child in test_gui.Stack.currentWidget().children():
         if isinstance(child, Slider.Slider):
@@ -470,7 +470,7 @@ def test_start(gui_load, qtbot):
     QTest.mouseClick(test_gui.forwardbutton, Qt.MouseButton.LeftButton, delay=1000)
     test_gui.close()
     results = []
-    with open('./test/results/results_sl.csv', mode='r') as file:
+    with open('./tests/results/results_sl.csv', mode='r') as file:
         csv_file = csv.reader(file, delimiter=';')
 
         for lines in csv_file:
@@ -480,7 +480,7 @@ def test_start(gui_load, qtbot):
     assert results[1] == '2'  # initial value within bounds
     assert re.match(r'\d+-\d+-\d+ \d+:\d+:\d+.\d+', results[2])  # timestamp
     assert re.match(r'\d+-\d+-\d+ \d+:\d+:\d+.\d+', results[3])  # timestamp
-    os.remove("./test/results/results_sl.csv")
+    os.remove("./tests/results/results_sl.csv")
     
     # somewhere in between (negative range)
     gui_load.structure["Page 1"]["Question 1"]["min"] = 5
@@ -500,7 +500,7 @@ def test_start(gui_load, qtbot):
     assert not warning_found
 
     QTest.keyClicks(gui_load, 's', modifier=Qt.KeyboardModifier.ControlModifier, delay=1000)
-    test_gui = StackedWindowGui("./test/sltest.txt")
+    test_gui = StackedWindowGui(os.path.join(os.getcwd(), "tests/sltest.txt"))
     assert test_gui.Stack.count() == 1
     for child in test_gui.Stack.currentWidget().children():
         if isinstance(child, Slider.Slider):
@@ -510,7 +510,7 @@ def test_start(gui_load, qtbot):
     QTest.mouseClick(test_gui.forwardbutton, Qt.MouseButton.LeftButton, delay=1000)
     test_gui.close()
     results = []
-    with open('./test/results/results_sl.csv', mode='r') as file:
+    with open('./tests/results/results_sl.csv', mode='r') as file:
         csv_file = csv.reader(file, delimiter=';')
 
         for lines in csv_file:
@@ -520,7 +520,7 @@ def test_start(gui_load, qtbot):
     assert results[1] == '2'  # initial value within bounds
     assert re.match(r'\d+-\d+-\d+ \d+:\d+:\d+.\d+', results[2])  # timestamp
     assert re.match(r'\d+-\d+-\d+ \d+:\d+:\d+.\d+', results[3])  # timestamp
-    os.remove("./test/results/results_sl.csv")
+    os.remove("./tests/results/results_sl.csv")
     
     gui_load.structure["Page 1"]["Question 1"]["min"] = -1
     gui_load.structure["Page 1"]["Question 1"]["max"] = -6
@@ -539,7 +539,7 @@ def test_start(gui_load, qtbot):
     assert not warning_found
 
     QTest.keyClicks(gui_load, 's', modifier=Qt.KeyboardModifier.ControlModifier, delay=1000)
-    test_gui = StackedWindowGui("./test/sltest.txt")
+    test_gui = StackedWindowGui(os.path.join(os.getcwd(), "tests/sltest.txt"))
     assert test_gui.Stack.count() == 1
     for child in test_gui.Stack.currentWidget().children():
         if isinstance(child, Slider.Slider):
@@ -549,7 +549,7 @@ def test_start(gui_load, qtbot):
     QTest.mouseClick(test_gui.forwardbutton, Qt.MouseButton.LeftButton, delay=1000)
     test_gui.close()
     results = []
-    with open('./test/results/results_sl.csv', mode='r') as file:
+    with open('./tests/results/results_sl.csv', mode='r') as file:
         csv_file = csv.reader(file, delimiter=';')
 
         for lines in csv_file:
@@ -559,7 +559,7 @@ def test_start(gui_load, qtbot):
     assert results[1] == '-2'  # initial value within bounds
     assert re.match(r'\d+-\d+-\d+ \d+:\d+:\d+.\d+', results[2])  # timestamp
     assert re.match(r'\d+-\d+-\d+ \d+:\d+:\d+.\d+', results[3])  # timestamp
-    os.remove("./test/results/results_sl.csv")
+    os.remove("./tests/results/results_sl.csv")
     
 
     # reset to default
@@ -584,8 +584,8 @@ def test_start(gui_load, qtbot):
 
 # noinspection PyArgumentList
 def test_step(gui_load, qtbot):
-    if os.path.exists("./test/results/results_sl.csv"):
-        os.remove("./test/results/results_sl.csv")
+    if os.path.exists("./tests/results/results_sl.csv"):
+        os.remove("./tests/results/results_sl.csv")
 
     QTimer.singleShot(150, handle_dialog_error)
     error_found, warning_found, warning_details = validate_questionnaire(gui_load.structure)
@@ -653,7 +653,7 @@ def test_step(gui_load, qtbot):
     assert not warning_found
 
     QTest.keyClicks(gui_load, 's', modifier=Qt.KeyboardModifier.ControlModifier, delay=1000)
-    test_gui = StackedWindowGui("./test/sltest.txt")
+    test_gui = StackedWindowGui(os.path.join(os.getcwd(), "tests/sltest.txt"))
     assert test_gui.Stack.count() == 1
     #for child in test_gui.Stack.currentWidget().children():
     #    if isinstance(child, Slider.Slider):
@@ -663,7 +663,7 @@ def test_step(gui_load, qtbot):
     QTest.mouseClick(test_gui.forwardbutton, Qt.MouseButton.LeftButton, delay=1000)
     test_gui.close()
     results = []
-    with open('./test/results/results_sl.csv', mode='r') as file:
+    with open('./tests/results/results_sl.csv', mode='r') as file:
         csv_file = csv.reader(file, delimiter=';')
 
         for lines in csv_file:
@@ -673,7 +673,7 @@ def test_step(gui_load, qtbot):
     assert results[1] == '0'  # initial value
     assert re.match(r'\d+-\d+-\d+ \d+:\d+:\d+.\d+', results[2])  # timestamp
     assert re.match(r'\d+-\d+-\d+ \d+:\d+:\d+.\d+', results[3])  # timestamp
-    os.remove("./test/results/results_sl.csv")
+    os.remove("./tests/results/results_sl.csv")
 
     # smaller than 1
     gui_load.structure["Page 1"]["Question 1"]["max"] = "4"
@@ -692,7 +692,7 @@ def test_step(gui_load, qtbot):
     assert not warning_found
 
     QTest.keyClicks(gui_load, 's', modifier=Qt.KeyboardModifier.ControlModifier, delay=1000)
-    test_gui = StackedWindowGui("./test/sltest.txt")
+    test_gui = StackedWindowGui(os.path.join(os.getcwd(), "tests/sltest.txt"))
     assert test_gui.Stack.count() == 1
     #for child in test_gui.Stack.currentWidget().children():
     #    if isinstance(child, Slider.Slider):
@@ -702,7 +702,7 @@ def test_step(gui_load, qtbot):
     QTest.mouseClick(test_gui.forwardbutton, Qt.MouseButton.LeftButton, delay=1000)
     test_gui.close()
     results = []
-    with open('./test/results/results_sl.csv', mode='r') as file:
+    with open('./tests/results/results_sl.csv', mode='r') as file:
         csv_file = csv.reader(file, delimiter=';')
 
         for lines in csv_file:
@@ -712,7 +712,7 @@ def test_step(gui_load, qtbot):
     assert results[1] == '0.0'  # initial value
     assert re.match(r'\d+-\d+-\d+ \d+:\d+:\d+.\d+', results[2])  # timestamp
     assert re.match(r'\d+-\d+-\d+ \d+:\d+:\d+.\d+', results[3])  # timestamp
-    os.remove("./test/results/results_sl.csv")
+    os.remove("./tests/results/results_sl.csv")
 
     # reset to default
     gui_load.gui.edit_layout.itemAt(start_pos, QFormLayout.ItemRole.FieldRole).widget().clear()
@@ -734,8 +734,8 @@ def test_step(gui_load, qtbot):
 
 # noinspection PyArgumentList
 def test_min(gui_load, qtbot):
-    if os.path.exists("./test/results/results_sl.csv"):
-        os.remove("./test/results/results_sl.csv")
+    if os.path.exists("./tests/results/results_sl.csv"):
+        os.remove("./tests/results/results_sl.csv")
 
     QTimer.singleShot(150, handle_dialog_error)
     error_found, warning_found, warning_details = validate_questionnaire(gui_load.structure)
@@ -789,7 +789,7 @@ def test_min(gui_load, qtbot):
     assert not warning_found
 
     QTest.keyClicks(gui_load, 's', modifier=Qt.KeyboardModifier.ControlModifier, delay=1000)
-    test_gui = StackedWindowGui("./test/sltest.txt")
+    test_gui = StackedWindowGui(os.path.join(os.getcwd(), "tests/sltest.txt"))
     assert test_gui.Stack.count() == 1
     for child in test_gui.Stack.currentWidget().children():
         if isinstance(child, Slider.Slider):
@@ -803,7 +803,7 @@ def test_min(gui_load, qtbot):
     QTest.mouseClick(test_gui.forwardbutton, Qt.MouseButton.LeftButton, delay=1000)
     test_gui.close()
     results = []
-    with open('./test/results/results_sl.csv', mode='r') as file:
+    with open('./tests/results/results_sl.csv', mode='r') as file:
         csv_file = csv.reader(file, delimiter=';')
 
         for lines in csv_file:
@@ -813,14 +813,14 @@ def test_min(gui_load, qtbot):
     assert results[1] == '4'  # initial value < max < min -> max
     assert re.match(r'\d+-\d+-\d+ \d+:\d+:\d+.\d+', results[2])  # timestamp
     assert re.match(r'\d+-\d+-\d+ \d+:\d+:\d+.\d+', results[3])  # timestamp
-    os.remove("./test/results/results_sl.csv")
+    os.remove("./tests/results/results_sl.csv")
 
     # with labels
     cb_pos = find_row_by_label(gui_load.gui.edit_layout, 'labelled')
     gui_load.gui.edit_layout.itemAt(cb_pos, QFormLayout.ItemRole.FieldRole).widget().click()
     assert gui_load.gui.edit_layout.itemAt(cb_pos, QFormLayout.ItemRole.FieldRole).widget().isChecked()
     QTest.keyClicks(gui_load, 's', modifier=Qt.KeyboardModifier.ControlModifier, delay=1000)
-    test_gui = StackedWindowGui("./test/sltest.txt")
+    test_gui = StackedWindowGui(os.path.join(os.getcwd(), "tests/sltest.txt"))
     assert test_gui.Stack.count() == 1
     for child in test_gui.Stack.currentWidget().children():
         if isinstance(child, LabeledSlider.LabeledSlider):
@@ -840,7 +840,7 @@ def test_min(gui_load, qtbot):
     QTest.mouseClick(test_gui.forwardbutton, Qt.MouseButton.LeftButton, delay=1000)
     test_gui.close()
     results = []
-    with open('./test/results/results_sl.csv', mode='r') as file:
+    with open('./tests/results/results_sl.csv', mode='r') as file:
         csv_file = csv.reader(file, delimiter=';')
 
         for lines in csv_file:
@@ -850,7 +850,7 @@ def test_min(gui_load, qtbot):
     assert results[1] == '4'  # initial value < max < min -> max
     assert re.match(r'\d+-\d+-\d+ \d+:\d+:\d+.\d+', results[2])  # timestamp
     assert re.match(r'\d+-\d+-\d+ \d+:\d+:\d+.\d+', results[3])  # timestamp
-    os.remove("./test/results/results_sl.csv")
+    os.remove("./tests/results/results_sl.csv")
     gui_load.gui.edit_layout.itemAt(cb_pos, QFormLayout.ItemRole.FieldRole).widget().click()
     assert not gui_load.gui.edit_layout.itemAt(cb_pos, QFormLayout.ItemRole.FieldRole).widget().isChecked()
 
@@ -870,7 +870,7 @@ def test_min(gui_load, qtbot):
     assert not warning_found
     QTest.keyClicks(gui_load, 's', modifier=Qt.KeyboardModifier.ControlModifier, delay=1000)
 
-    test_gui = StackedWindowGui("./test/sltest.txt")
+    test_gui = StackedWindowGui(os.path.join(os.getcwd(), "tests/sltest.txt"))
     assert test_gui.Stack.count() == 1
     for child in test_gui.Stack.currentWidget().children():
         if isinstance(child, Slider.Slider):
@@ -882,7 +882,7 @@ def test_min(gui_load, qtbot):
     QTest.mouseClick(test_gui.forwardbutton, Qt.MouseButton.LeftButton, delay=1000)
     test_gui.close()
     results = []
-    with open('./test/results/results_sl.csv', mode='r') as file:
+    with open('./tests/results/results_sl.csv', mode='r') as file:
         csv_file = csv.reader(file, delimiter=';')
 
         for lines in csv_file:
@@ -892,7 +892,7 @@ def test_min(gui_load, qtbot):
     assert results[1] == str(int(gui_load.structure["Page 1"]["Question 1"]["start"]))  # initial value
     assert re.match(r'\d+-\d+-\d+ \d+:\d+:\d+.\d+', results[2])  # timestamp
     assert re.match(r'\d+-\d+-\d+ \d+:\d+:\d+.\d+', results[3])  # timestamp
-    os.remove("./test/results/results_sl.csv")
+    os.remove("./tests/results/results_sl.csv")
 
     # initial value
     gui_load.structure["Page 1"]["Question 1"]["start"] = 0
@@ -902,8 +902,8 @@ def test_min(gui_load, qtbot):
 
 # noinspection PyArgumentList
 def test_max(gui_load, qtbot):
-    if os.path.exists("./test/results/results_sl.csv"):
-        os.remove("./test/results/results_sl.csv")
+    if os.path.exists("./tests/results/results_sl.csv"):
+        os.remove("./tests/results/results_sl.csv")
 
     QTimer.singleShot(150, handle_dialog_error)
     error_found, warning_found, warning_details = validate_questionnaire(gui_load.structure)
@@ -957,7 +957,7 @@ def test_max(gui_load, qtbot):
     assert not warning_found
 
     QTest.keyClicks(gui_load, 's', modifier=Qt.KeyboardModifier.ControlModifier, delay=1000)
-    test_gui = StackedWindowGui("./test/sltest.txt")
+    test_gui = StackedWindowGui(os.path.join(os.getcwd(), "tests/sltest.txt"))
     assert test_gui.Stack.count() == 1
     for child in test_gui.Stack.currentWidget().children():
         if isinstance(child, Slider.Slider):
@@ -971,7 +971,7 @@ def test_max(gui_load, qtbot):
     QTest.mouseClick(test_gui.forwardbutton, Qt.MouseButton.LeftButton, delay=1000)
     test_gui.close()
     results = []
-    with open('./test/results/results_sl.csv', mode='r') as file:
+    with open('./tests/results/results_sl.csv', mode='r') as file:
         csv_file = csv.reader(file, delimiter=';')
 
         for lines in csv_file:
@@ -981,14 +981,14 @@ def test_max(gui_load, qtbot):
     assert results[1] == str(gui_load.structure["Page 1"]["Question 1"]["start"])  # initial value
     assert re.match(r'\d+-\d+-\d+ \d+:\d+:\d+.\d+', results[2])  # timestamp
     assert re.match(r'\d+-\d+-\d+ \d+:\d+:\d+.\d+', results[3])  # timestamp
-    os.remove("./test/results/results_sl.csv")
+    os.remove("./tests/results/results_sl.csv")
 
     # with labels
     cb_pos = find_row_by_label(gui_load.gui.edit_layout, 'labelled')
     gui_load.gui.edit_layout.itemAt(cb_pos, QFormLayout.ItemRole.FieldRole).widget().click()
     assert gui_load.gui.edit_layout.itemAt(cb_pos, QFormLayout.ItemRole.FieldRole).widget().isChecked()
     QTest.keyClicks(gui_load, 's', modifier=Qt.KeyboardModifier.ControlModifier, delay=1000)
-    test_gui = StackedWindowGui("./test/sltest.txt")
+    test_gui = StackedWindowGui(os.path.join(os.getcwd(), "tests/sltest.txt"))
     assert test_gui.Stack.count() == 1
     for child in test_gui.Stack.currentWidget().children():
         if isinstance(child, LabeledSlider.LabeledSlider):
@@ -1008,7 +1008,7 @@ def test_max(gui_load, qtbot):
     QTest.mouseClick(test_gui.forwardbutton, Qt.MouseButton.LeftButton, delay=1000)
     test_gui.close()
     results = []
-    with open('./test/results/results_sl.csv', mode='r') as file:
+    with open('./tests/results/results_sl.csv', mode='r') as file:
         csv_file = csv.reader(file, delimiter=';')
 
         for lines in csv_file:
@@ -1018,7 +1018,7 @@ def test_max(gui_load, qtbot):
     assert results[1] == str(gui_load.structure["Page 1"]["Question 1"]["start"])  # initial value
     assert re.match(r'\d+-\d+-\d+ \d+:\d+:\d+.\d+', results[2])  # timestamp
     assert re.match(r'\d+-\d+-\d+ \d+:\d+:\d+.\d+', results[3])  # timestamp
-    os.remove("./test/results/results_sl.csv")
+    os.remove("./tests/results/results_sl.csv")
     gui_load.gui.edit_layout.itemAt(cb_pos, QFormLayout.ItemRole.FieldRole).widget().click()
     assert not gui_load.gui.edit_layout.itemAt(cb_pos, QFormLayout.ItemRole.FieldRole).widget().isChecked()
 
@@ -1038,7 +1038,7 @@ def test_max(gui_load, qtbot):
     assert not warning_found
     QTest.keyClicks(gui_load, 's', modifier=Qt.KeyboardModifier.ControlModifier, delay=1000)
 
-    test_gui = StackedWindowGui("./test/sltest.txt")
+    test_gui = StackedWindowGui(os.path.join(os.getcwd(), "tests/sltest.txt"))
     assert test_gui.Stack.count() == 1
     for child in test_gui.Stack.currentWidget().children():
         if isinstance(child, Slider.Slider):
@@ -1050,7 +1050,7 @@ def test_max(gui_load, qtbot):
     QTest.mouseClick(test_gui.forwardbutton, Qt.MouseButton.LeftButton, delay=1000)
     test_gui.close()
     results = []
-    with open('./test/results/results_sl.csv', mode='r') as file:
+    with open('./tests/results/results_sl.csv', mode='r') as file:
         csv_file = csv.reader(file, delimiter=';')
         for lines in csv_file:
             results = lines
@@ -1059,7 +1059,7 @@ def test_max(gui_load, qtbot):
     assert results[1] == str(int(gui_load.structure["Page 1"]["Question 1"]["start"]))  # initial value
     assert re.match(r'\d+-\d+-\d+ \d+:\d+:\d+.\d+', results[2])  # timestamp
     assert re.match(r'\d+-\d+-\d+ \d+:\d+:\d+.\d+', results[3])  # timestamp
-    os.remove("./test/results/results_sl.csv")
+    os.remove("./tests/results/results_sl.csv")
 
     gui_load.structure["Page 1"]["Question 1"]["start"] = 0
     gui_load.save()
@@ -1068,8 +1068,8 @@ def test_max(gui_load, qtbot):
 
 # noinspection PyArgumentList
 def test_text_position(gui_load, qtbot):
-    if os.path.exists("./test/results/results_sl.csv"):
-        os.remove("./test/results/results_sl.csv")
+    if os.path.exists("./tests/results/results_sl.csv"):
+        os.remove("./tests/results/results_sl.csv")
 
     QTimer.singleShot(150, handle_dialog_error)
     error_found, warning_found, warning_details = validate_questionnaire(gui_load.structure)
@@ -1085,7 +1085,7 @@ def test_text_position(gui_load, qtbot):
     QTest.mouseClick(tv.viewport(), Qt.MouseButton.LeftButton, Qt.KeyboardModifier.NoModifier, rect.center())
     qa_pos = find_row_by_label(gui_load.gui.edit_layout, 'question_above')
     assert not gui_load.gui.edit_layout.itemAt(qa_pos, QFormLayout.ItemRole.FieldRole).widget().isChecked()
-    test_gui = StackedWindowGui("./test/sltest.txt")
+    test_gui = StackedWindowGui(os.path.join(os.getcwd(), "tests/sltest.txt"))
     assert test_gui.Stack.count() == 1
     for child in test_gui.Stack.currentWidget().children():
         if isinstance(child, QFormLayout):
@@ -1094,7 +1094,7 @@ def test_text_position(gui_load, qtbot):
     QTimer.singleShot(100, handle_dialog)
     QTest.mouseClick(test_gui.forwardbutton, Qt.MouseButton.LeftButton, delay=1000)
     test_gui.close()
-    os.remove("./test/results/results_sl.csv")
+    os.remove("./tests/results/results_sl.csv")
 
     # change position to above
     gui_load.gui.edit_layout.itemAt(qa_pos, QFormLayout.ItemRole.FieldRole).widget().click()
@@ -1106,7 +1106,7 @@ def test_text_position(gui_load, qtbot):
     assert not warning_found
     assert gui_load.structure["Page 1"]["Question 1"]["question_above"]
     QTest.keyClicks(gui_load, 's', modifier=Qt.KeyboardModifier.ControlModifier, delay=1000)
-    test_gui = StackedWindowGui("./test/sltest.txt")
+    test_gui = StackedWindowGui(os.path.join(os.getcwd(), "tests/sltest.txt"))
     assert test_gui.Stack.count() == 1
     for child in test_gui.Stack.currentWidget().children():
         if isinstance(child, QFormLayout):
@@ -1115,7 +1115,7 @@ def test_text_position(gui_load, qtbot):
     QTimer.singleShot(100, handle_dialog)
     QTest.mouseClick(test_gui.forwardbutton, Qt.MouseButton.LeftButton, delay=1000)
     test_gui.close()
-    os.remove("./test/results/results_sl.csv")
+    os.remove("./tests/results/results_sl.csv")
     # revert to original
     gui_load.gui.edit_layout.itemAt(qa_pos, QFormLayout.ItemRole.FieldRole).widget().click()
     assert not gui_load.gui.edit_layout.itemAt(qa_pos, QFormLayout.ItemRole.FieldRole).widget().isChecked()
@@ -1131,8 +1131,8 @@ def test_text_position(gui_load, qtbot):
 
 # noinspection PyArgumentList
 def test_header(gui_load, qtbot):
-    if os.path.exists("./test/results/results_sl.csv"):
-        os.remove("./test/results/results_sl.csv")
+    if os.path.exists("./tests/results/results_sl.csv"):
+        os.remove("./tests/results/results_sl.csv")
 
     QTimer.singleShot(150, handle_dialog_error)
     error_found, warning_found, warning_details = validate_questionnaire(gui_load.structure)
@@ -1148,7 +1148,7 @@ def test_header(gui_load, qtbot):
     QTest.mouseClick(tv.viewport(), Qt.MouseButton.LeftButton, Qt.KeyboardModifier.NoModifier, rect.center())
     header_pos = find_row_by_label(gui_load.gui.edit_layout, 'header')
     assert gui_load.gui.edit_layout.itemAt(header_pos, QFormLayout.ItemRole.FieldRole).widget().text() == ''
-    test_gui = StackedWindowGui("./test/sltest.txt")
+    test_gui = StackedWindowGui(os.path.join(os.getcwd(), "tests/sltest.txt"))
     assert test_gui.Stack.count() == 1
     for child in test_gui.Stack.currentWidget().children():
         if isinstance(child, QFormLayout):
@@ -1157,7 +1157,7 @@ def test_header(gui_load, qtbot):
     QTimer.singleShot(100, handle_dialog)
     QTest.mouseClick(test_gui.forwardbutton, Qt.MouseButton.LeftButton, delay=1000)
     test_gui.close()
-    os.remove("./test/results/results_sl.csv")
+    os.remove("./tests/results/results_sl.csv")
 
     # add header
     gui_load.gui.edit_layout.itemAt(header_pos, QFormLayout.ItemRole.FieldRole).widget().clear()
@@ -1172,7 +1172,7 @@ def test_header(gui_load, qtbot):
     assert not warning_found
     assert gui_load.structure["Page 1"]["Question 1"]["header"] == ['one', "", "", "", 'four']
     QTest.keyClicks(gui_load, 's', modifier=Qt.KeyboardModifier.ControlModifier, delay=1000)
-    test_gui = StackedWindowGui("./test/sltest.txt")
+    test_gui = StackedWindowGui(os.path.join(os.getcwd(), "tests/sltest.txt"))
     assert test_gui.Stack.count() == 1
     for child in test_gui.Stack.currentWidget().children():
         if isinstance(child, QFormLayout):
@@ -1181,7 +1181,7 @@ def test_header(gui_load, qtbot):
     QTimer.singleShot(100, handle_dialog)
     QTest.mouseClick(test_gui.forwardbutton, Qt.MouseButton.LeftButton, delay=1000)
     test_gui.close()
-    os.remove("./test/results/results_sl.csv")
+    os.remove("./tests/results/results_sl.csv")
 
     # revert to original
     gui_load.gui.edit_layout.itemAt(header_pos, QFormLayout.ItemRole.FieldRole).widget().clear()
@@ -1199,15 +1199,15 @@ def test_header(gui_load, qtbot):
 
 # noinspection PyArgumentList
 def test_execute_questionnaire_no_interaction(run, qtbot):
-    if os.path.exists("./test/results/results_sl.csv"):
-        os.remove("./test/results/results_sl.csv")
+    if os.path.exists("./tests/results/results_sl.csv"):
+        os.remove("./tests/results/results_sl.csv")
     assert run.Stack.count() == 1
 
     QTimer.singleShot(100, handle_dialog)
     QTest.mouseClick(run.forwardbutton, Qt.MouseButton.LeftButton)
 
     results = []
-    with open('./test/results/results_sl.csv', mode='r') as file:
+    with open('./tests/results/results_sl.csv', mode='r') as file:
         csv_file = csv.reader(file, delimiter=';')
 
         for lines in csv_file:
@@ -1222,19 +1222,19 @@ def test_execute_questionnaire_no_interaction(run, qtbot):
     assert results[1] == '0'  # initial value
     assert re.match(r'\d+-\d+-\d+ \d+:\d+:\d+.\d+', results[2])  # timestamp
     assert re.match(r'\d+-\d+-\d+ \d+:\d+:\d+.\d+', results[3])  # timestamp
-    os.remove("./test/results/results_sl.csv")
+    os.remove("./tests/results/results_sl.csv")
 
 
 # noinspection PyArgumentList
 def test_execute_questionnaire_no_interaction_blocked(run, qtbot):
-    with mock_file(r'./test/results/results_sl.csv'):
+    with mock_file(r'./tests/results/results_sl.csv'):
         assert run.Stack.count() == 1
         QTimer.singleShot(100, handle_dialog)
         QTest.mouseClick(run.forwardbutton, Qt.MouseButton.LeftButton)
         res_file = None
-        for file in os.listdir("./test/results/"):
+        for file in os.listdir("./tests/results/"):
             if file.find("_backup_"):
-                res_file = f'./test/results/{file}'
+                res_file = f'./tests/results/{file}'
         results = []
         with open(res_file, mode='r') as file:
             csv_file = csv.reader(file, delimiter=';')
@@ -1256,8 +1256,8 @@ def test_execute_questionnaire_no_interaction_blocked(run, qtbot):
 
 # noinspection PyArgumentList
 def test_execute_questionnaire(run, qtbot):
-    if os.path.exists("./test/results/results_sl.csv"):
-        os.remove("./test/results/results_sl.csv")
+    if os.path.exists("./tests/results/results_sl.csv"):
+        os.remove("./tests/results/results_sl.csv")
     assert run.Stack.count() == 1
     for child in run.Stack.currentWidget().children():
         if isinstance(child, Slider.Slider):
@@ -1269,7 +1269,7 @@ def test_execute_questionnaire(run, qtbot):
     QTest.mouseClick(run.forwardbutton, Qt.MouseButton.LeftButton, delay=1000)
 
     results = []
-    with open('./test/results/results_sl.csv', mode='r') as file:
+    with open('./tests/results/results_sl.csv', mode='r') as file:
         csv_file = csv.reader(file, delimiter=';')
 
         for lines in csv_file:
@@ -1279,12 +1279,12 @@ def test_execute_questionnaire(run, qtbot):
     assert results[1] == '2'  # middle of 0 and 4 is 2
     assert re.match(r'\d+-\d+-\d+ \d+:\d+:\d+.\d+', results[2])  # timestamp
     assert re.match(r'\d+-\d+-\d+ \d+:\d+:\d+.\d+', results[3])  # timestamp
-    os.remove("./test/results/results_sl.csv")
+    os.remove("./tests/results/results_sl.csv")
 
 
 # noinspection PyArgumentList
 def test_execute_questionnaire_blocked(run, qtbot):
-    with mock_file(r'./test/results/results_sl.csv'):
+    with mock_file(r'./tests/results/results_sl.csv'):
         assert run.Stack.count() == 1
         for child in run.Stack.currentWidget().children():
             if isinstance(child, Slider.Slider):
@@ -1294,9 +1294,9 @@ def test_execute_questionnaire_blocked(run, qtbot):
         QTimer.singleShot(100, handle_dialog)
         QTest.mouseClick(run.forwardbutton, Qt.MouseButton.LeftButton)
         res_file = None
-        for file in os.listdir("./test/results/"):
+        for file in os.listdir("./tests/results/"):
             if file.find("_backup_"):
-                res_file = f'./test/results/{file}'
+                res_file = f'./tests/results/{file}'
         results = []
         with open(res_file, mode='r') as file:
             csv_file = csv.reader(file, delimiter=';')

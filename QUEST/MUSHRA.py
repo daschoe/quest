@@ -5,7 +5,7 @@ from time import time
 from PySide6.QtCore import Qt, QSignalMapper, QTimer
 from PySide6.QtWidgets import QWidget, QPushButton, QHBoxLayout, QVBoxLayout, QLabel, QSlider, QSizePolicy
 
-from QUEST.Slider import Slider
+from Slider import Slider
 
 
 class MUSHRA(QWidget):
@@ -68,9 +68,10 @@ class MUSHRA(QWidget):
                 name of the object, if it is supposed to be styled individually
         """
         QWidget.__init__(self, parent=parent)
-        self.audio_client = self.parent().parent().audio_client
-        self.audio_tracks = self.parent().parent().audio_tracks
-        self.button_fade = self.parent().parent().button_fade
+        self.page = parent
+        self.audio_client = self.page.gui.audio_client
+        self.audio_tracks = self.page.gui.audio_tracks
+        self.button_fade = self.page.gui.button_fade
         if objectname is not None:
             self.setObjectName(objectname)
             self.name = objectname
@@ -82,9 +83,9 @@ class MUSHRA(QWidget):
         if isinstance(tracks, str) and ("[" not in tracks and "]" not in tracks and "," not in tracks):
             tracks = [int(tracks)]
         self.tracks = tracks
-        if self.audio_tracks < max(self.track):
-            self.audio_tracks = max(self.track)
-            self.parent().parent().audio_tracks = max(self.track)
+        if self.audio_tracks < max(self.tracks):
+            self.audio_tracks = max(self.tracks)
+            self.page.gui.audio_tracks = max(self.tracks)
         self.start = 0
         self.end = 0
         self.looped = False
@@ -97,7 +98,7 @@ class MUSHRA(QWidget):
         self.sliders = []
         self.labels = []
         self.buttons = []
-        self.slider_height = int(self.parent().parent().height() * 2 / 3)
+        self.slider_height = int(self.page.gui.height() * 2 / 3)
         mapper = QSignalMapper(self)
         self.conditionsUseSameMarker = False
         if allow_xfade:
@@ -266,18 +267,18 @@ class MUSHRA(QWidget):
         who : Slider
             The Slider whose signal that trigged a change in value.
         '''
-        self.parent().log(who, self.sliders[int(who.split('_')[1]) - 1])
+        self.page.log(who, self.sliders[int(who.split('_')[1]) - 1])
 
     def loop(self):
         """Toggle looping."""
         self.looped = not self.looped
         if self.looped:
             self.loop_button.setChecked(True)
-            self.parent().page_log += f'\n\t{str(datetime.datetime.now().replace(microsecond=0))} - Loop on {self.id}'
+            self.page.page_log += f'\n\t{str(datetime.datetime.now().replace(microsecond=0))} - Loop on {self.id}'
             self.audio_client.send_message("/action", self.loop_on_command)
         else:
             self.loop_button.setChecked(False)
-            self.parent().page_log += f'\n\t{str(datetime.datetime.now().replace(microsecond=0))} - Loop off {self.id}'
+            self.page.page_log += f'\n\t{str(datetime.datetime.now().replace(microsecond=0))} - Loop off {self.id}'
             self.audio_client.send_message("/action", self.loop_off_command)
 
     def pause(self):
@@ -287,7 +288,7 @@ class MUSHRA(QWidget):
             self.paused = True
             self.audio_client.send_message("/pause", 1)
             self.pause_button.setChecked(True)
-            self.parent().page_log += f'\n\t{str(datetime.datetime.now().replace(microsecond=0))} - Paused MUSHRA-player {self.id}'
+            self.page.page_log += f'\n\t{str(datetime.datetime.now().replace(microsecond=0))} - Paused MUSHRA-player {self.id}'
             self.end = time()
             self.duration[self.current].append(self.end - self.start)
         else:
@@ -295,7 +296,7 @@ class MUSHRA(QWidget):
             self.paused = False
             self.audio_client.send_message("/pause", 1)
             self.pause_button.setChecked(False)
-            self.parent().page_log += f'\n\t{str(datetime.datetime.now().replace(microsecond=0))} - Unpaused MUSHRA-player {self.id}'
+            self.page.page_log += f'\n\t{str(datetime.datetime.now().replace(microsecond=0))} - Unpaused MUSHRA-player {self.id}'
             self.start = time()
             self.end = 0
 
@@ -310,9 +311,9 @@ class MUSHRA(QWidget):
             btn: QPushButton, default=None
                 button which initiated play
         """
-        if self.audio_tracks != self.parent().parent().audio_tracks:
-            self.audio_tracks = self.parent().parent().audio_tracks
-        for player in self.parent().players:
+        if self.audio_tracks != self.page.gui.audio_tracks:
+            self.audio_tracks = self.page.gui.audio_tracks
+        for player in self.page.players:
             if player.playing and (not player == self and not self.conditionsUseSameMarker or (self.conditionsUseSameMarker and not self.xfade.isChecked())):
                 player.stop()
         self.pause_button.setEnabled(True)
@@ -322,7 +323,7 @@ class MUSHRA(QWidget):
         if self.paused and self.current == cue:
             # print("pause")
             self.audio_client.send_message("/pause", 1)
-            self.parent().page_log += f'\n\t{str(datetime.datetime.now().replace(microsecond=0))} - Unpaused Player {self.id}'
+            self.page.page_log += f'\n\t{str(datetime.datetime.now().replace(microsecond=0))} - Unpaused Player {self.id}'
         else:
             if btn != self.refbutton:
                 if self.sender().sender() in self.buttons:
@@ -428,7 +429,7 @@ class MUSHRA(QWidget):
         self.playing = True
         self.paused = False
         self.loop_button.setDisabled(True)
-        self.parent().page_log += f'\n\t{str(datetime.datetime.now().replace(microsecond=0))} - (Re-)Started MUSHRA-player for cue {self.start_cues[cue]} {self.id}_{str(cue)}'
+        self.page.page_log += f'\n\t{str(datetime.datetime.now().replace(microsecond=0))} - (Re-)Started MUSHRA-player for cue {self.start_cues[cue]} {self.id}_{str(cue)}'
 
     def stop(self):
         """
@@ -446,4 +447,4 @@ class MUSHRA(QWidget):
         self.stop_button.setEnabled(False)
         self.pause_button.setEnabled(False)
         self.pause_button.setChecked(False)
-        self.parent().page_log += f'\n\t{str(datetime.datetime.now().replace(microsecond=0))} - Stopped MUSHRA playback {self.id}'
+        self.page.page_log += f'\n\t{str(datetime.datetime.now().replace(microsecond=0))} - Stopped MUSHRA playback {self.id}'

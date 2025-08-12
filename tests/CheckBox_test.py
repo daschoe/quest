@@ -1,6 +1,6 @@
 """Testing the behaviour of Answer_Checkbox.py + QEditGui.py"""
 
-from context import pytest, QEditGuiMain, QTimer, open_config_file, StackedWindowGui, QTest, handle_dialog_p, handle_dialog_q, Qt, QFormLayout, QWidgetItem, fields_per_type, default_values, QCheckBox, QLineEdit, page_fields, listify, ConfigObj, general_fields, handle_dialog_error, validate_questionnaire, handle_dialog_no_save, find_row_by_label, handle_dialog, csv, re, os, mock_file, make_answers_cb
+from tests.context import pytest, QEditGuiMain, QTimer, open_config_file, StackedWindowGui, QTest, handle_dialog_p, handle_dialog_q, Qt, QFormLayout, QWidgetItem, fields_per_type, default_values, QCheckBox, QLineEdit, page_fields, listify, ConfigObj, general_fields, handle_dialog_error, validate_questionnaire, handle_dialog_no_save, find_row_by_label, handle_dialog, csv, re, os, mock_file, make_answers_cb
 
 
 @pytest.fixture
@@ -13,7 +13,7 @@ def gui_init():
 @pytest.fixture
 def gui_load(gui_init):
     """Start GUI"""
-    QTimer.singleShot(150, lambda: open_config_file("./test/cbtest.txt"))
+    QTimer.singleShot(150, lambda: open_config_file(os.path.join(os.getcwd(), "tests/cbtest.txt")))
     gui_init.load_file()
     return gui_init
 
@@ -21,7 +21,7 @@ def gui_load(gui_init):
 @pytest.fixture
 def run():
     """Execute the questionnaire."""
-    return StackedWindowGui("./test/cbtest.txt")
+    return StackedWindowGui(os.path.join(os.getcwd(), "tests/cbtest.txt"))
 
 
 # noinspection PyArgumentList
@@ -197,7 +197,7 @@ def test_execute_questionnaire_no_interaction(run, qtbot):
     QTest.mouseClick(run.forwardbutton, Qt.MouseButton.LeftButton)
 
     results = []
-    with open('./test/results/results_cb.csv', mode='r') as file:
+    with open('./tests/results/results_cb.csv', mode='r') as file:
         csv_file = csv.reader(file, delimiter=';')
 
         for lines in csv_file:
@@ -216,20 +216,20 @@ def test_execute_questionnaire_no_interaction(run, qtbot):
     assert results[3] == 'False'  # third cb not checked
     assert re.match(r'\d+-\d+-\d+ \d+:\d+:\d+.\d+', results[4])  # timestamp
     assert re.match(r'\d+-\d+-\d+ \d+:\d+:\d+.\d+', results[5])  # timestamp
-    os.remove("./test/results/results_cb.csv")
+    os.remove("./tests/results/results_cb.csv")
     QTest.qWait(5000)
 
 
 # noinspection PyArgumentList
 def test_execute_questionnaire_no_interaction_blocked(run, qtbot):
-    with mock_file(r'./test/results/results_cb.csv'):
+    with mock_file(r'./tests/results/results_cb.csv'):
         assert run.Stack.count() == 1
         QTimer.singleShot(100, handle_dialog)
         QTest.mouseClick(run.forwardbutton, Qt.MouseButton.LeftButton)
         res_file = None
-        for file in os.listdir("./test/results/"):
+        for file in os.listdir("./tests/results/"):
             if file.find("_backup_"):
-                res_file = f'./test/results/{file}'
+                res_file = f'./tests/results/{file}'
         results = []
         with open(res_file, mode='r') as file:
             csv_file = csv.reader(file, delimiter=';')
@@ -268,7 +268,7 @@ def test_execute_questionnaire(run, qtbot):
     QTest.mouseClick(run.forwardbutton, Qt.MouseButton.LeftButton, delay=1000)
 
     results = []
-    with open('./test/results/results_cb.csv', mode='r') as file:
+    with open('./tests/results/results_cb.csv', mode='r') as file:
         csv_file = csv.reader(file, delimiter=';')
 
         for lines in csv_file:
@@ -280,13 +280,13 @@ def test_execute_questionnaire(run, qtbot):
     assert results[3] == 'True'  # third box checked
     assert re.match(r'\d+-\d+-\d+ \d+:\d+:\d+.\d+', results[4])  # timestamp
     assert re.match(r'\d+-\d+-\d+ \d+:\d+:\d+.\d+', results[5])  # timestamp
-    os.remove("./test/results/results_cb.csv")
+    os.remove("./tests/results/results_cb.csv")
     QTest.qWait(5000)
 
 
 # noinspection PyArgumentList
 def test_execute_questionnaire_blocked(run, qtbot):
-    with mock_file(r'./test/results/results_cb.csv'):
+    with mock_file(r'./tests/results/results_cb.csv'):
         assert run.Stack.count() == 1
         cb_cnt = 1
         for child in run.Stack.currentWidget().children():
@@ -297,9 +297,9 @@ def test_execute_questionnaire_blocked(run, qtbot):
         QTimer.singleShot(100, handle_dialog)
         QTest.mouseClick(run.forwardbutton, Qt.MouseButton.LeftButton)
         res_file = None
-        for file in os.listdir("./test/results/"):
+        for file in os.listdir("./tests/results/"):
             if file.find("_backup_"):
-                res_file = f'./test/results/{file}'
+                res_file = f'./tests/results/{file}'
         results = []
         with open(res_file, mode='r') as file:
             csv_file = csv.reader(file, delimiter=';')

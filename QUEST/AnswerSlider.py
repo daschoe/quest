@@ -4,8 +4,8 @@ This class creates a Slider.
 from PySide6.QtCore import Qt
 from PySide6.QtWidgets import QVBoxLayout, QHBoxLayout, QLabel, QWidget
 
-from QUEST.LabeledSlider import LabeledSlider
-from QUEST.Slider import Slider
+from LabeledSlider import LabeledSlider
+from Slider import Slider
 
 
 def make_answers(labelled, qid, smin, smax, sstart=0, sstep=1, tiv=1, header=None, label=None, parent=None, objectname=""):

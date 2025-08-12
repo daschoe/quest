@@ -1,6 +1,6 @@
 """Testing the behaviour of Answer_RadioButton.py + QEditGui.py"""
 
-from context import pytest, QEditGuiMain, QTimer, open_config_file, StackedWindowGui, QTest, handle_dialog_p, handle_dialog_q, Qt, QFormLayout, QWidgetItem, fields_per_type, default_values, QLineEdit, page_fields, listify, ConfigObj, general_fields, handle_dialog_error, validate_questionnaire, handle_dialog_no_save, find_row_by_label, handle_dialog, csv, re, os, mock_file, make_answers, QRadioButton
+from tests.context import pytest, QEditGuiMain, QTimer, open_config_file, StackedWindowGui, QTest, handle_dialog_p, handle_dialog_q, Qt, QFormLayout, QWidgetItem, fields_per_type, default_values, QLineEdit, page_fields, listify, ConfigObj, general_fields, handle_dialog_error, validate_questionnaire, handle_dialog_no_save, find_row_by_label, handle_dialog, csv, re, os, mock_file, make_answers, QRadioButton
 
 
 @pytest.fixture
@@ -13,7 +13,7 @@ def gui_init():
 @pytest.fixture
 def gui_load(gui_init):
     """Start GUI"""
-    QTimer.singleShot(150, lambda: open_config_file("./test/rbtest.txt"))
+    QTimer.singleShot(150, lambda: open_config_file(os.path.join(os.getcwd(), "tests/rbtest.txt")))
     gui_init.load_file()
     return gui_init
 
@@ -21,7 +21,7 @@ def gui_load(gui_init):
 @pytest.fixture
 def run():
     """Execute the questionnaire."""
-    return StackedWindowGui("./test/rbtest.txt")
+    return StackedWindowGui(os.path.join(os.getcwd(), "tests/rbtest.txt"))
 
 
 # noinspection PyArgumentList
@@ -228,7 +228,7 @@ def test_start_id(gui_load, qtbot):
     assert not warning_found
 
     QTest.keyClicks(gui_load, 's', modifier=Qt.KeyboardModifier.ControlModifier, delay=1000)
-    test_gui = StackedWindowGui("./test/rbtest.txt")
+    test_gui = StackedWindowGui(os.path.join(os.getcwd(), "tests/rbtest.txt"))
     assert test_gui.Stack.count() == 1
     for child in test_gui.Stack.currentWidget().children():
         if isinstance(child, QRadioButton):
@@ -238,7 +238,7 @@ def test_start_id(gui_load, qtbot):
     QTest.mouseClick(test_gui.forwardbutton, Qt.MouseButton.LeftButton, delay=1000)
     test_gui.close()
     results = []
-    with open('./test/results/results_rb.csv', mode='r') as file:
+    with open('./tests/results/results_rb.csv', mode='r') as file:
         csv_file = csv.reader(file, delimiter=';')
 
         for lines in csv_file:
@@ -248,7 +248,7 @@ def test_start_id(gui_load, qtbot):
     assert results[1] == '100'  # second/last box checked and starts with 99
     assert re.match(r'\d+-\d+-\d+ \d+:\d+:\d+.\d+', results[2])  # timestamp
     assert re.match(r'\d+-\d+-\d+ \d+:\d+:\d+.\d+', results[3])  # timestamp
-    os.remove("./test/results/results_rb.csv")
+    os.remove("./tests/results/results_rb.csv")
 
     #  -------- -1 ---------
     QTimer.singleShot(150, handle_dialog_error)
@@ -311,7 +311,7 @@ def test_start_id(gui_load, qtbot):
     assert not warning_found
 
     QTest.keyClicks(gui_load, 's', modifier=Qt.KeyboardModifier.ControlModifier, delay=1000)
-    test_gui = StackedWindowGui("./test/rbtest.txt")
+    test_gui = StackedWindowGui(os.path.join(os.getcwd(), "tests/rbtest.txt"))
     assert test_gui.Stack.count() == 1
     for child in test_gui.Stack.currentWidget().children():
         if isinstance(child, QRadioButton):
@@ -321,7 +321,7 @@ def test_start_id(gui_load, qtbot):
     QTest.mouseClick(test_gui.forwardbutton, Qt.MouseButton.LeftButton, delay=1000)
 
     results = []
-    with open('./test/results/results_rb.csv', mode='r') as file:
+    with open('./tests/results/results_rb.csv', mode='r') as file:
         csv_file = csv.reader(file, delimiter=';')
 
         for lines in csv_file:
@@ -331,7 +331,7 @@ def test_start_id(gui_load, qtbot):
     assert results[1] == '1'  # second/last box checked and starts with 0
     assert re.match(r'\d+-\d+-\d+ \d+:\d+:\d+.\d+', results[2])  # timestamp
     assert re.match(r'\d+-\d+-\d+ \d+:\d+:\d+.\d+', results[3])  # timestamp
-    os.remove("./test/results/results_rb.csv")
+    os.remove("./tests/results/results_rb.csv")
     gui_load.close()
 
 
@@ -343,7 +343,7 @@ def test_execute_questionnaire_no_interaction(run, qtbot):
     QTest.mouseClick(run.forwardbutton, Qt.MouseButton.LeftButton)
 
     results = []
-    with open('./test/results/results_rb.csv', mode='r') as file:
+    with open('./tests/results/results_rb.csv', mode='r') as file:
         csv_file = csv.reader(file, delimiter=';')
 
         for lines in csv_file:
@@ -358,19 +358,19 @@ def test_execute_questionnaire_no_interaction(run, qtbot):
     assert results[1] == '-1'  # no radiobutton checked
     assert re.match(r'\d+-\d+-\d+ \d+:\d+:\d+.\d+', results[2])  # timestamp
     assert re.match(r'\d+-\d+-\d+ \d+:\d+:\d+.\d+', results[3])  # timestamp
-    os.remove("./test/results/results_rb.csv")
+    os.remove("./tests/results/results_rb.csv")
 
 
 # noinspection PyArgumentList
 def test_execute_questionnaire_no_interaction_blocked(run, qtbot):
-    with mock_file(r'./test/results/results_rb.csv'):
+    with mock_file(r'./tests/results/results_rb.csv'):
         assert run.Stack.count() == 1
         QTimer.singleShot(100, handle_dialog)
         QTest.mouseClick(run.forwardbutton, Qt.MouseButton.LeftButton)
         res_file = None
-        for file in os.listdir("./test/results/"):
+        for file in os.listdir("./tests/results/"):
             if file.find("_backup_"):
-                res_file = f'./test/results/{file}'
+                res_file = f'./tests/results/{file}'
         results = []
         with open(res_file, mode='r') as file:
             csv_file = csv.reader(file, delimiter=';')
@@ -401,7 +401,7 @@ def test_execute_questionnaire(run, qtbot):
     QTest.mouseClick(run.forwardbutton, Qt.MouseButton.LeftButton, delay=1000)
 
     results = []
-    with open('./test/results/results_rb.csv', mode='r') as file:
+    with open('./tests/results/results_rb.csv', mode='r') as file:
         csv_file = csv.reader(file, delimiter=';')
 
         for lines in csv_file:
@@ -411,12 +411,12 @@ def test_execute_questionnaire(run, qtbot):
     assert results[1] == '1'  # second/last box checked and starts with 0
     assert re.match(r'\d+-\d+-\d+ \d+:\d+:\d+.\d+', results[2])  # timestamp
     assert re.match(r'\d+-\d+-\d+ \d+:\d+:\d+.\d+', results[3])  # timestamp
-    os.remove("./test/results/results_rb.csv")
+    os.remove("./tests/results/results_rb.csv")
 
 
 # noinspection PyArgumentList
 def test_execute_questionnaire_blocked(run, qtbot):
-    with mock_file(r'./test/results/results_rb.csv'):
+    with mock_file(r'./tests/results/results_rb.csv'):
         assert run.Stack.count() == 1
         for child in run.Stack.currentWidget().children():
             if isinstance(child, QRadioButton):
@@ -424,9 +424,9 @@ def test_execute_questionnaire_blocked(run, qtbot):
         QTimer.singleShot(100, handle_dialog)
         QTest.mouseClick(run.forwardbutton, Qt.MouseButton.LeftButton)
         res_file = None
-        for file in os.listdir("./test/results/"):
+        for file in os.listdir("./tests/results/"):
             if file.find("_backup_"):
-                res_file = f'./test/results/{file}'
+                res_file = f'./tests/results/{file}'
         results = []
         with open(res_file, mode='r') as file:
             csv_file = csv.reader(file, delimiter=';')

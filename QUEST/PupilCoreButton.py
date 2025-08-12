@@ -9,7 +9,7 @@ import zmq
 from PySide6.QtCore import QTimer
 from PySide6.QtGui import QDoubleValidator
 from PySide6.QtWidgets import QPushButton, QWidget, QHBoxLayout, QLineEdit, QPlainTextEdit
-from QUEST.PasswordEntry import PasswordEntry
+from PasswordEntry import PasswordEntry
 
 
 class Button(QWidget):
@@ -37,6 +37,7 @@ class Button(QWidget):
                 text for the annotation, "test" if None is given
         """
         QWidget.__init__(self, parent=parent)
+        self.page = parent
         self.id = qid
         self.config_win = None
         if objectname is not None:
@@ -44,14 +45,14 @@ class Button(QWidget):
             self.name = objectname
         else:
             self.name = None
-        if hasattr(self.parent(), "pupil_remote") and self.parent().pupil_remote is not None:
-            self.pupil_remote = self.parent().pupil_remote
-            self.ctx = self.parent().ctx
-            self.ip = self.parent().pupil_ip
-        elif hasattr(self.parent().parent(), "pupil_remote") and self.parent().parent().pupil_remote is not None:
-            self.pupil_remote = self.parent().parent().pupil_remote
-            self.ctx = self.parent().parent().ctx
-            self.ip = self.parent().parent().pupil_ip
+        if hasattr(self.page, "pupil_remote") and self.page.pupil_remote is not None:
+            self.pupil_remote = self.page.pupil_remote
+            self.ctx = self.page.ctx
+            self.ip = self.page.pupil_ip
+        elif hasattr(self.page.gui, "pupil_remote") and self.page.gui.pupil_remote is not None:
+            self.pupil_remote = self.page.gui.pupil_remote
+            self.ctx = self.page.gui.ctx
+            self.ip = self.page.gui.pupil_ip
         else:
             self.pupil_remote = None
         self.recording_name = recording_name
@@ -60,7 +61,7 @@ class Button(QWidget):
             layout = QHBoxLayout()
             self.button = QPushButton(inscription)
             self.button.setObjectName(self.objectName())
-            self.button_fade = self.parent().parent().button_fade
+            self.button_fade = self.page.gui.button_fade
             layout.addWidget(self.button)
             self.used = False
             if function == "Calibration":
@@ -70,7 +71,7 @@ class Button(QWidget):
             elif function == "Stop":
                 self.button.clicked.connect(self.stop_recording)
             elif function == "Annotate":
-                if self.parent().parent().popup and not self.parent().parent().preview:
+                if self.page.gui.popup and not self.page.gui.preview:
                     self.setup_annotate()
                 self.button.clicked.connect(lambda: self.send_trigger(self.new_trigger("test" if annotation is None else str(annotation))))
             self.button.clicked.connect(self.log)
@@ -113,17 +114,17 @@ class Button(QWidget):
                     # print("recording name starts with id")
                     var = self.recording_name[2:].strip(' :')
                     skip = False
-                    for s in range(0, self.parent().parent().count()):
-                        if not skip and self.parent().parent().widget(s).evaluationvars is not None and \
-                                var in self.parent().parent().widget(s).evaluationvars:
-                            self.recording_name = self.parent().parent().widget(s).evaluationvars[var]
+                    for s in range(0, self.page.gui.count()):
+                        if not skip and self.page.gui.widget(s).evaluationvars is not None and \
+                                var in self.page.gui.widget(s).evaluationvars:
+                            self.recording_name = self.page.gui.widget(s).evaluationvars[var]
                             if isinstance(self.recording_name, (QLineEdit, PasswordEntry)):
                                 if isinstance(self.recording_name.validator(), QDoubleValidator):
                                     self.recording_name.setText(self.recording_name.text().replace(",", "."))
                                 self.recording_name = self.recording_name.text()
                             elif isinstance(self.recording_name, QPlainTextEdit):
                                 self.recording_name = self.recording_name.toPlainText().replace("\n", " ")
-                        if not skip and self.parent().parent().widget(s) == self.parent():
+                        if not skip and self.page.gui.widget(s) == self.page:
                             skip = True
                 print("Recording name:",self.recording_name)
                 self.pupil_remote.send_string(f'R {self.recording_name}')
@@ -251,4 +252,4 @@ class Button(QWidget):
 
     def log(self):
         """Log Action"""
-        self.parent().page_log += f'\n\t{str(datetime.datetime.now().replace(microsecond=0))} - Pressed Button {self.id}'
+        self.page.page_log += f'\n\t{str(datetime.datetime.now().replace(microsecond=0))} - Pressed Button {self.id}'

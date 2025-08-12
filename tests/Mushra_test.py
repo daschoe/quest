@@ -1,6 +1,6 @@
 """Testing the behaviour of MUSHRA.py + QEditGui.py"""
 import time
-from context import pytest, MUSHRA, QPoint, QEditGuiMain, QTimer, open_config_file, StackedWindowGui, QTest, handle_dialog_p, handle_dialog_q, Qt, QFormLayout, QWidgetItem, fields_per_type, default_values, QCheckBox, QLineEdit, page_fields, listify, ConfigObj, general_fields, handle_dialog_error, validate_questionnaire, handle_dialog_no_save, handle_dialog, csv, re, os, mock_file, MockReceiver, QHBoxLayout
+from tests.context import pytest, MUSHRA, QPoint, QEditGuiMain, QTimer, open_config_file, StackedWindowGui, QTest, handle_dialog_p, handle_dialog_q, Qt, QFormLayout, QWidgetItem, fields_per_type, default_values, QCheckBox, QLineEdit, page_fields, listify, ConfigObj, general_fields, handle_dialog_error, validate_questionnaire, handle_dialog_no_save, handle_dialog, csv, re, os, mock_file, MockReceiver, QHBoxLayout
 THREAD = None
 
 
@@ -14,7 +14,7 @@ def gui_init():
 @pytest.fixture
 def gui_load(gui_init):
     """Start GUI"""
-    QTimer.singleShot(150, lambda: open_config_file("./test/mrtest.txt"))
+    QTimer.singleShot(150, lambda: open_config_file(os.path.join(os.getcwd(), "tests/mrtest.txt")))
     gui_init.load_file()
     return gui_init
 
@@ -33,7 +33,7 @@ def prepare_listeners(structure):
 def run():
     """Execute the questionnaire."""
     global THREAD
-    structure = ConfigObj("./test/osctest.txt")
+    structure = ConfigObj("/tests/mrtest.txt")
     port = int(structure["Page 1"]["Question 1"]["receiver"][1])
     print("setting up thread....")
     # if thread is None or (thread is not None and thread.port != port):
@@ -44,7 +44,7 @@ def run():
     # elif thread is not None and not thread.is_alive():
     #    thread.start()
     # start_server(port)
-    return StackedWindowGui("./test/mrtest.txt")
+    return StackedWindowGui(os.path.join(os.getcwd(), "tests/mrtest.txt"))
 
 
 def find_row_by_label(layout, label):
@@ -385,8 +385,8 @@ def test_track(gui_load, qtbot):
 
 # noinspection PyArgumentList
 def test_xfade(gui_load, qtbot):
-    if os.path.exists("./test/results/results_mr.csv"):
-        os.remove("./test/results/results_mr.csv")
+    if os.path.exists("./tests/results/results_mr.csv"):
+        os.remove("./tests/results/results_mr.csv")
 
     QTimer.singleShot(150, handle_dialog_error)
     error_found, warning_found, warning_details = validate_questionnaire(gui_load.structure)
@@ -441,8 +441,8 @@ def test_xfade(gui_load, qtbot):
     assert not error_found
     assert not warning_found
     QTest.keyClicks(gui_load, 's', modifier=Qt.KeyboardModifier.ControlModifier, delay=1000)
-    prepare_listeners(ConfigObj("./test/mrtest.txt"))
-    test_gui = StackedWindowGui("./test/mrtest.txt")
+    prepare_listeners(ConfigObj(os.path.join(os.getcwd(), "tests/mrtest.txt")))
+    test_gui = StackedWindowGui(os.path.join(os.getcwd(), "tests/mrtest.txt"))
     assert test_gui.Stack.count() == 1
     time.sleep(1)
     assert THREAD.message_stack[-1] == ("/action", MUSHRA.loop_off_command)
@@ -524,7 +524,7 @@ def test_xfade(gui_load, qtbot):
     assert not warning_found
     QTest.keyClicks(gui_load, 's', modifier=Qt.KeyboardModifier.ControlModifier, delay=1000)
 
-    os.remove("./test/results/results_mr.csv")
+    os.remove("./tests/results/results_mr.csv")
     gui_load.close()
 
 
@@ -537,7 +537,7 @@ def test_execute_questionnaire_no_interaction(run, qtbot):
     QTest.mouseClick(run.forwardbutton, Qt.MouseButton.LeftButton)
 
     results = []
-    with open('./test/results/results_mr.csv', mode='r') as file:
+    with open('./tests/results/results_mr.csv', mode='r') as file:
         csv_file = csv.reader(file, delimiter=';')
 
         for lines in csv_file:
@@ -556,22 +556,22 @@ def test_execute_questionnaire_no_interaction(run, qtbot):
     assert results[3] == '100'  # default slider value
     assert re.match(r'\d+-\d+-\d+ \d+:\d+:\d+.\d+', results[4])  # timestamp
     assert re.match(r'\d+-\d+-\d+ \d+:\d+:\d+.\d+', results[5])  # timestamp
-    os.remove("./test/results/results_mr.csv")
+    os.remove("./tests/results/results_mr.csv")
     THREAD.stop(0.1)
     QTest.qWait(1000)
 
 
 # noinspection PyArgumentList
 def test_execute_questionnaire_no_interaction_blocked(run, qtbot):
-    with mock_file(r'./test/results/results_mr.csv'):
+    with mock_file(r'./tests/results/results_mr.csv'):
         assert run.Stack.count() == 1
         assert THREAD.message_stack[-1] == ("/action", MUSHRA.loop_off_command)
         QTimer.singleShot(100, handle_dialog)
         QTest.mouseClick(run.forwardbutton, Qt.MouseButton.LeftButton)
         res_file = None
-        for file in os.listdir("./test/results/"):
+        for file in os.listdir("./tests/results/"):
             if file.find("_backup_"):
-                res_file = f'./test/results/{file}'
+                res_file = f'./tests/results/{file}'
         results = []
         with open(res_file, mode='r') as file:
             csv_file = csv.reader(file, delimiter=';')
@@ -599,8 +599,8 @@ def test_execute_questionnaire_no_interaction_blocked(run, qtbot):
 
 # noinspection PyArgumentList
 def test_execute_questionnaire(run, qtbot):
-    if os.path.exists("./test/results/results_mr.csv"):
-        os.remove("./test/results/results_mr.csv")
+    if os.path.exists("./tests/results/results_mr.csv"):
+        os.remove("./tests/results/results_mr.csv")
     assert run.Stack.count() == 1
     assert THREAD.message_stack[-1] == ("/action", MUSHRA.loop_off_command)
     for child in run.Stack.currentWidget().children():
@@ -621,7 +621,7 @@ def test_execute_questionnaire(run, qtbot):
     QTest.mouseClick(run.forwardbutton, Qt.MouseButton.LeftButton, delay=1000)
 
     results = []
-    with open('./test/results/results_mr.csv', mode='r') as file:
+    with open('./tests/results/results_mr.csv', mode='r') as file:
         csv_file = csv.reader(file, delimiter=';')
 
         for lines in csv_file:
@@ -632,14 +632,14 @@ def test_execute_questionnaire(run, qtbot):
     assert int(results[2]) < int(results[3])
     assert re.match(r'\d+-\d+-\d+ \d+:\d+:\d+.\d+', results[4])  # timestamp
     assert re.match(r'\d+-\d+-\d+ \d+:\d+:\d+.\d+', results[5])  # timestamp
-    os.remove("./test/results/results_mr.csv")
+    os.remove("./tests/results/results_mr.csv")
     THREAD.stop(0.1)
     QTest.qWait(1000)
 
 
 # noinspection PyArgumentList
 def test_execute_questionnaire_blocked(run, qtbot):
-    with mock_file(r'./test/results/results_mr.csv'):
+    with mock_file(r'./tests/results/results_mr.csv'):
         assert run.Stack.count() == 1
         assert THREAD.message_stack[-1] == ("/action", MUSHRA.loop_off_command)
         for child in run.Stack.currentWidget().children():
@@ -658,9 +658,9 @@ def test_execute_questionnaire_blocked(run, qtbot):
         QTimer.singleShot(100, handle_dialog)
         QTest.mouseClick(run.forwardbutton, Qt.MouseButton.LeftButton)
         res_file = None
-        for file in os.listdir("./test/results/"):
+        for file in os.listdir("./tests/results/"):
             if file.find("_backup_"):
-                res_file = f'./test/results/{file}'
+                res_file = f'./tests/results/{file}'
         results = []
         with open(res_file, mode='r') as file:
             csv_file = csv.reader(file, delimiter=';')

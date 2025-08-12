@@ -8,7 +8,7 @@ from PySide6.QtCore import QRect, QPoint, Qt
 from PySide6.QtGui import QPainter
 from PySide6.QtWidgets import QStyle, QStyleOptionSlider
 
-from QUEST.Slider import Slider
+from Slider import Slider
 
 
 class LabeledSlider(QtWidgets.QWidget):

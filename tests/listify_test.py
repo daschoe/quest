@@ -1,12 +1,12 @@
 """Test if the listify function in Validator.py is working correctly."""
 
-from context import listify, ConfigObj
+from tests.context import listify, ConfigObj
 
 
 # fields: "answers", "button_texts", "header", "label", "questions"
 
 def test_single_string_load():
-    structure = ConfigObj("./test/listify.txt")
+    structure = ConfigObj(os.path.join(os.getcwd(), "tests/listify.txt"))
     structure = listify(structure)
     assert structure['Page 1']['Question 1']['answers'] == 'answer'
     assert structure['Page 1']['Question 1']['button_texts'] == 'button'
@@ -16,7 +16,7 @@ def test_single_string_load():
 
 
 def test_single_string():
-    structure = ConfigObj("./test/listify.txt")
+    structure = ConfigObj(os.path.join(os.getcwd(), "tests/listify.txt"))
     structure['Page 1']['Question 1']['answers'] = 'answer'
     structure['Page 1']['Question 1']['button_texts'] = 'button'
     structure['Page 1']['Question 1']['header'] = 'head'
@@ -31,7 +31,7 @@ def test_single_string():
 
 
 def test_single_string_list():
-    structure = ConfigObj("./test/listify.txt")
+    structure = ConfigObj(os.path.join(os.getcwd(), "tests/listify.txt"))
     structure['Page 1']['Question 1']['answers'] = '[answer]'
     structure['Page 1']['Question 1']['button_texts'] = '[button]'
     structure['Page 1']['Question 1']['header'] = '[head]'
@@ -46,7 +46,7 @@ def test_single_string_list():
 
 
 def test_single_string_wanted_apostrophe():
-    structure = ConfigObj("./test/listify.txt")
+    structure = ConfigObj(os.path.join(os.getcwd(), "tests/listify.txt"))
     structure['Page 1']['Question 1']['answers'] = "can't"
     structure['Page 1']['Question 1']['button_texts'] = "can't"
     structure['Page 1']['Question 1']['header'] = "can't"
@@ -61,7 +61,7 @@ def test_single_string_wanted_apostrophe():
 
 
 def test_single_string_wanted_apostrophe_list():
-    structure = ConfigObj("./test/listify.txt")
+    structure = ConfigObj(os.path.join(os.getcwd(), "tests/listify.txt"))
     structure['Page 1']['Question 1']['answers'] = "[can't]"
     structure['Page 1']['Question 1']['button_texts'] = "[can't]"
     structure['Page 1']['Question 1']['header'] = "[can't]"
@@ -76,7 +76,7 @@ def test_single_string_wanted_apostrophe_list():
 
 
 def test_single_string_wanted_apostrophe_list_preformatted():
-    structure = ConfigObj("./test/listify.txt")
+    structure = ConfigObj(os.path.join(os.getcwd(), "tests/listify.txt"))
     structure['Page 1']['Question 1']['answers'] = ["can't"]
     structure['Page 1']['Question 1']['button_texts'] = ["can't"]
     structure['Page 1']['Question 1']['header'] = ["can't"]
@@ -91,7 +91,7 @@ def test_single_string_wanted_apostrophe_list_preformatted():
 
 
 def test_list_as_one_string():
-    structure = ConfigObj("./test/listify.txt")
+    structure = ConfigObj(os.path.join(os.getcwd(), "tests/listify.txt"))
     structure['Page 1']['Question 1']['answers'] = '[answer1, answer2]'
     structure['Page 1']['Question 1']['button_texts'] = '[button1, button2]'
     structure['Page 1']['Question 1']['header'] = '[head1, head2]'
@@ -106,7 +106,7 @@ def test_list_as_one_string():
 
 
 def test_list_as_list_of_strings():
-    structure = ConfigObj("./test/listify.txt")
+    structure = ConfigObj(os.path.join(os.getcwd(), "tests/listify.txt"))
     structure['Page 1']['Question 1']['answers'] = '["answer1", "answer2"]'
     structure['Page 1']['Question 1']['button_texts'] = '["button1", "button2"]'
     structure['Page 1']['Question 1']['header'] = '["head1", "head2"]'
@@ -121,7 +121,7 @@ def test_list_as_list_of_strings():
 
 
 def test_list_as_list_of_strings_preformatted():
-    structure = ConfigObj("./test/listify.txt")
+    structure = ConfigObj(os.path.join(os.getcwd(), "tests/listify.txt"))
     structure['Page 1']['Question 1']['answers'] = ["answer1", "answer2"]
     structure['Page 1']['Question 1']['button_texts'] = ["button1", "button2"]
     structure['Page 1']['Question 1']['header'] = ["head1", "head2"]
@@ -136,7 +136,7 @@ def test_list_as_list_of_strings_preformatted():
 
 
 def test_list_one_apostrophe():
-    structure = ConfigObj("./test/listify.txt")
+    structure = ConfigObj(os.path.join(os.getcwd(), "tests/listify.txt"))
     structure['Page 1']['Question 1']['answers'] = "can't, answer"
     structure['Page 1']['Question 1']['button_texts'] = "can't, answer"
     structure['Page 1']['Question 1']['header'] = "can't, answer"
@@ -151,7 +151,7 @@ def test_list_one_apostrophe():
 
 
 def test_list_one_apostrophe_with_brackets():
-    structure = ConfigObj("./test/listify.txt")
+    structure = ConfigObj(os.path.join(os.getcwd(), "tests/listify.txt"))
     structure['Page 1']['Question 1']['answers'] = "[can't, answer]"
     structure['Page 1']['Question 1']['button_texts'] = "[can't, answer]"
     structure['Page 1']['Question 1']['header'] = "[can't, answer]"
@@ -166,7 +166,7 @@ def test_list_one_apostrophe_with_brackets():
 
 
 def test_sublists():
-    structure = ConfigObj("./test/listify.txt")
+    structure = ConfigObj(os.path.join(os.getcwd(), "tests/listify.txt"))
     structure['Page 1']['Question 1']['label'] = "[-1, -], [0, ~], [1,+]"
     structure = listify(structure)
     assert structure['Page 1']['Question 1']['label'] == [[-1, '-'], [0, '~'], [1, '+']]

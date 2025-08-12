@@ -1,6 +1,6 @@
 """Testing the behaviour of AnswerTextField.py + QEditGui.py"""
 
-from context import pytest, QEditGuiMain, QTimer, open_config_file, StackedWindowGui, QTest, handle_dialog_p, handle_dialog_q, Qt, QFormLayout, QWidgetItem, fields_per_type, default_values, QCheckBox, QLineEdit, page_fields, listify, ConfigObj, general_fields, handle_dialog_error, validate_questionnaire, handle_dialog_no_save, find_row_by_label, handle_dialog, csv, re, os, mock_file, QPlainTextEdit, QHBoxLayout, QRadioButton, QIntValidator, QDoubleValidator, QRegularExpressionValidator, QButtonGroup
+from tests.context import pytest, QEditGuiMain, QTimer, open_config_file, StackedWindowGui, QTest, handle_dialog_p, handle_dialog_q, Qt, QFormLayout, QWidgetItem, fields_per_type, default_values, QCheckBox, QLineEdit, page_fields, listify, ConfigObj, general_fields, handle_dialog_error, validate_questionnaire, handle_dialog_no_save, find_row_by_label, handle_dialog, csv, re, os, mock_file, QPlainTextEdit, QHBoxLayout, QRadioButton, QIntValidator, QDoubleValidator, QRegularExpressionValidator, QButtonGroup
 
 
 @pytest.fixture
@@ -13,7 +13,7 @@ def gui_init():
 @pytest.fixture
 def gui_load(gui_init):
     """Start GUI"""
-    QTimer.singleShot(150, lambda: open_config_file("./test/tftest.txt"))
+    QTimer.singleShot(150, lambda: open_config_file(os.path.join(os.getcwd(), "tests/tftext.txt")))
     gui_init.load_file()
     return gui_init
 
@@ -21,7 +21,7 @@ def gui_load(gui_init):
 @pytest.fixture
 def run():
     """Execute the questionnaire."""
-    return StackedWindowGui("./test/tftest.txt")
+    return StackedWindowGui(os.path.join(os.getcwd(), "tests/tftext.txt"))
 
 
 # noinspection PyArgumentList
@@ -144,7 +144,7 @@ def test_policy(gui_load, qtbot):
     assert find_row_by_label(gui_load.gui.edit_layout, "dec") is None
     assert find_row_by_label(gui_load.gui.edit_layout, "exp") is None
     QTest.keyClicks(gui_load, 's', modifier=Qt.KeyboardModifier.ControlModifier, delay=1000)
-    test_gui = StackedWindowGui("./test/tftest.txt")
+    test_gui = StackedWindowGui(os.path.join(os.getcwd(), "tests/tftext.txt"))
     for child in test_gui.Stack.currentWidget().children():
         if isinstance(child, QLineEdit):
             assert child.validator() is None
@@ -174,7 +174,7 @@ def test_policy(gui_load, qtbot):
     QTest.keyClicks(gui_load, 's', modifier=Qt.KeyboardModifier.ControlModifier, delay=1000)
     gui_load.save() # have to enforce save since focus is lost somwhow....
     QTest.qWait(1000)
-    test_gui = StackedWindowGui("./test/tftest.txt")
+    test_gui = StackedWindowGui(os.path.join(os.getcwd(), "tests/tftext.txt"))
     for child in test_gui.Stack.currentWidget().children():
         if isinstance(child, QLineEdit):
             assert isinstance(child.validator(), QIntValidator)
@@ -206,7 +206,7 @@ def test_policy(gui_load, qtbot):
     QTest.keyClicks(gui_load, 's', modifier=Qt.KeyboardModifier.ControlModifier, delay=1000)
     gui_load.save() # have to enforce save since focus is lost somwhow....
     QTest.qWait(1000)
-    test_gui = StackedWindowGui("./test/tftest.txt")
+    test_gui = StackedWindowGui(os.path.join(os.getcwd(), "tests/tftext.txt"))
     for child in test_gui.Stack.currentWidget().children():
         if isinstance(child, QLineEdit):
             assert isinstance(child.validator(), QDoubleValidator)
@@ -232,7 +232,7 @@ def test_policy(gui_load, qtbot):
     QTest.keyClicks(gui_load, 's', modifier=Qt.KeyboardModifier.ControlModifier, delay=1000)
     gui_load.save() # have to enforce save since focus is lost somwhow....
     QTest.qWait(1000)
-    test_gui = StackedWindowGui("./test/tftest.txt")
+    test_gui = StackedWindowGui(os.path.join(os.getcwd(), "tests/tftext.txt"))
     for child in test_gui.Stack.currentWidget().children():
         if isinstance(child, QLineEdit):
             assert isinstance(child.validator(), QRegularExpressionValidator)
@@ -323,8 +323,8 @@ def test_policy_enable(gui_load, qtbot):
 
 # noinspection PyArgumentList
 def test_execute_questionnaire_no_interaction(run, qtbot):
-    if os.path.exists("./test/results/results_tf.csv"):
-        os.remove("./test/results/results_tf.csv")
+    if os.path.exists("./tests/results/results_tf.csv"):
+        os.remove("./tests/results/results_tf.csv")
     assert run.Stack.count() == 1
     found_le = False
     found_te = False
@@ -340,7 +340,7 @@ def test_execute_questionnaire_no_interaction(run, qtbot):
     QTest.mouseClick(run.forwardbutton, Qt.MouseButton.LeftButton)
 
     results = []
-    with open('./test/results/results_tf.csv', mode='r') as file:
+    with open('./tests/results/results_tf.csv', mode='r') as file:
         csv_file = csv.reader(file, delimiter=';')
 
         for lines in csv_file:
@@ -355,19 +355,19 @@ def test_execute_questionnaire_no_interaction(run, qtbot):
     assert results[1] == ''
     assert re.match(r'\d+-\d+-\d+ \d+:\d+:\d+.\d+', results[2])  # timestamp
     assert re.match(r'\d+-\d+-\d+ \d+:\d+:\d+.\d+', results[3])  # timestamp
-    os.remove("./test/results/results_tf.csv")
+    os.remove("./tests/results/results_tf.csv")
 
 
 # noinspection PyArgumentList
 def test_execute_questionnaire_no_interaction_blocked(run, qtbot):
-    with mock_file(r'./test/results/results_tf.csv'):
+    with mock_file(r'./tests/results/results_tf.csv'):
         assert run.Stack.count() == 1
         QTimer.singleShot(100, handle_dialog)
         QTest.mouseClick(run.forwardbutton, Qt.MouseButton.LeftButton)
         res_file = None
-        for file in os.listdir("./test/results/"):
+        for file in os.listdir("./tests/results/"):
             if file.find("_backup_"):
-                res_file = f'./test/results/{file}'
+                res_file = f'./tests/results/{file}'
         results = []
         with open(res_file, mode='r') as file:
             csv_file = csv.reader(file, delimiter=';')
@@ -389,8 +389,8 @@ def test_execute_questionnaire_no_interaction_blocked(run, qtbot):
 
 # noinspection PyArgumentList
 def test_execute_questionnaire(run, qtbot):
-    if os.path.exists("./test/results/results_tf.csv"):
-        os.remove("./test/results/results_tf.csv")
+    if os.path.exists("./tests/results/results_tf.csv"):
+        os.remove("./tests/results/results_tf.csv")
     assert run.Stack.count() == 1
     for child in run.Stack.currentWidget().children():
         if isinstance(child, QLineEdit):
@@ -402,7 +402,7 @@ def test_execute_questionnaire(run, qtbot):
     QTest.mouseClick(run.forwardbutton, Qt.MouseButton.LeftButton)
 
     results = []
-    with open('./test/results/results_tf.csv', mode='r') as file:
+    with open('./tests/results/results_tf.csv', mode='r') as file:
         csv_file = csv.reader(file, delimiter=';')
 
         for lines in csv_file:
@@ -417,12 +417,12 @@ def test_execute_questionnaire(run, qtbot):
     assert results[1] == 'texttext'
     assert re.match(r'\d+-\d+-\d+ \d+:\d+:\d+.\d+', results[2])  # timestamp
     assert re.match(r'\d+-\d+-\d+ \d+:\d+:\d+.\d+', results[3])  # timestamp
-    os.remove("./test/results/results_tf.csv")
+    os.remove("./tests/results/results_tf.csv")
 
 
 # noinspection PyArgumentList
 def test_execute_questionnaire_blocked(run, qtbot):
-    with mock_file(r'./test/results/results_tf.csv'):
+    with mock_file(r'./tests/results/results_tf.csv'):
         assert run.Stack.count() == 1
         for child in run.Stack.currentWidget().children():
             if isinstance(child, QLineEdit):
@@ -434,9 +434,9 @@ def test_execute_questionnaire_blocked(run, qtbot):
         QTest.mouseClick(run.forwardbutton, Qt.MouseButton.LeftButton)
 
         res_file = None
-        for file in os.listdir("./test/results/"):
+        for file in os.listdir("./tests/results/"):
             if file.find("_backup_"):
-                res_file = f'./test/results/{file}'
+                res_file = f'./tests/results/{file}'
         results = []
         with open(res_file, mode='r') as file:
             csv_file = csv.reader(file, delimiter=';')
@@ -486,11 +486,11 @@ def test_execute_textedit(gui_load, qtbot):
     assert policy_cb.currentText() == 'None'
     assert not policy_cb.isEnabled()
 
-    if os.path.exists("./test/results/results_tf.csv"):
-        os.remove("./test/results/results_tf.csv")
+    if os.path.exists("./tests/results/results_tf.csv"):
+        os.remove("./tests/results/results_tf.csv")
     gui_load.gui.refresh_button.click()
     QTest.keyClicks(gui_load, 's', modifier=Qt.KeyboardModifier.ControlModifier, delay=1000)
-    test_gui = StackedWindowGui("./test/tftest.txt")
+    test_gui = StackedWindowGui(os.path.join(os.getcwd(), "tests/tftext.txt"))
 
     assert test_gui.Stack.count() == 1
     for child in test_gui.Stack.currentWidget().children():
@@ -503,7 +503,7 @@ def test_execute_textedit(gui_load, qtbot):
     QTest.mouseClick(test_gui.forwardbutton, Qt.MouseButton.LeftButton)
 
     results = []
-    with open('./test/results/results_tf.csv', mode='r') as file:
+    with open('./tests/results/results_tf.csv', mode='r') as file:
         csv_file = csv.reader(file, delimiter=';')
 
         for lines in csv_file:
@@ -518,7 +518,7 @@ def test_execute_textedit(gui_load, qtbot):
     assert results[1] == 'texttext'
     assert re.match(r'\d+-\d+-\d+ \d+:\d+:\d+.\d+', results[2])  # timestamp
     assert re.match(r'\d+-\d+-\d+ \d+:\d+:\d+.\d+', results[3])  # timestamp
-    os.remove("./test/results/results_tf.csv")
+    os.remove("./tests/results/results_tf.csv")
 
     assert hbox.findChild(QButtonGroup).checkedId() == 1
     assert hbox.itemAt(1).widget().isChecked()

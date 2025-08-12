@@ -4,7 +4,7 @@ import random
 from PySide6.QtCore import Qt
 from PySide6.QtWidgets import QWidget, QFormLayout, QLabel, QHBoxLayout
 
-from QUEST.AnswerRadioButton import make_answers
+from AnswerRadioButton import make_answers
 
 
 class RadioMatrix(QWidget):
@@ -30,6 +30,7 @@ class RadioMatrix(QWidget):
             if True, randomize the order of the questions
         """
         QWidget.__init__(self, parent=parent)
+        self.page = parent
         if objectname is not None:
             self.setObjectName(objectname)
             self.name = objectname
@@ -43,7 +44,7 @@ class RadioMatrix(QWidget):
             answers = [answers]
 
         if randomize:
-            random.seed(self.parent().parent().start.__str__())  # uses starting time
+            random.seed(self.page.gui.start.__str__())  # uses starting time
             self.id_order = [i + 1 for i in range(0, len(questions))]
             random.shuffle(self.id_order)
         else:

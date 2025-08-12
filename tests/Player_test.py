@@ -1,6 +1,6 @@
 """Testing the behaviour of Player.py + QEditGui.py"""
 import time
-from context import pytest, QEditGuiMain, QTimer, open_config_file, StackedWindowGui, QTest, handle_dialog_p, handle_dialog_q, Qt, QFormLayout, QWidgetItem, fields_per_type, default_values, QCheckBox, QLineEdit, page_fields, listify, ConfigObj, general_fields, handle_dialog_error, validate_questionnaire, handle_dialog_no_save, handle_dialog, csv, re, os, mock_file, Player, QHBoxLayout, MockReceiver, player_buttons, handle_dialog_warning, open_pupil
+from tests.context import pytest, QEditGuiMain, QTimer, open_config_file, StackedWindowGui, QTest, handle_dialog_p, handle_dialog_q, Qt, QFormLayout, QWidgetItem, fields_per_type, default_values, QCheckBox, QLineEdit, page_fields, listify, ConfigObj, general_fields, handle_dialog_error, validate_questionnaire, handle_dialog_no_save, handle_dialog, csv, re, os, mock_file, Player, QHBoxLayout, MockReceiver, player_buttons, handle_dialog_warning, open_pupil
 thread_audio = None
 thread_video = None
 
@@ -15,7 +15,7 @@ def gui_init():
 @pytest.fixture
 def gui_load(gui_init):
     """Start GUI"""
-    QTimer.singleShot(150, lambda: open_config_file("./test/pltest.txt"))
+    QTimer.singleShot(150, lambda: open_config_file(os.path.join(os.getcwd(), "tests/pltest.txt")))
     gui_init.load_file()
     return gui_init
 
@@ -23,7 +23,7 @@ def gui_load(gui_init):
 @pytest.fixture
 def gui_load2(gui_init):
     """Start GUI"""
-    QTimer.singleShot(150, lambda: open_config_file("./test/pltest2.txt"))
+    QTimer.singleShot(150, lambda: open_config_file(os.path.join(os.getcwd(), "tests/pltest2.txt")))
     gui_init.load_file()
     return gui_init
 
@@ -46,8 +46,8 @@ def prepare_listeners(structure):
 @pytest.fixture
 def run():
     """Execute the questionnaire."""
-    prepare_listeners(ConfigObj("./test/pltest.txt"))
-    return StackedWindowGui("./test/pltest.txt")
+    prepare_listeners(ConfigObj(os.path.join(os.getcwd(), "tests/pltest.txt")))
+    return StackedWindowGui(os.path.join(os.getcwd(), "tests/pltest.txt"))
 
 
 def find_row_by_label(layout, label):
@@ -293,8 +293,8 @@ def test_end_cue(gui_load, qtbot):
 
 # noinspection PyArgumentList
 def test_play_once(gui_load, qtbot):
-    if os.path.exists("./test/results/results_pl.csv"):
-        os.remove("./test/results/results_pl.csv")
+    if os.path.exists("./tests/results/results_pl.csv"):
+        os.remove("./tests/results/results_pl.csv")
 
     QTimer.singleShot(150, handle_dialog_error)
     error_found, warning_found, warning_details = validate_questionnaire(gui_load.structure)
@@ -321,8 +321,8 @@ def test_play_once(gui_load, qtbot):
     assert not warning_found
     gui_load.gui.refresh_button.click()
     QTest.keyClicks(gui_load, 's', modifier=Qt.KeyboardModifier.ControlModifier, delay=1000)
-    prepare_listeners(ConfigObj("./test/pltest.txt"))
-    test_gui = StackedWindowGui("./test/pltest.txt")
+    prepare_listeners(ConfigObj(os.path.join(os.getcwd(), "tests/pltest.txt")))
+    test_gui = StackedWindowGui(os.path.join(os.getcwd(), "tests/pltest.txt"))
     assert test_gui.Stack.count() == 1
     time.sleep(5)
     assert thread_audio.message_stack[-1] == ("/action", 40297)
@@ -377,8 +377,8 @@ def test_play_once(gui_load, qtbot):
     assert not warning_found
     gui_load.gui.refresh_button.click()
     QTest.keyClicks(gui_load, 's', modifier=Qt.KeyboardModifier.ControlModifier, delay=1000)
-    prepare_listeners(ConfigObj("./test/pltest.txt"))
-    test_gui = StackedWindowGui("./test/pltest.txt")
+    prepare_listeners(ConfigObj(os.path.join(os.getcwd(), "tests/pltest.txt")))
+    test_gui = StackedWindowGui(os.path.join(os.getcwd(), "tests/pltest.txt"))
     assert test_gui.Stack.count() == 1
     for child in test_gui.Stack.currentWidget().children():
         if isinstance(child, Player):
@@ -420,7 +420,7 @@ def test_play_once(gui_load, qtbot):
     thread_audio.stop(0.1)
     QTest.qWait(1000)
 
-    os.remove("./test/results/results_pl.csv")
+    os.remove("./tests/results/results_pl.csv")
     gui_load.close()
 
 
@@ -462,8 +462,8 @@ def test_timer_and_two_pages(gui_load2, qtbot):
     assert not warning_found
     gui_load2.gui.refresh_button.click()
     QTest.keyClicks(gui_load2, 's', modifier=Qt.KeyboardModifier.ControlModifier, delay=1000)
-    prepare_listeners(ConfigObj("./test/pltest2.txt"))
-    test_gui = StackedWindowGui("./test/pltest2.txt")
+    prepare_listeners(ConfigObj(os.path.join(os.getcwd(), "tests/pltest2.txt")))
+    test_gui = StackedWindowGui(os.path.join(os.getcwd(), "tests/pltest2.txt"))
     assert test_gui.Stack.count() == 2
     hidden = None
     for child in test_gui.Stack.currentWidget().children():
@@ -491,8 +491,8 @@ def test_timer_and_two_pages(gui_load2, qtbot):
     QTest.qWait(5000)
 
     # stop during playback
-    prepare_listeners(ConfigObj("./test/pltest2.txt"))
-    test_gui = StackedWindowGui("./test/pltest2.txt")
+    prepare_listeners(ConfigObj(os.path.join(os.getcwd(), "tests/pltest2.txt")))
+    test_gui = StackedWindowGui(os.path.join(os.getcwd(), "tests/pltest2.txt"))
     assert test_gui.Stack.count() == 2
     hidden = None
     for child in test_gui.Stack.currentWidget().children():
@@ -538,8 +538,8 @@ def test_timer_and_two_pages(gui_load2, qtbot):
     QTest.qWait(1000)
 
     # pause and resume during playback
-    prepare_listeners(ConfigObj("./test/pltest2.txt"))
-    test_gui = StackedWindowGui("./test/pltest2.txt")
+    prepare_listeners(ConfigObj(os.path.join(os.getcwd(), "tests/pltest2.txt")))
+    test_gui = StackedWindowGui(os.path.join(os.getcwd(), "tests/pltest2.txt"))
     assert test_gui.Stack.count() == 2
     hidden = None
     for child in test_gui.Stack.currentWidget().children():
@@ -585,7 +585,7 @@ def test_timer_and_two_pages(gui_load2, qtbot):
     QTest.qWait(1000)
 
     # reset file
-    os.remove("./test/results/results_pl.csv")
+    os.remove("./tests/results/results_pl.csv")
     gui_load2.gui.edit_layout.itemAt(time_pos, QFormLayout.ItemRole.FieldRole).widget().clear()
     gui_load2.gui.edit_layout.itemAt(time_pos, QFormLayout.ItemRole.FieldRole).widget().editingFinished.emit()
     assert gui_load2.structure["Page 1"]["Question 1"]["timer"] == ''
@@ -596,8 +596,8 @@ def test_timer_and_two_pages(gui_load2, qtbot):
     gui_load2.gui.refresh_button.click()
     assert "timer" not in gui_load2.structure["Page 1"]["Question 1"].keys()
     QTest.keyClicks(gui_load2, 's', modifier=Qt.KeyboardModifier.ControlModifier, delay=1000)
-    prepare_listeners(ConfigObj("./test/pltest2.txt"))
-    test_gui = StackedWindowGui("./test/pltest2.txt")
+    prepare_listeners(ConfigObj(os.path.join(os.getcwd(), "tests/pltest2.txt")))
+    test_gui = StackedWindowGui(os.path.join(os.getcwd(), "tests/pltest2.txt"))
     assert test_gui.Stack.count() == 2
     hidden = None
     for child in test_gui.Stack.currentWidget().children():
@@ -618,7 +618,7 @@ def test_timer_and_two_pages(gui_load2, qtbot):
     QTest.mouseClick(test_gui.forwardbutton, Qt.MouseButton.LeftButton, delay=1000)
     test_gui.close()
     results = []
-    with open('./test/results/results_pl.csv', mode='r') as file:
+    with open('./tests/results/results_pl.csv', mode='r') as file:
         csv_file = csv.reader(file, delimiter=';')
         for lines in csv_file:
             results = lines
@@ -628,7 +628,7 @@ def test_timer_and_two_pages(gui_load2, qtbot):
     assert results[2] == ''  # text field
     assert re.match(r'\d+-\d+-\d+ \d+:\d+:\d+.\d+', results[3])  # timestamp
     assert re.match(r'\d+-\d+-\d+ \d+:\d+:\d+.\d+', results[4])  # timestamp
-    os.remove("./test/results/results_pl.csv")
+    os.remove("./tests/results/results_pl.csv")
     thread_audio.stop(0.1)
     QTest.qWait(1000)
     gui_load2.close()
@@ -660,8 +660,8 @@ def test_play_button_text(gui_load, qtbot):
     assert not warning_found
     gui_load.gui.refresh_button.click()
     QTest.keyClicks(gui_load, 's', modifier=Qt.KeyboardModifier.ControlModifier, delay=1000)
-    prepare_listeners(ConfigObj("./test/pltest.txt"))
-    test_gui = StackedWindowGui("./test/pltest.txt")
+    prepare_listeners(ConfigObj(os.path.join(os.getcwd(), "tests/pltest.txt")))
+    test_gui = StackedWindowGui(os.path.join(os.getcwd(), "tests/pltest.txt"))
     assert test_gui.Stack.count() == 1
     for child in test_gui.Stack.currentWidget().children():
         if isinstance(child, Player):
@@ -683,7 +683,7 @@ def test_play_button_text(gui_load, qtbot):
     assert not warning_found
     QTest.keyClicks(gui_load, 's', modifier=Qt.KeyboardModifier.ControlModifier, delay=1000)
 
-    os.remove("./test/results/results_pl.csv")
+    os.remove("./tests/results/results_pl.csv")
     gui_load.close()
 
 
@@ -695,7 +695,7 @@ def test_execute_questionnaire_no_interaction(run, qtbot):
     QTest.mouseClick(run.forwardbutton, Qt.MouseButton.LeftButton)
 
     results = []
-    with open('./test/results/results_pl.csv', mode='r') as file:
+    with open('./tests/results/results_pl.csv', mode='r') as file:
         csv_file = csv.reader(file, delimiter=';')
 
         for lines in csv_file:
@@ -711,21 +711,21 @@ def test_execute_questionnaire_no_interaction(run, qtbot):
     assert re.match(r'\d+-\d+-\d+ \d+:\d+:\d+.\d+', results[2])  # timestamp
     assert re.match(r'\d+-\d+-\d+ \d+:\d+:\d+.\d+', results[3])  # timestamp
     assert thread_audio.message_stack[-1] == ("/action", 40297)
-    os.remove("./test/results/results_pl.csv")
+    os.remove("./tests/results/results_pl.csv")
     thread_audio.stop(0.1)
     QTest.qWait(1000)
 
 
 # noinspection PyArgumentList
 def test_execute_questionnaire_no_interaction_blocked(run, qtbot):
-    with mock_file(r'./test/results/results_pl.csv'):
+    with mock_file(r'./tests/results/results_pl.csv'):
         assert run.Stack.count() == 1
         QTimer.singleShot(100, handle_dialog)
         QTest.mouseClick(run.forwardbutton, Qt.MouseButton.LeftButton)
         res_file = None
-        for file in os.listdir("./test/results/"):
+        for file in os.listdir("./tests/results/"):
             if file.find("_backup_"):
-                res_file = f'./test/results/{file}'
+                res_file = f'./tests/results/{file}'
         results = []
         with open(res_file, mode='r') as file:
             csv_file = csv.reader(file, delimiter=';')
@@ -750,8 +750,8 @@ def test_execute_questionnaire_no_interaction_blocked(run, qtbot):
 
 # noinspection PyArgumentList
 def test_execute_questionnaire(run, qtbot):
-    if os.path.exists("./test/results/results_pl.csv"):
-        os.remove("./test/results/results_pl.csv")
+    if os.path.exists("./tests/results/results_pl.csv"):
+        os.remove("./tests/results/results_pl.csv")
     assert run.Stack.count() == 1
     for child in run.Stack.currentWidget().children():
         if isinstance(child, Player):
@@ -767,7 +767,7 @@ def test_execute_questionnaire(run, qtbot):
     QTest.mouseClick(run.forwardbutton, Qt.MouseButton.LeftButton, delay=1000)
 
     results = []
-    with open('./test/results/results_pl.csv', mode='r') as file:
+    with open('./tests/results/results_pl.csv', mode='r') as file:
         csv_file = csv.reader(file, delimiter=';')
 
         for lines in csv_file:
@@ -777,14 +777,14 @@ def test_execute_questionnaire(run, qtbot):
     assert re.match(r'\[\d.\d+]', results[1])  # list of duration
     assert re.match(r'\d+-\d+-\d+ \d+:\d+:\d+.\d+', results[2])  # timestamp
     assert re.match(r'\d+-\d+-\d+ \d+:\d+:\d+.\d+', results[3])  # timestamp
-    os.remove("./test/results/results_pl.csv")
+    os.remove("./tests/results/results_pl.csv")
     thread_audio.stop(0.1)
     QTest.qWait(1000)
 
 
 # noinspection PyArgumentList
 def test_execute_questionnaire_blocked(run, qtbot):
-    with mock_file(r'./test/results/results_pl.csv'):
+    with mock_file(r'./tests/results/results_pl.csv'):
         assert run.Stack.count() == 1
         for child in run.Stack.currentWidget().children():
             if isinstance(child, Player):
@@ -797,9 +797,9 @@ def test_execute_questionnaire_blocked(run, qtbot):
         QTimer.singleShot(100, handle_dialog)
         QTest.mouseClick(run.forwardbutton, Qt.MouseButton.LeftButton)
         res_file = None
-        for file in os.listdir("./test/results/"):
+        for file in os.listdir("./tests/results/"):
             if file.find("_backup_"):
-                res_file = f'./test/results/{file}'
+                res_file = f'./tests/results/{file}'
         results = []
         with open(res_file, mode='r') as file:
             csv_file = csv.reader(file, delimiter=';')
@@ -858,10 +858,10 @@ def test_buttons(gui_load, qtbot):
     assert not error_found
     assert warning_found
     QTest.keyClicks(gui_load, 's', modifier=Qt.KeyboardModifier.ControlModifier, delay=1000)
-    prepare_listeners(ConfigObj("./test/pltest.txt"))
+    prepare_listeners(ConfigObj(os.path.join(os.getcwd(), "tests/pltest.txt")))
     QTest.qWait(2000)
     QTimer.singleShot(150, handle_dialog_warning)
-    test_gui = StackedWindowGui("./test/pltest.txt")
+    test_gui = StackedWindowGui(os.path.join(os.getcwd(), "tests/pltest.txt"))
     assert test_gui.Stack.count() == 1
     for child in test_gui.Stack.currentWidget().children():
         if isinstance(child, Player):
@@ -877,7 +877,7 @@ def test_buttons(gui_load, qtbot):
     thread_audio.stop(0.1)
     QTest.qWait(1000)
     results = []
-    with open('./test/results/results_pl.csv', mode='r') as file:
+    with open('./tests/results/results_pl.csv', mode='r') as file:
         csv_file = csv.reader(file, delimiter=';')
 
         for lines in csv_file:
@@ -887,7 +887,7 @@ def test_buttons(gui_load, qtbot):
     assert re.match(r'\[\d.\d+]', results[1])  # list of duration
     assert re.match(r'\d+-\d+-\d+ \d+:\d+:\d+.\d+', results[2])  # timestamp
     assert re.match(r'\d+-\d+-\d+ \d+:\d+:\d+.\d+', results[3])  # timestamp
-    os.remove("./test/results/results_pl.csv")
+    os.remove("./tests/results/results_pl.csv")
 
     # just stop button
     gui_load.gui.edit_layout.itemAt(btn_pos, QFormLayout.ItemRole.FieldRole).itemAt(2).widget().click()
@@ -898,10 +898,10 @@ def test_buttons(gui_load, qtbot):
     assert not error_found
     assert warning_found
     QTest.keyClicks(gui_load, 's', modifier=Qt.KeyboardModifier.ControlModifier, delay=1000)
-    prepare_listeners(ConfigObj("./test/pltest.txt"))
+    prepare_listeners(ConfigObj(os.path.join(os.getcwd(), "tests/pltest.txt")))
     QTest.qWait(3000)
     QTimer.singleShot(150, handle_dialog_warning)
-    test_gui = StackedWindowGui("./test/pltest.txt")
+    test_gui = StackedWindowGui(os.path.join(os.getcwd(), "tests/pltest.txt"))
     assert test_gui.Stack.count() == 1
     time.sleep(5)
     assert thread_audio.message_stack[-5] == ("/action", 40161)
@@ -925,7 +925,7 @@ def test_buttons(gui_load, qtbot):
     thread_audio.stop(0.1)
     QTest.qWait(1000)
     results = []
-    with open('./test/results/results_pl.csv', mode='r') as file:
+    with open('./tests/results/results_pl.csv', mode='r') as file:
         csv_file = csv.reader(file, delimiter=';')
         for lines in csv_file:
             results = lines
@@ -934,7 +934,7 @@ def test_buttons(gui_load, qtbot):
     assert re.match(r'\[\d.\d+]', results[1])  # list of duration
     assert re.match(r'\d+-\d+-\d+ \d+:\d+:\d+.\d+', results[2])  # timestamp
     assert re.match(r'\d+-\d+-\d+ \d+:\d+:\d+.\d+', results[3])  # timestamp
-    os.remove("./test/results/results_pl.csv")
+    os.remove("./tests/results/results_pl.csv")
 
     # stop and pause
     gui_load.gui.edit_layout.itemAt(btn_pos, QFormLayout.ItemRole.FieldRole).itemAt(1).widget().click()
@@ -945,9 +945,9 @@ def test_buttons(gui_load, qtbot):
     assert not error_found
     assert warning_found
     QTest.keyClicks(gui_load, 's', modifier=Qt.KeyboardModifier.ControlModifier, delay=1000)
-    prepare_listeners(ConfigObj("./test/pltest.txt"))
+    prepare_listeners(ConfigObj(os.path.join(os.getcwd(), "tests/pltest.txt")))
     QTimer.singleShot(150, handle_dialog_warning)
-    test_gui = StackedWindowGui("./test/pltest.txt")
+    test_gui = StackedWindowGui(os.path.join(os.getcwd(), "tests/pltest.txt"))
     time.sleep(5)
     assert thread_audio.message_stack[-5] == ("/action", 40161)
     assert thread_audio.message_stack[-1] == ("/play", 1.0)
@@ -997,7 +997,7 @@ def test_buttons(gui_load, qtbot):
     thread_audio.stop(0.1)
     QTest.qWait(1000)
     results = []
-    with open('./test/results/results_pl.csv', mode='r') as file:
+    with open('./tests/results/results_pl.csv', mode='r') as file:
         csv_file = csv.reader(file, delimiter=';')
         for lines in csv_file:
             results = lines
@@ -1006,7 +1006,7 @@ def test_buttons(gui_load, qtbot):
     assert re.match(r'\[\d.\d+, \d.\d+]', results[1])  # list of duration
     assert re.match(r'\d+-\d+-\d+ \d+:\d+:\d+.\d+', results[2])  # timestamp
     assert re.match(r'\d+-\d+-\d+ \d+:\d+:\d+.\d+', results[3])  # timestamp
-    os.remove("./test/results/results_pl.csv")
+    os.remove("./tests/results/results_pl.csv")
 
     # just play button
     gui_load.gui.edit_layout.itemAt(btn_pos, QFormLayout.ItemRole.FieldRole).itemAt(2).widget().click()
@@ -1021,8 +1021,8 @@ def test_buttons(gui_load, qtbot):
     assert not error_found
     assert not warning_found
     QTest.keyClicks(gui_load, 's', modifier=Qt.KeyboardModifier.ControlModifier, delay=1000)
-    prepare_listeners(ConfigObj("./test/pltest.txt"))
-    test_gui = StackedWindowGui("./test/pltest.txt")
+    prepare_listeners(ConfigObj(os.path.join(os.getcwd(), "tests/pltest.txt")))
+    test_gui = StackedWindowGui(os.path.join(os.getcwd(), "tests/pltest.txt"))
     assert test_gui.Stack.count() == 1
     for child in test_gui.Stack.currentWidget().children():
         if isinstance(child, Player):
@@ -1046,7 +1046,7 @@ def test_buttons(gui_load, qtbot):
     thread_audio.stop(0.1)
     QTest.qWait(1000)
     results = []
-    with open('./test/results/results_pl.csv', mode='r') as file:
+    with open('./tests/results/results_pl.csv', mode='r') as file:
         csv_file = csv.reader(file, delimiter=';')
         for lines in csv_file:
             results = lines
@@ -1055,7 +1055,7 @@ def test_buttons(gui_load, qtbot):
     assert re.match(r'\[\d.\d+, \d.\d+]', results[1])  # list of duration
     assert re.match(r'\d+-\d+-\d+ \d+:\d+:\d+.\d+', results[2])  # timestamp
     assert re.match(r'\d+-\d+-\d+ \d+:\d+:\d+.\d+', results[3])  # timestamp
-    os.remove("./test/results/results_pl.csv")
+    os.remove("./tests/results/results_pl.csv")
 
     # reset file
     for btn in range(gui_load.gui.edit_layout.itemAt(btn_pos, QFormLayout.ItemRole.FieldRole).count()):
@@ -1107,8 +1107,8 @@ def test_video(gui_load2, qtbot):
 
     gui_load2.gui.refresh_button.click()
     QTest.keyClicks(gui_load2, 's', modifier=Qt.KeyboardModifier.ControlModifier, delay=1000)
-    prepare_listeners(ConfigObj("./test/pltest2.txt"))
-    test_gui = StackedWindowGui("./test/pltest2.txt")
+    prepare_listeners(ConfigObj(os.path.join(os.getcwd(), "tests/pltest2.txt")))
+    test_gui = StackedWindowGui(os.path.join(os.getcwd(), "tests/pltest2.txt"))
     assert test_gui.Stack.count() == 2
     for child in test_gui.Stack.currentWidget().children():
         if isinstance(child, Player):
@@ -1131,14 +1131,14 @@ def test_video(gui_load2, qtbot):
     thread_audio.stop(0.1)
     thread_video.stop(0.1)
     QTest.qWait(1000)
-    os.remove("./test/results/results_pl.csv")
+    os.remove("./tests/results/results_pl.csv")
 
     # MadMapper
     gui_load2.structure["video_player"] = "MadMapper"
     gui_load2.gui.refresh_button.click()
     QTest.keyClicks(gui_load2, 's', modifier=Qt.KeyboardModifier.ControlModifier, delay=1000)
-    prepare_listeners(ConfigObj("./test/pltest2.txt"))
-    test_gui = StackedWindowGui("./test/pltest2.txt")
+    prepare_listeners(ConfigObj(os.path.join(os.getcwd(), "tests/pltest2.txt")))
+    test_gui = StackedWindowGui(os.path.join(os.getcwd(), "tests/pltest2.txt"))
     assert test_gui.Stack.count() == 2
     for child in test_gui.Stack.currentWidget().children():
         if isinstance(child, Player):
@@ -1161,7 +1161,7 @@ def test_video(gui_load2, qtbot):
     thread_audio.stop(0.1)
     thread_video.stop(0.1)
     QTest.qWait(1000)
-    os.remove("./test/results/results_pl.csv")
+    os.remove("./tests/results/results_pl.csv")
 
     gui_load2.structure.pop("video_ip")
     gui_load2.structure.pop("video_port")
@@ -1214,8 +1214,8 @@ def test_pupil(gui_load, qtbot, capfd):
     assert not error_found
     assert not warning_found
     QTest.keyClicks(gui_load, 's', modifier=Qt.KeyboardModifier.ControlModifier, delay=1000)
-    prepare_listeners(ConfigObj("./test/pltest.txt"))
-    test_gui = StackedWindowGui("./test/pltest.txt")
+    prepare_listeners(ConfigObj(os.path.join(os.getcwd(), "tests/pltest.txt")))
+    test_gui = StackedWindowGui(os.path.join(os.getcwd(), "tests/pltest.txt"))
     assert test_gui.Stack.count() == 1
     for child in test_gui.Stack.currentWidget().children():
         if isinstance(child, Player):
@@ -1238,7 +1238,7 @@ def test_pupil(gui_load, qtbot, capfd):
     test_gui.close()
     thread_audio.stop(0.1)
     QTest.qWait(1000)
-    os.remove("./test/results/results_pl.csv")
+    os.remove("./tests/results/results_pl.csv")
 
     # reset file
     gui_load.structure.pop("pupil_ip")

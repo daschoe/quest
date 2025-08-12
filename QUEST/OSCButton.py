@@ -9,7 +9,7 @@ from PySide6.QtCore import QTimer
 from PySide6.QtGui import QDoubleValidator
 from PySide6.QtWidgets import QPushButton, QWidget, QHBoxLayout, QMessageBox, QSizePolicy, QLineEdit, QPlainTextEdit
 
-from QUEST.PasswordEntry import PasswordEntry
+from PasswordEntry import PasswordEntry
 TIMEOUT = 1
 
 
@@ -38,6 +38,7 @@ class OSCButton(QWidget):
                 name of the object, if it is supposed to be styled individually
         """
         QWidget.__init__(self, parent=parent)
+        self.page = parent
         self.id = qid
         self.used = False
         self.address = address
@@ -45,17 +46,17 @@ class OSCButton(QWidget):
         if self.value.startswith("id:"):
             var = self.value[2:].strip(' :')
             skip = False
-            for s in range(0, self.parent().parent().count()):
-                if not skip and self.parent().parent().widget(s).evaluationvars is not None and \
-                        var in self.parent().parent().widget(s).evaluationvars:
-                    self.value = self.parent().parent().widget(s).evaluationvars[var]
+            for s in range(0, self.page.gui.count()):
+                if not skip and self.page.gui.widget(s).evaluationvars is not None and \
+                        var in self.page.gui.widget(s).evaluationvars:
+                    self.value = self.page.gui.widget(s).evaluationvars[var]
                     if isinstance(self.value, (QLineEdit, PasswordEntry)):
                         if isinstance(self.value.validator(), QDoubleValidator):
                             self.value.setText(self.value.text().replace(",", "."))
                         self.value = self.value.text()
                     elif isinstance(self.value, QPlainTextEdit):
                         self.value = self.value.toPlainText().replace("\n", " ")
-                if not skip and self.parent().parent().widget(s) == self.parent():
+                if not skip and self.page.gui.widget(s) == self.page:
                     skip = True
 
         try:  # try to send float if possible
@@ -67,20 +68,20 @@ class OSCButton(QWidget):
             self.name = objectname
         else:
             self.name = None
-        if (receiver[0] == self.parent().parent().audio_ip) and (receiver[1] == self.parent().parent().audio_port):
-            self.osc_client = self.parent().parent().audio_client
-        elif (receiver[0] == self.parent().parent().video_ip) and (receiver[1] == self.parent().parent().video_port):
-            self.osc_client = self.parent().parent().video_client
-        elif (receiver[0] == self.parent().parent().help_ip) and (receiver[1] == self.parent().parent().help_port):
-            self.osc_client = self.parent().parent().help_client
-        elif (receiver[0] == self.parent().parent().global_osc_ip) and (receiver[1] == self.parent().parent().global_osc_send_port):
-            self.osc_client = self.parent().parent().global_osc_client
+        if (receiver[0] == self.page.gui.audio_ip) and (receiver[1] == self.page.gui.audio_port):
+            self.osc_client = self.page.gui.audio_client
+        elif (receiver[0] == self.page.gui.video_ip) and (receiver[1] == self.page.gui.video_port):
+            self.osc_client = self.page.gui.video_client
+        elif (receiver[0] == self.page.gui.help_ip) and (receiver[1] == self.page.gui.help_port):
+            self.osc_client = self.page.gui.help_client
+        elif (receiver[0] == self.page.gui.global_osc_ip) and (receiver[1] == self.page.gui.global_osc_send_port):
+            self.osc_client = self.page.gui.global_osc_client
         else:
             self.osc_client = udp_client.SimpleUDPClient(receiver[0], int(receiver[1]))
         response = ping(receiver[0], timeout=TIMEOUT)
         if response is None:
             msg = QMessageBox()
-            msg.setWindowTitle(self.parent().parent().connection_lost_title)
+            msg.setWindowTitle(self.page.gui.connection_lost_title)
             msg.setSizeGripEnabled(True)
             msg.setSizePolicy(QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Expanding)
             msg.setIcon(QMessageBox.Icon.Information)
@@ -91,7 +92,7 @@ class OSCButton(QWidget):
             layout = QHBoxLayout()
             self.button = QPushButton(inscription)
             self.button.setObjectName(self.objectName())
-            self.button_fade = self.parent().parent().button_fade
+            self.button_fade = self.page.gui.button_fade
             layout.addWidget(self.button)
             self.button.clicked.connect(lambda: self.osc_client.send_message(address, self.value))
             self.button.clicked.connect(self.set_used)
@@ -119,4 +120,4 @@ class OSCButton(QWidget):
 
     def log(self):
         """Log Action"""
-        self.parent().page_log += f'\n\t{str(datetime.datetime.now().replace(microsecond=0))} - Pressed OSC-Button {self.id}'
+        self.page.page_log += f'\n\t{str(datetime.datetime.now().replace(microsecond=0))} - Pressed OSC-Button {self.id}'

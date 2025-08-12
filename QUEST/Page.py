@@ -7,19 +7,19 @@ from PySide6.QtCore import QSignalMapper, Qt
 from PySide6.QtWidgets import QWidget, QLabel, QFormLayout, QButtonGroup, QCheckBox, QLineEdit, QPlainTextEdit, \
     QHBoxLayout
 
-from QUEST.ABX import ABX
-from QUEST.AnswerCheckBox import make_answers as mac
-from QUEST.AnswerRadioButton import make_answers as mar
-from QUEST.AnswerSlider import make_answers as mas
-from QUEST.AnswerTextField import make_answers as matf
-from QUEST.Image import Image
-from QUEST.Lines import QHLine
-from QUEST.MUSHRA import MUSHRA
-from QUEST.OSCButton import OSCButton
-from QUEST.PasswordEntry import PasswordEntry
-from QUEST.Player import Player
-from QUEST.PupilCoreButton import Button
-from QUEST.RadioMatrix import RadioMatrix
+from ABX import ABX
+from AnswerCheckBox import make_answers as mac
+from AnswerRadioButton import make_answers as mar
+from AnswerSlider import make_answers as mas
+from AnswerTextField import make_answers as matf
+from Image import Image
+from Lines import QHLine
+from MUSHRA import MUSHRA
+from OSCButton import OSCButton
+from PasswordEntry import PasswordEntry
+from Player import Player
+from PupilCoreButton import Button
+from RadioMatrix import RadioMatrix
 
 
 class Page(QWidget):
@@ -39,6 +39,7 @@ class Page(QWidget):
         """
         QWidget.__init__(self, parent=parent)
 
+        self.gui = parent
         self.questions = structure.sections
         if "description" in structure.keys():
             self.description = structure["description"]
@@ -54,8 +55,8 @@ class Page(QWidget):
         self.id = pid
 
         if "pupil_on_next" in structure.keys() and structure["pupil_on_next"] is not None and \
-                structure["pupil_on_next"] != "" and not self.parent().preview:
-            self.pupil_func = Button(None, "Annotate", parent, None)
+                structure["pupil_on_next"] != "" and not self.gui.preview:
+            self.pupil_func = Button(None, "Annotate", self.gui, None)
             self.pupil_on_next = structure["pupil_on_next"]
         else:
             self.pupil_on_next = None
@@ -258,7 +259,7 @@ class Page(QWidget):
         else:
             self.setLayout(layout)
 
-        if len(self.players) > 0 and self.parent().popup and not self.parent().preview:
+        if len(self.players) > 0 and self.gui.popup and not self.gui.preview:
             for p in self.players:
                 if isinstance(p, Player) and p.timer is not None:
                     player_found = False

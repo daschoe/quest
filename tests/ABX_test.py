@@ -1,6 +1,6 @@
 """Testing the behaviour of ABX.py + QEditGui.py"""
 
-from context import pytest, QEditGuiMain, QTimer, open_config_file, StackedWindowGui, QTest, handle_dialog_p, handle_dialog_q, Qt, types, QFormLayout, QWidgetItem, fields_per_type, default_values, QCheckBox, QLineEdit, page_fields, listify, ConfigObj, general_fields, handle_dialog_error, validate_questionnaire, handle_dialog_no_save, find_row_by_label, handle_dialog, csv, re, os, mock_file, ABX, ast
+from tests.context import pytest, QEditGuiMain, QTimer, open_config_file, StackedWindowGui, QTest, handle_dialog_p, handle_dialog_q, Qt, types, QFormLayout, QWidgetItem, fields_per_type, default_values, QCheckBox, QLineEdit, page_fields, listify, ConfigObj, general_fields, handle_dialog_error, validate_questionnaire, handle_dialog_no_save, find_row_by_label, handle_dialog, csv, re, os, mock_file, ABX, ast
 
 
 @pytest.fixture
@@ -13,7 +13,7 @@ def gui_init():
 @pytest.fixture
 def gui_load(gui_init):
     """Start GUI"""
-    QTimer.singleShot(150, lambda: open_config_file("./test/abxtest.txt"))
+    QTimer.singleShot(150, lambda: open_config_file(os.path.join(os.getcwd(), "tests/abxtest.txt")))
     gui_init.load_file()
     return gui_init
 
@@ -21,13 +21,13 @@ def gui_load(gui_init):
 @pytest.fixture
 def run():
     """Execute the questionnaire."""
-    return StackedWindowGui("./test/abxtest.txt")
+    return StackedWindowGui(os.path.join(os.getcwd(), "tests/abxtest.txt"))
 
 
 @pytest.fixture
 def run2():
     """Execute the questionnaire."""
-    return StackedWindowGui("./test/abxtest2.txt")
+    return StackedWindowGui(os.path.join(os.getcwd(), "tests/abxtest2.txt"))
 
 
 # noinspection PyArgumentList
@@ -668,7 +668,7 @@ def test_execute_questionnaire_no_interaction(run, qtbot):
     QTest.mouseClick(run.forwardbutton, Qt.MouseButton.LeftButton)
 
     results = []
-    with open('./test/results/results_abx.csv', mode='r') as file:
+    with open('./tests/results/results_abx.csv', mode='r') as file:
         csv_file = csv.reader(file, delimiter=';')
 
         for lines in csv_file:
@@ -680,19 +680,19 @@ def test_execute_questionnaire_no_interaction(run, qtbot):
     assert results[4] == '[]'  # second element not played
     assert re.match(r'\d+-\d+-\d+ \d+:\d+:\d+.\d+', results[5])  # timestamp
     assert re.match(r'\d+-\d+-\d+ \d+:\d+:\d+.\d+', results[6])  # timestamp
-    os.remove("./test/results/results_abx.csv")
+    os.remove("./tests/results/results_abx.csv")
 
 
 # noinspection PyArgumentList
 def test_execute_questionnaire_no_interaction_blocked(run, qtbot):
-    with mock_file(r'./test/results/results_abx.csv'):
+    with mock_file(r'./tests/results/results_abx.csv'):
         assert run.Stack.count() == 1
         QTimer.singleShot(100, handle_dialog)
         QTest.mouseClick(run.forwardbutton, Qt.MouseButton.LeftButton)
         res_file = None
-        for file in os.listdir("./test/results/"):
+        for file in os.listdir("./tests/results/"):
             if file.find("_backup_"):
-                res_file = f'./test/results/{file}'
+                res_file = f'./tests/results/{file}'
         results = []
         with open(res_file, mode='r') as file:
             csv_file = csv.reader(file, delimiter=';')
@@ -733,7 +733,7 @@ def test_execute_questionnaire_ab(run, qtbot):
     QTest.mouseClick(run.forwardbutton, Qt.MouseButton.LeftButton, delay=1000)
 
     results = []
-    with open('./test/results/results_abx.csv', mode='r') as file:
+    with open('./tests/results/results_abx.csv', mode='r') as file:
         csv_file = csv.reader(file, delimiter=';')
 
         for lines in csv_file:
@@ -755,12 +755,12 @@ def test_execute_questionnaire_ab(run, qtbot):
     assert float(ast.literal_eval(results[4])[0]) > 0.5
     assert re.match(r'\d+-\d+-\d+ \d+:\d+:\d+.\d+', results[5])  # timestamp
     assert re.match(r'\d+-\d+-\d+ \d+:\d+:\d+.\d+', results[6])  # timestamp
-    os.remove("./test/results/results_abx.csv")
+    os.remove("./tests/results/results_abx.csv")
 
 
 # noinspection PyArgumentList
 def test_execute_questionnaire_blocked(run, qtbot):
-    with mock_file(r'./test/results/results_abx.csv'):
+    with mock_file(r'./tests/results/results_abx.csv'):
         assert run.Stack.count() == 1
         for child in run.Stack.currentWidget().children():
             if isinstance(child, ABX):
@@ -773,9 +773,9 @@ def test_execute_questionnaire_blocked(run, qtbot):
         QTimer.singleShot(100, handle_dialog)
         QTest.mouseClick(run.forwardbutton, Qt.MouseButton.LeftButton)
         res_file = None
-        for file in os.listdir("./test/results/"):
+        for file in os.listdir("./tests/results/"):
             if file.find("_backup_"):
-                res_file = f'./test/results/{file}'
+                res_file = f'./tests/results/{file}'
         results = []
         with open(res_file, mode='r') as file:
             csv_file = csv.reader(file, delimiter=';')
@@ -810,7 +810,7 @@ def test_execute_questionnaire_no_interaction_x(run2, qtbot):
     QTest.mouseClick(run2.forwardbutton, Qt.MouseButton.LeftButton)
 
     results = []
-    with open('./test/results/results_abx.csv', mode='r') as file:
+    with open('./tests/results/results_abx.csv', mode='r') as file:
         csv_file = csv.reader(file, delimiter=';')
 
         for lines in csv_file:
@@ -823,19 +823,19 @@ def test_execute_questionnaire_no_interaction_x(run2, qtbot):
     assert results[5] == '[]'  # x not played
     assert re.match(r'\d+-\d+-\d+ \d+:\d+:\d+.\d+', results[6])  # timestamp
     assert re.match(r'\d+-\d+-\d+ \d+:\d+:\d+.\d+', results[7])  # timestamp
-    os.remove("./test/results/results_abx.csv")
+    os.remove("./tests/results/results_abx.csv")
 
 
 # noinspection PyArgumentList
 def test_execute_questionnaire_no_interaction_x_blocked(run2, qtbot):
-    with mock_file(r'./test/results/results_abx.csv'):
+    with mock_file(r'./tests/results/results_abx.csv'):
         assert run2.Stack.count() == 1
         QTimer.singleShot(100, handle_dialog)
         QTest.mouseClick(run2.forwardbutton, Qt.MouseButton.LeftButton)
         res_file = None
-        for file in os.listdir("./test/results/"):
+        for file in os.listdir("./tests/results/"):
             if file.find("_backup_"):
-                res_file = f'./test/results/{file}'
+                res_file = f'./tests/results/{file}'
         results = []
         with open(res_file, mode='r') as file:
             csv_file = csv.reader(file, delimiter=';')
@@ -885,7 +885,7 @@ def test_execute_questionnaire_abx(run2, qtbot):
     QTest.mouseClick(run2.forwardbutton, Qt.MouseButton.LeftButton, delay=1000)
 
     results = []
-    with open('./test/results/results_abx.csv', mode='r') as file:
+    with open('./tests/results/results_abx.csv', mode='r') as file:
         csv_file = csv.reader(file, delimiter=';')
 
         for lines in csv_file:
@@ -907,12 +907,12 @@ def test_execute_questionnaire_abx(run2, qtbot):
     assert len(ast.literal_eval(results[5])) == 3  # third (x) element played three times
     assert re.match(r'\d+-\d+-\d+ \d+:\d+:\d+.\d+', results[6])  # timestamp
     assert re.match(r'\d+-\d+-\d+ \d+:\d+:\d+.\d+', results[7])  # timestamp
-    os.remove("./test/results/results_abx.csv")
+    os.remove("./tests/results/results_abx.csv")
 
 
 # noinspection PyArgumentList
 def test_execute_questionnaire_abx_blocked(run2, qtbot):
-    with mock_file(r'./test/results/results_abx.csv'):
+    with mock_file(r'./tests/results/results_abx.csv'):
         assert run2.Stack.count() == 1
         for child in run2.Stack.currentWidget().children():
             if isinstance(child, ABX):
@@ -932,9 +932,9 @@ def test_execute_questionnaire_abx_blocked(run2, qtbot):
         QTimer.singleShot(100, handle_dialog)
         QTest.mouseClick(run2.forwardbutton, Qt.MouseButton.LeftButton)
         res_file = None
-        for file in os.listdir("./test/results/"):
+        for file in os.listdir("./tests/results/"):
             if file.find("_backup_"):
-                res_file = f'./test/results/{file}'
+                res_file = f'./tests/results/{file}'
         results = []
         with open(res_file, mode='r') as file:
             csv_file = csv.reader(file, delimiter=';')
