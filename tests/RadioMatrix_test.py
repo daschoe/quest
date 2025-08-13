@@ -174,7 +174,7 @@ def test_answers(gui_load, qtbot):
     test_gui = StackedWindowGui(os.path.join(os.getcwd(), "tests/rmtest.txt"))
     assert test_gui.Stack.count() == 1
     for child in test_gui.Stack.currentWidget().children():
-        if isinstance(child, RadioMatrix.RadioMatrix):
+        if isinstance(child, RadioMatrix) or str(child.__class__)=="<class 'RadioMatrix.RadioMatrix'>":
             for bg in child.buttongroups:
                 assert len(bg.buttons()) == 1
 
@@ -203,7 +203,7 @@ def test_answers(gui_load, qtbot):
     test_gui = StackedWindowGui(os.path.join(os.getcwd(), "tests/rmtest.txt"))
     assert test_gui.Stack.count() == 1
     for child in test_gui.Stack.currentWidget().children():
-        if isinstance(child, RadioMatrix.RadioMatrix):
+        if isinstance(child, RadioMatrix) or str(child.__class__)=="<class 'RadioMatrix.RadioMatrix'>":
             for bg in child.buttongroups:
                 assert len(bg.buttons()) == 1
 
@@ -233,7 +233,7 @@ def test_answers(gui_load, qtbot):
     test_gui = StackedWindowGui(os.path.join(os.getcwd(), "tests/rmtest.txt"))
     assert test_gui.Stack.count() == 1
     for child in test_gui.Stack.currentWidget().children():
-        if isinstance(child, RadioMatrix.RadioMatrix):
+        if isinstance(child, RadioMatrix) or str(child.__class__)=="<class 'RadioMatrix.RadioMatrix'>":
             for bg in child.buttongroups:
                 assert len(bg.buttons()) == 3
 
@@ -263,7 +263,7 @@ def test_answers(gui_load, qtbot):
     test_gui = StackedWindowGui(os.path.join(os.getcwd(), "tests/rmtest.txt"))
     assert test_gui.Stack.count() == 1
     for child in test_gui.Stack.currentWidget().children():
-        if isinstance(child, RadioMatrix.RadioMatrix):
+        if isinstance(child, RadioMatrix) or str(child.__class__)=="<class 'RadioMatrix.RadioMatrix'>":
             for bg in child.buttongroups:
                 assert len(bg.buttons()) == 1
 
@@ -293,7 +293,7 @@ def test_answers(gui_load, qtbot):
     test_gui = StackedWindowGui(os.path.join(os.getcwd(), "tests/rmtest.txt"))
     assert test_gui.Stack.count() == 1
     for child in test_gui.Stack.currentWidget().children():
-        if isinstance(child, RadioMatrix.RadioMatrix):
+        if isinstance(child, RadioMatrix) or str(child.__class__)=="<class 'RadioMatrix.RadioMatrix'>":
             for bg in child.buttongroups:
                 assert len(bg.buttons()) == 5
 
@@ -341,7 +341,7 @@ def test_start_id(gui_load, qtbot):
     test_gui = StackedWindowGui(os.path.join(os.getcwd(), "tests/rmtest.txt"))
     assert test_gui.Stack.count() == 1
     for child in test_gui.Stack.currentWidget().children():
-        if isinstance(child, RadioMatrix.RadioMatrix):
+        if isinstance(child, RadioMatrix) or str(child.__class__)=="<class 'RadioMatrix.RadioMatrix'>":
             for bg, grp in enumerate(child.buttongroups):
                 grp.buttons()[bg].click()
 
@@ -428,7 +428,7 @@ def test_start_id(gui_load, qtbot):
     test_gui = StackedWindowGui(os.path.join(os.getcwd(), "tests/rmtest.txt"))
     assert test_gui.Stack.count() == 1
     for child in test_gui.Stack.currentWidget().children():
-        if isinstance(child, RadioMatrix.RadioMatrix):
+        if isinstance(child, RadioMatrix) or str(child.__class__)=="<class 'RadioMatrix.RadioMatrix'>":
             for bg, grp in enumerate(child.buttongroups):
                 grp.buttons()[bg].click()
 
@@ -487,7 +487,7 @@ def test_questions(gui_load, qtbot):
     test_gui = StackedWindowGui(os.path.join(os.getcwd(), "tests/rmtest.txt"))
     assert test_gui.Stack.count() == 1
     for child in test_gui.Stack.currentWidget().children():
-        if isinstance(child, RadioMatrix.RadioMatrix):
+        if isinstance(child, RadioMatrix) or str(child.__class__)=="<class 'RadioMatrix.RadioMatrix'>":
             assert len(child.buttongroups) == 1
 
     QTimer.singleShot(100, handle_dialog)
@@ -508,7 +508,7 @@ def test_questions(gui_load, qtbot):
     test_gui = StackedWindowGui(os.path.join(os.getcwd(), "tests/rmtest.txt"))
     assert test_gui.Stack.count() == 1
     for child in test_gui.Stack.currentWidget().children():
-        if isinstance(child, RadioMatrix.RadioMatrix):
+        if isinstance(child, RadioMatrix) or str(child.__class__)=="<class 'RadioMatrix.RadioMatrix'>":
             assert len(child.buttongroups) == 1
 
     QTimer.singleShot(100, handle_dialog)
@@ -531,7 +531,7 @@ def test_questions(gui_load, qtbot):
     test_gui = StackedWindowGui(os.path.join(os.getcwd(), "tests/rmtest.txt"))
     assert test_gui.Stack.count() == 1
     for child in test_gui.Stack.currentWidget().children():
-        if isinstance(child, RadioMatrix.RadioMatrix):
+        if isinstance(child, RadioMatrix) or str(child.__class__)=="<class 'RadioMatrix.RadioMatrix'>":
             assert len(child.buttongroups) == 3
 
     QTimer.singleShot(100, handle_dialog)
@@ -554,7 +554,7 @@ def test_questions(gui_load, qtbot):
     test_gui = StackedWindowGui(os.path.join(os.getcwd(), "tests/rmtest.txt"))
     assert test_gui.Stack.count() == 1
     for child in test_gui.Stack.currentWidget().children():
-        if isinstance(child, RadioMatrix.RadioMatrix):
+        if isinstance(child, RadioMatrix) or str(child.__class__)=="<class 'RadioMatrix.RadioMatrix'>":
             assert len(child.buttongroups) == 1
 
     QTimer.singleShot(100, handle_dialog)
@@ -577,7 +577,7 @@ def test_questions(gui_load, qtbot):
     test_gui = StackedWindowGui(os.path.join(os.getcwd(), "tests/rmtest.txt"))
     assert test_gui.Stack.count() == 1
     for child in test_gui.Stack.currentWidget().children():
-        if isinstance(child, RadioMatrix.RadioMatrix):
+        if isinstance(child, RadioMatrix) or str(child.__class__)=="<class 'RadioMatrix.RadioMatrix'>":
             assert len(child.buttongroups) == 2
 
     QTimer.singleShot(100, handle_dialog)
@@ -657,7 +657,7 @@ def test_execute_questionnaire(run, qtbot):
         os.remove("./tests/results/results_rm.csv")
     assert run.Stack.count() == 1
     for child in run.Stack.currentWidget().children():
-        if isinstance(child, RadioMatrix.RadioMatrix):
+        if isinstance(child, RadioMatrix) or str(child.__class__)=="<class 'RadioMatrix.RadioMatrix'>":
             for bg, grp in enumerate(child.buttongroups):
                 grp.button(bg).click()
 
@@ -685,7 +685,7 @@ def test_execute_questionnaire_blocked(run, qtbot):
     with mock_file(r'./tests/results/results_rm.csv'):
         assert run.Stack.count() == 1
         for child in run.Stack.currentWidget().children():
-            if isinstance(child, RadioMatrix.RadioMatrix):
+            if isinstance(child, RadioMatrix) or str(child.__class__)=="<class 'RadioMatrix.RadioMatrix'>":
                 for bg, grp in enumerate(child.buttongroups):
                     grp.button(bg).click()
         QTimer.singleShot(100, handle_dialog)
@@ -803,13 +803,13 @@ def test_randomize(gui_load_2, qtbot):
     test_gui = StackedWindowGui(os.path.join(os.getcwd(), "tests/rm_two_pages.txt"))
     assert test_gui.Stack.count() == 2
     for child in test_gui.Stack.currentWidget().children():
-        if isinstance(child, RadioMatrix.RadioMatrix):
+        if isinstance(child, RadioMatrix) or str(child.__class__)=="<class 'RadioMatrix.RadioMatrix'>":
             for bg, grp in enumerate(child.buttongroups):
                 grp.buttons()[bg].click()
             questions1 = child.questions
     QTest.mouseClick(test_gui.forwardbutton, Qt.MouseButton.LeftButton, delay=1000)
     for child in test_gui.Stack.currentWidget().children():
-        if isinstance(child, RadioMatrix.RadioMatrix):
+        if isinstance(child, RadioMatrix) or str(child.__class__)=="<class 'RadioMatrix.RadioMatrix'>":
             for bg, grp in enumerate(child.buttongroups):
                 grp.buttons()[bg].click()
             questions2 = child.questions
@@ -879,13 +879,13 @@ def test_randomize(gui_load_2, qtbot):
     test_gui = StackedWindowGui(os.path.join(os.getcwd(), "tests/rm_two_pages.txt"))
     assert test_gui.Stack.count() == 2
     for child in test_gui.Stack.currentWidget().children():
-        if isinstance(child, RadioMatrix.RadioMatrix):
+        if isinstance(child, RadioMatrix) or str(child.__class__)=="<class 'RadioMatrix.RadioMatrix'>":
             for bg, grp in enumerate(child.buttongroups):
                 grp.buttons()[bg].click()
             questions1 = child.questions
     QTest.mouseClick(test_gui.forwardbutton, Qt.MouseButton.LeftButton, delay=1000)
     for child in test_gui.Stack.currentWidget().children():
-        if isinstance(child, RadioMatrix.RadioMatrix):
+        if isinstance(child, RadioMatrix) or str(child.__class__)=="<class 'RadioMatrix.RadioMatrix'>":
             for bg, grp in enumerate(child.buttongroups):
                 grp.buttons()[bg].click()
             questions2 = child.questions

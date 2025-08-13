@@ -1,4 +1,4 @@
-# Created with QUEST version 1.1.0.
+# Created with QUEST version 1.1.1.
 go_back = True
 back_text = Zurück
 forward_text = Weiter

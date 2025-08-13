@@ -57,6 +57,6 @@ from OSCButton import OSCButton
 from Player import Player
 import QUEST.LabeledSlider as LabeledSlider
 import QUEST.Slider as Slider
-import QUEST.RadioMatrix as RadioMatrix
+from QUEST.RadioMatrix import RadioMatrix
 from Image import Image
 from tests.test_helpers import *

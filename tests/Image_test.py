@@ -90,7 +90,7 @@ def test_create(gui_init, qtbot):
                 layout.itemAt(row, QFormLayout.ItemRole.LabelRole).widget().text()]
     assert not_none_rows == len(fields_per_type["Image"][0].keys())
     assert len(gui_init.undo_stack) == 14  # 2 for creating page & question, 12 for choosing Image
-
+    
     # Check structure
     structure = ConfigObj()  # {}
     for key, value in default_values.items():
@@ -106,13 +106,13 @@ def test_create(gui_init, qtbot):
             structure["Page 1"]["Question 1"][key] = value
     listify(gui_init.structure)
     listify(structure)
-
-    QTimer.singleShot(100, handle_dialog_error)
+    
+    #QTimer.singleShot(100, handle_dialog_error)
     validate_questionnaire(gui_init.structure, suppress=True)
-    QTimer.singleShot(100, handle_dialog_error)
+    #QTimer.singleShot(100, handle_dialog_error)
     validate_questionnaire(structure, suppress=True)
     assert gui_init.structure == structure
-
+    
     # save file comparison
     structure.encoding = "utf-8"
     structure.filename = "./tmp_e.txt"
@@ -125,6 +125,7 @@ def test_create(gui_init, qtbot):
     with open("./tmp_a.txt") as fa:
         temp_a = fa.readlines()
     assert temp_a == temp_e
+    
     QTimer.singleShot(150, handle_dialog_no_save)
     gui_init.close()
 

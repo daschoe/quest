@@ -1,6 +1,6 @@
 """Test if the validate function in Validator.py is working correctly."""
 
-from tests.context import pytest, QTimer, QTest, Qt, ConfigObj, validate_questionnaire, QApplication, QMessageBox, ConfigObjError
+from tests.context import pytest, QTimer, QTest, Qt, ConfigObj, validate_questionnaire, QApplication, QMessageBox, ConfigObjError, os
 
 
 @pytest.fixture
@@ -1750,7 +1750,7 @@ def test_question_settings(gui_init):
     assert not warn
     structure["Page"]["Question"].pop("x_pos")
     structure["Page"]["Question"]["type"] = "Image"
-    structure["Page"]["Question"]["image_file"] = "/tests/Logo.png"
+    structure["Page"]["Question"]["image_file"] = "./tests/Logo.png"
     structure["Page"]["Question"]["image_position"] = "free"
     structure["Page"]["Question"]["y_pos"] = 300
     err, warn, det = validate_questionnaire(structure, True)
@@ -1778,7 +1778,7 @@ def test_question_settings(gui_init):
     assert not warn
     structure["Page"]["Question"].pop("y_pos")
     structure["Page"]["Question"]["type"] = "Image"
-    structure["Page"]["Question"]["image_file"] = "/tests/Logo.png"
+    structure["Page"]["Question"]["image_file"] = "./tests/Logo.png"
     structure["Page"]["Question"]["image_position"] = "free"
     structure["Page"]["Question"]["x_pos"] = 300
     err, warn, det = validate_questionnaire(structure, True)
@@ -1821,7 +1821,7 @@ def test_question_settings(gui_init):
     assert warn
     assert det[0] == 'Image "Question" on page "Page" is chosen to be positioned freely, but no coordinates were given.\n'
     structure["Page"]["Question"]["type"] = "Image"
-    structure["Page"]["Question"]["image_file"] = "/tests/Logo.png"
+    structure["Page"]["Question"]["image_file"] = "./tests/Logo.png"
     structure["Page"]["Question"].pop("image_position")
     QTimer.singleShot(150, handle_dialog_error)
     err, warn, det = validate_questionnaire(structure, True)

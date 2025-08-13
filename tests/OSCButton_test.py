@@ -460,7 +460,7 @@ def test_receiver(gui_load, qtbot):
     assert not warning_found
     gui_load.gui.refresh_button.click()
     assert gui_load.structure["Page 1"]["Question 1"]["receiver"] == ["127.0.0.1", "8000"]
-    '''
+    
     QTest.mouseClick(rec_cb, Qt.MouseButton.LeftButton)
     QTest.keyClick(rec_cb, Qt.Key.Key_Down)
     QTest.keyClick(rec_cb, Qt.Key.Key_Enter)
@@ -475,7 +475,7 @@ def test_receiver(gui_load, qtbot):
     assert not warning_found
     gui_load.gui.refresh_button.click()
     assert gui_load.structure["Page 1"]["Question 1"]["receiver"] == ["", ""]
-    '''
+    
     QTest.mouseClick(rec_cb, Qt.MouseButton.LeftButton)
     QTest.keyClick(rec_cb, Qt.Key.Key_Down)
     QTest.keyClick(rec_cb, Qt.Key.Key_Enter)

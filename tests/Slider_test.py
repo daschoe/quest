@@ -1260,7 +1260,7 @@ def test_execute_questionnaire(run, qtbot):
         os.remove("./tests/results/results_sl.csv")
     assert run.Stack.count() == 1
     for child in run.Stack.currentWidget().children():
-        if isinstance(child, Slider.Slider):
+        if isinstance(child, Slider.Slider) or str(child.__class__)=="<class 'Slider.Slider'>":
             bb = child.rect()
             QTest.mouseClick(child, Qt.MouseButton.LeftButton, pos=bb.center())
             assert child.value() == int((child._max + child._min) / 2)
@@ -1287,7 +1287,7 @@ def test_execute_questionnaire_blocked(run, qtbot):
     with mock_file(r'./tests/results/results_sl.csv'):
         assert run.Stack.count() == 1
         for child in run.Stack.currentWidget().children():
-            if isinstance(child, Slider.Slider):
+            if isinstance(child, Slider.Slider) or str(child.__class__)=="<class 'Slider.Slider'>":
                 bb = child.rect()
                 QTest.mouseClick(child, Qt.MouseButton.LeftButton, pos=bb.center())
                 assert child.value() == int((child._max + child._min) / 2)

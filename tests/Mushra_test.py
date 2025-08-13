@@ -1,6 +1,6 @@
 """Testing the behaviour of MUSHRA.py + QEditGui.py"""
 import time
-from tests.context import pytest, MUSHRA, QPoint, QEditGuiMain, QTimer, open_config_file, StackedWindowGui, QTest, handle_dialog_p, handle_dialog_q, Qt, QFormLayout, QWidgetItem, fields_per_type, default_values, QCheckBox, QLineEdit, page_fields, listify, ConfigObj, general_fields, handle_dialog_error, validate_questionnaire, handle_dialog_no_save, handle_dialog, csv, re, os, mock_file, MockReceiver, QHBoxLayout
+from tests.context import pytest, sys, MUSHRA, QPoint, QEditGuiMain, QTimer, open_config_file, StackedWindowGui, QTest, handle_dialog_p, handle_dialog_q, Qt, QFormLayout, QWidgetItem, fields_per_type, default_values, QCheckBox, QLineEdit, page_fields, listify, ConfigObj, general_fields, handle_dialog_error, validate_questionnaire, handle_dialog_no_save, handle_dialog, csv, re, os, mock_file, MockReceiver, QHBoxLayout
 THREAD = None
 
 
@@ -33,7 +33,8 @@ def prepare_listeners(structure):
 def run():
     """Execute the questionnaire."""
     global THREAD
-    structure = ConfigObj("/tests/mrtest.txt")
+    structure = ConfigObj(os.path.join(sys.path[0].split("QUEST")[0], "tests/osctest.txt"))
+    print(structure)
     port = int(structure["Page 1"]["Question 1"]["receiver"][1])
     print("setting up thread....")
     # if thread is None or (thread is not None and thread.port != port):

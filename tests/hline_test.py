@@ -88,9 +88,9 @@ def test_create(gui_init, qtbot):
     listify(gui_init.structure)
     listify(structure)
 
-    QTimer.singleShot(150, handle_dialog_error)
+    #QTimer.singleShot(150, handle_dialog_error)
     validate_questionnaire(gui_init.structure, suppress=True)
-    QTimer.singleShot(150, handle_dialog_error)
+    #QTimer.singleShot(150, handle_dialog_error)
     validate_questionnaire(structure, suppress=True)
     assert gui_init.structure == structure
 

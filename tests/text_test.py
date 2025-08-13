@@ -13,7 +13,7 @@ def gui_init():
 @pytest.fixture
 def gui_load(gui_init):
     """Start GUI"""
-    QTimer.singleShot(150, lambda: open_config_file(os.path.join(os.getcwd(), "tests/tftext.txt")))
+    QTimer.singleShot(150, lambda: open_config_file(os.path.join(os.getcwd(), "tests/tftest.txt")))
     gui_init.load_file()
     return gui_init
 
@@ -21,7 +21,7 @@ def gui_load(gui_init):
 @pytest.fixture
 def run():
     """Execute the questionnaire."""
-    return StackedWindowGui(os.path.join(os.getcwd(), "tests/tftext.txt"))
+    return StackedWindowGui(os.path.join(os.getcwd(), "tests/tftest.txt"))
 
 
 # noinspection PyArgumentList
@@ -144,7 +144,7 @@ def test_policy(gui_load, qtbot):
     assert find_row_by_label(gui_load.gui.edit_layout, "dec") is None
     assert find_row_by_label(gui_load.gui.edit_layout, "exp") is None
     QTest.keyClicks(gui_load, 's', modifier=Qt.KeyboardModifier.ControlModifier, delay=1000)
-    test_gui = StackedWindowGui(os.path.join(os.getcwd(), "tests/tftext.txt"))
+    test_gui = StackedWindowGui(os.path.join(os.getcwd(), "tests/tftest.txt"))
     for child in test_gui.Stack.currentWidget().children():
         if isinstance(child, QLineEdit):
             assert child.validator() is None
@@ -174,7 +174,7 @@ def test_policy(gui_load, qtbot):
     QTest.keyClicks(gui_load, 's', modifier=Qt.KeyboardModifier.ControlModifier, delay=1000)
     gui_load.save() # have to enforce save since focus is lost somwhow....
     QTest.qWait(1000)
-    test_gui = StackedWindowGui(os.path.join(os.getcwd(), "tests/tftext.txt"))
+    test_gui = StackedWindowGui(os.path.join(os.getcwd(), "tests/tftest.txt"))
     for child in test_gui.Stack.currentWidget().children():
         if isinstance(child, QLineEdit):
             assert isinstance(child.validator(), QIntValidator)
@@ -206,7 +206,7 @@ def test_policy(gui_load, qtbot):
     QTest.keyClicks(gui_load, 's', modifier=Qt.KeyboardModifier.ControlModifier, delay=1000)
     gui_load.save() # have to enforce save since focus is lost somwhow....
     QTest.qWait(1000)
-    test_gui = StackedWindowGui(os.path.join(os.getcwd(), "tests/tftext.txt"))
+    test_gui = StackedWindowGui(os.path.join(os.getcwd(), "tests/tftest.txt"))
     for child in test_gui.Stack.currentWidget().children():
         if isinstance(child, QLineEdit):
             assert isinstance(child.validator(), QDoubleValidator)
@@ -232,7 +232,7 @@ def test_policy(gui_load, qtbot):
     QTest.keyClicks(gui_load, 's', modifier=Qt.KeyboardModifier.ControlModifier, delay=1000)
     gui_load.save() # have to enforce save since focus is lost somwhow....
     QTest.qWait(1000)
-    test_gui = StackedWindowGui(os.path.join(os.getcwd(), "tests/tftext.txt"))
+    test_gui = StackedWindowGui(os.path.join(os.getcwd(), "tests/tftest.txt"))
     for child in test_gui.Stack.currentWidget().children():
         if isinstance(child, QLineEdit):
             assert isinstance(child.validator(), QRegularExpressionValidator)
@@ -490,7 +490,7 @@ def test_execute_textedit(gui_load, qtbot):
         os.remove("./tests/results/results_tf.csv")
     gui_load.gui.refresh_button.click()
     QTest.keyClicks(gui_load, 's', modifier=Qt.KeyboardModifier.ControlModifier, delay=1000)
-    test_gui = StackedWindowGui(os.path.join(os.getcwd(), "tests/tftext.txt"))
+    test_gui = StackedWindowGui(os.path.join(os.getcwd(), "tests/tftest.txt"))
 
     assert test_gui.Stack.count() == 1
     for child in test_gui.Stack.currentWidget().children():

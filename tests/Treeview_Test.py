@@ -2,7 +2,7 @@
 Ref how to auto-dialog: https://stackoverflow.com/a/59148220
 """
 
-from tests.context import pytest, QEditGuiMain, QTimer, open_config_file, QTest, handle_dialog_p, handle_dialog_q, Qt, default_values, page_fields, listify, ConfigObj, general_fields, handle_dialog_error, validate_questionnaire, handle_dialog_sa
+from tests.context import pytest, QEditGuiMain, QTimer, open_config_file, QTest, os, handle_dialog_p, handle_dialog_q, Qt, default_values, page_fields, listify, ConfigObj, general_fields, handle_dialog_error, validate_questionnaire, handle_dialog_sa
 
 
 @pytest.fixture
@@ -49,9 +49,9 @@ def test_add_page(gui_init, qtbot):
             structure["Page 1"][key] = value
     listify(gui_init.structure)
     listify(structure)
-    QTimer.singleShot(150, handle_dialog_error)
+    #QTimer.singleShot(150, handle_dialog_error)
     validate_questionnaire(gui_init.structure, suppress=True)
-    QTimer.singleShot(100, handle_dialog_error)
+    #QTimer.singleShot(100, handle_dialog_error)
     validate_questionnaire(structure, suppress=True)
     assert gui_init.structure == structure
 
