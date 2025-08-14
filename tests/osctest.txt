@@ -1,0 +1,29 @@
+# Created with QUEST version 1.1.1.
+audio_ip = 127.0.0.1
+audio_port = 8000
+video_ip = 127.0.0.1
+video_port = 5005
+go_back = True
+back_text = Zurück
+forward_text = Weiter
+save_after = Page 1
+send_text = Absenden
+answer_pos = Ja
+answer_neg = Nein
+save_message = Sind Sie bereit den Fragebogen zu beenden und somit Ihre Angaben zu speichern?
+pagecount_text = Seite {} von {}
+filepath_results = ./tests/results/results_osc.csv
+delimiter = ;
+stylesheet = ./stylesheets/minimal.qss
+button_fade = 100
+randomization = None
+video_player = VLC
+[Page 1]
+title = ""
+[[Question 1]]
+type = OSCButton
+id = osc
+receiver = 127.0.0.1, 8000
+inscription = Send message
+address = /message
+value = Hello world!

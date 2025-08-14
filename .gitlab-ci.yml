@@ -1,0 +1,44 @@
+image: python:3.11
+
+stages:
+  - lint
+  - test
+
+# Base template for Python jobs
+before_script:
+  - python --version
+  - pip install -r requirements.txt
+  - pip install pylint
+  - pip install pytest
+
+# Linting jobs
+black:
+  stage: lint
+  script:
+    - black --check ${CI_PROJECT_DIR}
+
+isort:
+  stage: lint
+  script:
+    - isort --check-only ${CI_PROJECT_DIR}
+
+flake8:
+  stage: lint
+  script:
+    - flake8 ${CI_PROJECT_DIR}
+
+pylint:
+  stage: lint
+  script:
+    - pylint ${CI_PROJECT_DIR}
+
+mypy:
+  stage: lint
+  script:
+    - mypy ${CI_PROJECT_DIR}
+
+# Testing jobs
+test:
+  stage: test
+  script:
+    - pytest test\ -sv

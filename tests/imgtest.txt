@@ -1,0 +1,31 @@
+# Created with QUEST version 1.1.1.
+go_back = True
+back_text = Zurück
+forward_text = Weiter
+send_text = Absenden
+answer_pos = Ja
+answer_neg = Nein
+save_message = Sind Sie bereit den Fragebogen zu beenden und somit Ihre Angaben zu speichern?
+pagecount_text = Seite {} von {}
+filepath_results = ./tests/results/results_img.csv
+delimiter = ;
+stylesheet = ./stylesheets/minimal.qss
+button_fade = 100
+save_after = Page 1
+[Page 1]
+    title = ""
+    [[Question 1]]
+        type = Plain Text
+        text = Some text
+    [[Image]]
+        type = Image
+        objectName = image
+        image_file = ./Configs/Logo.png
+        image_position = free
+        x_pos = 1800
+        y_pos = 400
+        width = 250
+        height = 100
+    [[Question 2]]
+        type = Plain Text
+        text = Some more text

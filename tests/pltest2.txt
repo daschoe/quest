@@ -1,0 +1,38 @@
+# Created with QUEST version 1.1.1.
+go_back = True
+back_text = Zurück
+forward_text = Weiter
+send_text = Absenden
+save_after = Page 2
+answer_pos = Ja
+answer_neg = Nein
+save_message = Sind Sie bereit den Fragebogen zu beenden und somit Ihre Angaben zu speichern?
+pagecount_text = Seite {} von {}
+filepath_results = ./tests/results/results_pl.csv
+delimiter = ;
+stylesheet = ./stylesheets/minimal.qss
+button_fade = 10
+audio_ip = 127.0.0.1
+audio_port = 8000
+audio_tracks = 1
+[Page 1]
+title = ""
+[[Question 1]]
+type = Player
+id = pl
+start_cue = 1
+track = 1
+buttons = Play, Pause, Stop
+play_once = False
+[[Question 2]]
+type = Text
+text = Enter some text:
+size = 1
+policy = None,
+id = tf
+[Page 2]
+title = ""
+[[Question 1]]
+type = Plain Text
+text = '''This is a test.
+Does it work?'''
