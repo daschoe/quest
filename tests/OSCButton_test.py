@@ -1,0 +1,655 @@
+"""Testing the behaviour of OSCButton.py + QEditGui.py"""
+from tests.context import pytest, QEditGuiMain, QTimer, open_config_file, StackedWindowGui, QTest, handle_dialog_p, handle_dialog_q, Qt, QFormLayout, QWidgetItem, fields_per_type, default_values, QCheckBox, QLineEdit, page_fields, listify, ConfigObj, general_fields, handle_dialog_error, validate_questionnaire, handle_dialog_no_save, find_row_by_label, handle_dialog, csv, re, os, mock_file, OSCButton, MockReceiver, handle_dialog_warning
+thread = None
+
+
+@pytest.fixture
+def gui_init():
+    """Start GUI"""
+    gui = QEditGuiMain()
+    return gui
+
+
+@pytest.fixture
+def gui_load(gui_init):
+    """Start GUI"""
+    QTimer.singleShot(150, lambda: open_config_file(os.path.join(os.getcwd(), "tests/osctest.txt")))
+    gui_init.load_file()
+    return gui_init
+
+
+def prepare_listeners(structure):
+    """Set up the listeners for audio & video."""
+    global thread
+    print("setting up thread....")
+    structure = ConfigObj(os.path.join(os.getcwd(), "tests/osctest.txt"))
+    port = int(structure["Page 1"]["Question 1"]["receiver"][1])
+    thread = MockReceiver(port)
+    QTest.qWait(1000)
+    thread.start()
+    QTest.qWait(5000)
+
+
+@pytest.fixture
+def run():
+    """Execute the questionnaire."""
+    global thread
+    structure = ConfigObj(os.path.join(os.getcwd(), "tests/osctest.txt"))
+    port = int(structure["Page 1"]["Question 1"]["receiver"][1])
+    print("setting up thread....")
+    thread = MockReceiver(port)
+    QTest.qWait(1000)
+    thread.start()
+    QTest.qWait(3000)
+    return StackedWindowGui(os.path.join(os.getcwd(), "tests/osctest.txt"))
+
+
+# noinspection PyArgumentList
+def test_create(gui_init, qtbot):
+    # create a page
+    assert gui_init.gui.page_add.isEnabled()
+    QTest.qWait(500)
+
+    QTimer.singleShot(100, handle_dialog_p)
+    QTest.mouseClick(gui_init.gui.page_add, Qt.MouseButton.LeftButton, delay=1000)
+    tv = gui_init.gui.treeview
+    # create a question
+    tv.setCurrentItem(tv.topLevelItem(0).child(0))
+    assert gui_init.gui.question_add.isEnabled()
+    QTest.qWait(500)
+
+    QTimer.singleShot(100, handle_dialog_q)
+    QTest.mouseClick(gui_init.gui.question_add, Qt.MouseButton.LeftButton, delay=1000)
+    assert tv.itemAt(0, 0).text(0) == "<new questionnaire>"
+    assert tv.topLevelItemCount() == 1
+    assert tv.topLevelItem(0).childCount() == 1
+    assert tv.topLevelItem(0).child(0).childCount() == 1
+    assert tv.topLevelItem(0).child(0).text(0) == "Page 1"
+    assert tv.topLevelItem(0).child(0).child(0).childCount() == 0
+    assert tv.topLevelItem(0).child(0).child(0).text(0) == "Question 1"
+    assert len(gui_init.undo_stack) == 2
+    # change the question type to 'Button'
+    tv.setCurrentItem(tv.topLevelItem(0).child(0).child(0))  # should be 'Question 1'
+    assert len(tv.selectedItems()) == 1
+    assert tv.selectedItems()[0].text(0) == "Question 1"
+    QTest.mouseClick(gui_init.gui.questiontype, Qt.MouseButton.LeftButton)
+    QTest.keyClick(gui_init.gui.questiontype, Qt.Key.Key_Down)
+    QTest.keyClick(gui_init.gui.questiontype, Qt.Key.Key_Down)
+    QTest.keyClick(gui_init.gui.questiontype, Qt.Key.Key_Down)
+    QTest.keyClick(gui_init.gui.questiontype, Qt.Key.Key_Down)
+    QTest.keyClick(gui_init.gui.questiontype, Qt.Key.Key_Down)
+    QTest.keyClick(gui_init.gui.questiontype, Qt.Key.Key_Down)
+    QTest.keyClick(gui_init.gui.questiontype, Qt.Key.Key_Down)
+    QTest.keyClick(gui_init.gui.questiontype, Qt.Key.Key_Down)
+    QTest.keyClick(gui_init.gui.questiontype, Qt.Key.Key_Down)
+    QTest.keyClick(gui_init.gui.questiontype, Qt.Key.Key_Down)
+    QTest.keyClick(gui_init.gui.questiontype, Qt.Key.Key_Down)
+    QTest.keyClick(gui_init.gui.questiontype, Qt.Key.Key_Down)
+    QTest.keyClick(gui_init.gui.questiontype, Qt.Key.Key_Down)
+    QTest.keyClick(gui_init.gui.questiontype, Qt.Key.Key_Enter)
+    assert gui_init.gui.questiontype.currentText() == "OSCButton"
+    # check if the layout is correct, if all needed fields are loaded and have correct default values (if applicable)
+    layout = gui_init.gui.edit_layout
+    not_none_rows = 0
+    for row in range(layout.rowCount()):
+        if isinstance(layout.itemAt(row, QFormLayout.ItemRole.FieldRole), QWidgetItem):
+            not_none_rows += 1
+            assert layout.itemAt(row, QFormLayout.ItemRole.LabelRole).widget().text() in fields_per_type["OSCButton"][0]
+            assert str(type(layout.itemAt(row, QFormLayout.ItemRole.FieldRole).widget())).strip("'<>").rsplit(".", 1)[1] == \
+                   'TextEdit' if fields_per_type["OSCButton"][0][layout.itemAt(row, QFormLayout.ItemRole.LabelRole).widget().text()] == 'QPlainTextEdit'\
+                   else fields_per_type["OSCButton"][0][layout.itemAt(row, QFormLayout.ItemRole.LabelRole).widget().text()]
+            if isinstance(layout.itemAt(row, QFormLayout.ItemRole.FieldRole).widget(), QLineEdit) and layout.itemAt(row, QFormLayout.ItemRole.LabelRole).widget().text() in \
+                    default_values:
+                assert layout.itemAt(row, QFormLayout.ItemRole.FieldRole).widget().text() == default_values[layout.itemAt(row, QFormLayout.ItemRole.LabelRole).widget().text()]
+            elif isinstance(layout.itemAt(row, QFormLayout.ItemRole.FieldRole).widget(), QCheckBox) and layout.itemAt(row, QFormLayout.ItemRole.LabelRole).widget().text() in \
+                    default_values:
+                assert layout.itemAt(row, QFormLayout.ItemRole.FieldRole).widget().isChecked() == default_values[
+                    layout.itemAt(row, QFormLayout.ItemRole.LabelRole).widget().text()]
+    assert not_none_rows == len(fields_per_type["OSCButton"][0].keys())
+    assert len(gui_init.undo_stack) == 15  # 2 for creating page & question, 13 for choosing OSCButton
+
+    # Check structure
+    structure = ConfigObj()  # {}
+    for key, value in default_values.items():
+        if key in general_fields and value != "":
+            structure[key] = value
+    structure["Page 1"] = {}
+    for key, value in default_values.items():
+        if key in page_fields:
+            structure["Page 1"][key] = value
+    structure["Page 1"]["Question 1"] = {"type": "OSCButton"}
+    for key, value in default_values.items():
+        if key in fields_per_type["OSCButton"][0]:
+            structure["Page 1"]["Question 1"][key] = value
+    listify(gui_init.structure)
+    listify(structure)
+
+    QTimer.singleShot(100, handle_dialog_error)
+    validate_questionnaire(gui_init.structure, suppress=True)
+    QTimer.singleShot(100, handle_dialog_error)
+    validate_questionnaire(structure, suppress=True)
+
+    # save file comparison
+    structure.encoding = "utf-8"
+    structure.filename = "./tmp_e.txt"
+    structure.write()
+    gui_init.structure.filename = "./tmp_a.txt"
+    gui_init.structure.encoding = "utf-8"
+    gui_init.structure.write()
+    with open("./tmp_e.txt") as fe:
+        temp_e = fe.readlines()
+    with open("./tmp_a.txt") as fa:
+        temp_a = fa.readlines()
+    assert temp_a == temp_e
+    QTimer.singleShot(150, handle_dialog_no_save)
+    gui_init.close()
+
+
+# noinspection PyArgumentList
+def test_inscription(gui_load, qtbot):
+    QTimer.singleShot(150, handle_dialog_error)
+    error_found, warning_found, warning_details = validate_questionnaire(gui_load.structure)
+    assert not error_found
+    assert not warning_found
+    tv = gui_load.gui.treeview
+    tv.expandAll()
+    tv.setCurrentItem(tv.topLevelItem(0).child(0).child(0))  # should be 'Question 1'
+    assert len(tv.selectedItems()) == 1
+    assert tv.selectedItems()[0].text(0) == "Question 1"
+
+    rect = tv.visualItemRect(tv.currentItem())
+    QTest.mouseClick(tv.viewport(), Qt.MouseButton.LeftButton, Qt.KeyboardModifier.NoModifier, rect.center())
+    ins_pos = find_row_by_label(gui_load.gui.edit_layout, 'inscription')
+
+    # change text
+    gui_load.gui.edit_layout.itemAt(ins_pos, QFormLayout.ItemRole.FieldRole).widget().clear()
+    gui_load.gui.edit_layout.itemAt(ins_pos, QFormLayout.ItemRole.FieldRole).widget().setText("Click me")
+    assert gui_load.gui.edit_layout.itemAt(ins_pos, QFormLayout.ItemRole.FieldRole).widget().text() == "Click me"
+    gui_load.gui.edit_layout.itemAt(ins_pos, QFormLayout.ItemRole.FieldRole).widget().editingFinished.emit()
+    assert gui_load.structure["Page 1"]["Question 1"]["inscription"] == "Click me"
+    gui_load.gui.load_preview()
+    gui_load.gui.refresh_button.click()
+    assert gui_load.gui.edit_layout.itemAt(ins_pos, QFormLayout.ItemRole.FieldRole).widget().text() == "Click me"
+    assert gui_load.structure["Page 1"]["Question 1"]["inscription"] == "Click me"
+    QTimer.singleShot(150, handle_dialog_error)
+    error_found, warning_found, warning_details = validate_questionnaire(gui_load.structure)
+    assert not error_found
+    assert not warning_found
+    gui_load.gui.refresh_button.click()
+    QTest.keyClicks(gui_load, 's', modifier=Qt.KeyboardModifier.ControlModifier, delay=1000)
+    prepare_listeners(os.path.join(os.getcwd(), "tests/osctest.txt"))
+    test_gui = StackedWindowGui(os.path.join(os.getcwd(), "tests/osctest.txt"))
+    assert test_gui.Stack.count() == 1
+    for child in test_gui.Stack.currentWidget().children():
+        if isinstance(child, OSCButton):
+            assert child.button.text() == "Click me"
+
+    QTimer.singleShot(100, handle_dialog)
+    QTest.mouseClick(test_gui.forwardbutton, Qt.MouseButton.LeftButton, delay=1000)
+    test_gui.close()
+    thread.stop(0.1)
+    QTest.qWait(1000)
+
+    #  empty inscription -> warning
+    gui_load.gui.edit_layout.itemAt(ins_pos, QFormLayout.ItemRole.FieldRole).widget().clear()
+    gui_load.gui.edit_layout.itemAt(ins_pos, QFormLayout.ItemRole.FieldRole).widget().setText("")
+    assert gui_load.gui.edit_layout.itemAt(ins_pos, QFormLayout.ItemRole.FieldRole).widget().text() == ""
+    gui_load.gui.edit_layout.itemAt(ins_pos, QFormLayout.ItemRole.FieldRole).widget().editingFinished.emit()
+    assert gui_load.structure["Page 1"]["Question 1"]["inscription"] == ""
+    gui_load.gui.load_preview()
+    gui_load.gui.refresh_button.click()
+    assert gui_load.gui.edit_layout.itemAt(ins_pos, QFormLayout.ItemRole.FieldRole).widget().text() == ""
+    assert gui_load.structure["Page 1"]["Question 1"]["inscription"] == ""
+    QTimer.singleShot(150, handle_dialog_error)
+    error_found, warning_found, warning_details = validate_questionnaire(gui_load.structure)
+    assert not error_found
+    assert warning_found
+    QTest.keyClicks(gui_load, 's', modifier=Qt.KeyboardModifier.ControlModifier, delay=1000)
+    prepare_listeners(os.path.join(os.getcwd(), "tests/osctest.txt"))
+    QTimer.singleShot(500, handle_dialog_warning)
+    test_gui = StackedWindowGui(os.path.join(os.getcwd(), "tests/osctest.txt"))
+    assert test_gui.Stack.count() == 1
+    for child in test_gui.Stack.currentWidget().children():
+        if isinstance(child, OSCButton):
+            assert child.button.text() == ""
+            child.button.click()
+            QTest.qWait(1000)
+    QTimer.singleShot(1000, handle_dialog)
+    QTest.mouseClick(test_gui.forwardbutton, Qt.MouseButton.LeftButton, delay=1000)
+    test_gui.close()
+    thread.stop(0.1)
+    QTest.qWait(1000)
+
+    # predefined 'None'
+    gui_load.gui.edit_layout.itemAt(ins_pos, QFormLayout.ItemRole.FieldRole).widget().clear()
+    gui_load.gui.edit_layout.itemAt(ins_pos, QFormLayout.ItemRole.FieldRole).widget().setText("None")
+    assert gui_load.gui.edit_layout.itemAt(ins_pos, QFormLayout.ItemRole.FieldRole).widget().text() == "None"
+    gui_load.gui.edit_layout.itemAt(ins_pos, QFormLayout.ItemRole.FieldRole).widget().editingFinished.emit()
+    assert gui_load.structure["Page 1"]["Question 1"]["inscription"] == "None"
+    gui_load.gui.load_preview()
+    gui_load.gui.refresh_button.click()
+    assert gui_load.gui.edit_layout.itemAt(ins_pos, QFormLayout.ItemRole.FieldRole).widget().text() == "None"
+    assert gui_load.structure["Page 1"]["Question 1"]["inscription"] == "None"
+    QTimer.singleShot(150, handle_dialog_error)
+    error_found, warning_found, warning_details = validate_questionnaire(gui_load.structure)
+    assert not error_found
+    assert warning_found
+    QTest.keyClicks(gui_load, 's', modifier=Qt.KeyboardModifier.ControlModifier, delay=1000)
+    prepare_listeners(os.path.join(os.getcwd(), "tests/osctest.txt"))
+    QTimer.singleShot(150, handle_dialog_warning)
+    test_gui = StackedWindowGui(os.path.join(os.getcwd(), "tests/osctest.txt"))
+    assert test_gui.Stack.count() == 1
+    for child in test_gui.Stack.currentWidget().children():
+        if isinstance(child, OSCButton):
+            assert child.button.text() == "None"
+            child.button.click()
+            QTest.qWait(500)
+    QTimer.singleShot(100, handle_dialog)
+    QTest.mouseClick(test_gui.forwardbutton, Qt.MouseButton.LeftButton, delay=1000)
+    test_gui.close()
+    thread.stop(0.1)
+    QTest.qWait(1000)
+
+    # reset file
+    gui_load.gui.edit_layout.itemAt(ins_pos, QFormLayout.ItemRole.FieldRole).widget().clear()
+    gui_load.gui.edit_layout.itemAt(ins_pos, QFormLayout.ItemRole.FieldRole).widget().setText("Send message")
+    assert gui_load.gui.edit_layout.itemAt(ins_pos, QFormLayout.ItemRole.FieldRole).widget().text() == "Send message"
+    gui_load.gui.edit_layout.itemAt(ins_pos, QFormLayout.ItemRole.FieldRole).widget().editingFinished.emit()
+    assert gui_load.structure["Page 1"]["Question 1"]["inscription"] == "Send message"
+    gui_load.gui.load_preview()
+    gui_load.gui.refresh_button.click()
+    assert gui_load.gui.edit_layout.itemAt(ins_pos, QFormLayout.ItemRole.FieldRole).widget().text() == "Send message"
+    assert gui_load.structure["Page 1"]["Question 1"]["inscription"] == "Send message"
+    QTimer.singleShot(150, handle_dialog_error)
+    error_found, warning_found, warning_details = validate_questionnaire(gui_load.structure)
+    assert not error_found
+    assert not warning_found
+    QTest.keyClicks(gui_load, 's', modifier=Qt.KeyboardModifier.ControlModifier, delay=1000)
+
+    [os.remove('./tests/results/'+fil) for fil in os.listdir('./tests/results/')]
+    gui_load.close()
+
+
+# noinspection PyArgumentList
+def test_address(gui_load, qtbot):
+    QTimer.singleShot(150, handle_dialog_error)
+    error_found, warning_found, warning_details = validate_questionnaire(gui_load.structure)
+    assert not error_found
+    assert not warning_found
+    tv = gui_load.gui.treeview
+    tv.expandAll()
+    tv.setCurrentItem(tv.topLevelItem(0).child(0).child(0))  # should be 'Question 1'
+    assert len(tv.selectedItems()) == 1
+    assert tv.selectedItems()[0].text(0) == "Question 1"
+
+    rect = tv.visualItemRect(tv.currentItem())
+    QTest.mouseClick(tv.viewport(), Qt.MouseButton.LeftButton, Qt.KeyboardModifier.NoModifier, rect.center())
+    adr_pos = find_row_by_label(gui_load.gui.edit_layout, 'address')
+
+    # change text to without / -> warning
+    gui_load.gui.edit_layout.itemAt(adr_pos, QFormLayout.ItemRole.FieldRole).widget().clear()
+    gui_load.gui.edit_layout.itemAt(adr_pos, QFormLayout.ItemRole.FieldRole).widget().setText("send")
+    assert gui_load.gui.edit_layout.itemAt(adr_pos, QFormLayout.ItemRole.FieldRole).widget().text() == "send"
+    gui_load.gui.edit_layout.itemAt(adr_pos, QFormLayout.ItemRole.FieldRole).widget().editingFinished.emit()
+    assert gui_load.structure["Page 1"]["Question 1"]["address"] == "send"
+    gui_load.gui.load_preview()
+    gui_load.gui.refresh_button.click()
+    assert gui_load.gui.edit_layout.itemAt(adr_pos, QFormLayout.ItemRole.FieldRole).widget().text() == "send"
+    assert gui_load.structure["Page 1"]["Question 1"]["address"] == "send"
+    QTimer.singleShot(150, handle_dialog_error)
+    error_found, warning_found, warning_details = validate_questionnaire(gui_load.structure)
+    assert not error_found
+    assert warning_found
+    gui_load.gui.refresh_button.click()
+    QTest.keyClicks(gui_load, 's', modifier=Qt.KeyboardModifier.ControlModifier, delay=1000)
+    prepare_listeners(os.path.join(os.getcwd(), "tests/osctest.txt"))
+    QTimer.singleShot(150, handle_dialog_warning)
+    test_gui = StackedWindowGui(os.path.join(os.getcwd(), "tests/osctest.txt"))
+    assert test_gui.Stack.count() == 1
+
+    QTimer.singleShot(100, handle_dialog)
+    QTest.mouseClick(test_gui.forwardbutton, Qt.MouseButton.LeftButton, delay=1000)
+    test_gui.close()
+    thread.stop(0.1)
+    QTest.qWait(1000)
+
+    #  empty address -> error
+    gui_load.gui.edit_layout.itemAt(adr_pos, QFormLayout.ItemRole.FieldRole).widget().clear()
+    gui_load.gui.edit_layout.itemAt(adr_pos, QFormLayout.ItemRole.FieldRole).widget().setText("")
+    assert gui_load.gui.edit_layout.itemAt(adr_pos, QFormLayout.ItemRole.FieldRole).widget().text() == ""
+    gui_load.gui.edit_layout.itemAt(adr_pos, QFormLayout.ItemRole.FieldRole).widget().editingFinished.emit()
+    assert gui_load.structure["Page 1"]["Question 1"]["address"] == ""
+    QTimer.singleShot(150, handle_dialog_error)
+    gui_load.gui.load_preview()
+    QTimer.singleShot(150, handle_dialog_error)
+    gui_load.gui.refresh_button.click()
+    assert gui_load.gui.edit_layout.itemAt(adr_pos, QFormLayout.ItemRole.FieldRole).widget().text() == ""
+    # assert gui_load.structure["Page 1"]["Question 1"]["address"] == "" #TODO??
+    QTimer.singleShot(150, handle_dialog_error)
+    error_found, warning_found, warning_details = validate_questionnaire(gui_load.structure)
+    assert error_found
+    assert not warning_found
+
+    # reset file
+    gui_load.gui.edit_layout.itemAt(adr_pos, QFormLayout.ItemRole.FieldRole).widget().clear()
+    gui_load.gui.edit_layout.itemAt(adr_pos, QFormLayout.ItemRole.FieldRole).widget().setText("/message")
+    assert gui_load.gui.edit_layout.itemAt(adr_pos, QFormLayout.ItemRole.FieldRole).widget().text() == "/message"
+    gui_load.gui.edit_layout.itemAt(adr_pos, QFormLayout.ItemRole.FieldRole).widget().editingFinished.emit()
+    assert gui_load.structure["Page 1"]["Question 1"]["address"] == "/message"
+    gui_load.gui.load_preview()
+    gui_load.gui.refresh_button.click()
+    assert gui_load.gui.edit_layout.itemAt(adr_pos, QFormLayout.ItemRole.FieldRole).widget().text() == "/message"
+    assert gui_load.structure["Page 1"]["Question 1"]["address"] == "/message"
+    QTimer.singleShot(150, handle_dialog_error)
+    error_found, warning_found, warning_details = validate_questionnaire(gui_load.structure)
+    assert not error_found
+    assert not warning_found
+    QTest.keyClicks(gui_load, 's', modifier=Qt.KeyboardModifier.ControlModifier, delay=1000)
+
+    [os.remove('./tests/results/'+fil) for fil in os.listdir('./tests/results/')]
+    gui_load.close()
+
+
+# noinspection PyArgumentList
+def test_value(gui_load, qtbot):
+    QTimer.singleShot(150, handle_dialog_error)
+    error_found, warning_found, warning_details = validate_questionnaire(gui_load.structure)
+    assert not error_found
+    assert not warning_found
+    tv = gui_load.gui.treeview
+    tv.expandAll()
+    tv.setCurrentItem(tv.topLevelItem(0).child(0).child(0))  # should be 'Question 1'
+    assert len(tv.selectedItems()) == 1
+    assert tv.selectedItems()[0].text(0) == "Question 1"
+
+    rect = tv.visualItemRect(tv.currentItem())
+    QTest.mouseClick(tv.viewport(), Qt.MouseButton.LeftButton, Qt.KeyboardModifier.NoModifier, rect.center())
+    val_pos = find_row_by_label(gui_load.gui.edit_layout, 'value')
+
+    # change text
+    gui_load.gui.edit_layout.itemAt(val_pos, QFormLayout.ItemRole.FieldRole).widget().clear()
+    gui_load.gui.edit_layout.itemAt(val_pos, QFormLayout.ItemRole.FieldRole).widget().setText("send")
+    assert gui_load.gui.edit_layout.itemAt(val_pos, QFormLayout.ItemRole.FieldRole).widget().text() == "send"
+    gui_load.gui.edit_layout.itemAt(val_pos, QFormLayout.ItemRole.FieldRole).widget().editingFinished.emit()
+    assert gui_load.structure["Page 1"]["Question 1"]["value"] == "send"
+    gui_load.gui.load_preview()
+    gui_load.gui.refresh_button.click()
+    assert gui_load.gui.edit_layout.itemAt(val_pos, QFormLayout.ItemRole.FieldRole).widget().text() == "send"
+    assert gui_load.structure["Page 1"]["Question 1"]["value"] == "send"
+    QTimer.singleShot(150, handle_dialog_error)
+    error_found, warning_found, warning_details = validate_questionnaire(gui_load.structure)
+    assert not error_found
+    assert not warning_found
+    gui_load.gui.refresh_button.click()
+    QTest.keyClicks(gui_load, 's', modifier=Qt.KeyboardModifier.ControlModifier, delay=1000)
+    prepare_listeners(os.path.join(os.getcwd(), "tests/osctest.txt"))
+    test_gui = StackedWindowGui(os.path.join(os.getcwd(), "tests/osctest.txt"))
+    assert test_gui.Stack.count() == 1
+
+    QTimer.singleShot(100, handle_dialog)
+    QTest.mouseClick(test_gui.forwardbutton, Qt.MouseButton.LeftButton, delay=1000)
+    test_gui.close()
+    thread.stop(0.1)
+    QTest.qWait(1000)
+
+    #  empty value
+    gui_load.gui.edit_layout.itemAt(val_pos, QFormLayout.ItemRole.FieldRole).widget().clear()
+    gui_load.gui.edit_layout.itemAt(val_pos, QFormLayout.ItemRole.FieldRole).widget().editingFinished.emit()
+    assert gui_load.structure["Page 1"]["Question 1"]["value"] == ""
+    QTimer.singleShot(150, handle_dialog_error)
+    gui_load.gui.load_preview()
+    QTimer.singleShot(150, handle_dialog_error)
+    gui_load.gui.refresh_button.click()
+    assert gui_load.gui.edit_layout.itemAt(val_pos, QFormLayout.ItemRole.FieldRole).widget().text() == ""
+    # assert gui_load.structure["Page 1"]["Question 1"]["address"] == "" #TODO??
+    QTimer.singleShot(150, handle_dialog_error)
+    error_found, warning_found, warning_details = validate_questionnaire(gui_load.structure)
+    assert error_found
+    assert not warning_found
+
+    # reset file
+    gui_load.gui.edit_layout.itemAt(val_pos, QFormLayout.ItemRole.FieldRole).widget().clear()
+    gui_load.gui.edit_layout.itemAt(val_pos, QFormLayout.ItemRole.FieldRole).widget().setText("Hello world!")
+    assert gui_load.gui.edit_layout.itemAt(val_pos, QFormLayout.ItemRole.FieldRole).widget().text() == "Hello world!"
+    gui_load.gui.edit_layout.itemAt(val_pos, QFormLayout.ItemRole.FieldRole).widget().editingFinished.emit()
+    assert gui_load.structure["Page 1"]["Question 1"]["value"] == "Hello world!"
+    gui_load.gui.load_preview()
+    gui_load.gui.refresh_button.click()
+    assert gui_load.gui.edit_layout.itemAt(val_pos, QFormLayout.ItemRole.FieldRole).widget().text() == "Hello world!"
+    assert gui_load.structure["Page 1"]["Question 1"]["value"] == "Hello world!"
+    QTimer.singleShot(150, handle_dialog_error)
+    error_found, warning_found, warning_details = validate_questionnaire(gui_load.structure)
+    assert not error_found
+    assert not warning_found
+    QTest.keyClicks(gui_load, 's', modifier=Qt.KeyboardModifier.ControlModifier, delay=1000)
+
+    [os.remove('./tests/results/'+fil) for fil in os.listdir('./tests/results/')]
+    gui_load.close()
+
+
+# noinspection PyArgumentList
+def test_receiver(gui_load, qtbot):
+    QTimer.singleShot(150, handle_dialog_error)
+    error_found, warning_found, warning_details = validate_questionnaire(gui_load.structure)
+    assert not error_found
+    assert not warning_found
+    tv = gui_load.gui.treeview
+    tv.expandAll()
+    tv.setCurrentItem(tv.topLevelItem(0).child(0).child(0))  # should be 'Question 1'
+    assert len(tv.selectedItems()) == 1
+    assert tv.selectedItems()[0].text(0) == "Question 1"
+
+    rect = tv.visualItemRect(tv.currentItem())
+    QTest.mouseClick(tv.viewport(), Qt.MouseButton.LeftButton, Qt.KeyboardModifier.NoModifier, rect.center())
+    rec_pos = find_row_by_label(gui_load.gui.edit_layout, 'receiver')
+    rec_cb = gui_load.gui.edit_layout.itemAt(rec_pos, QFormLayout.ItemRole.FieldRole).widget().layout().itemAt(0).widget()
+    rec_ip = gui_load.gui.edit_layout.itemAt(rec_pos, QFormLayout.ItemRole.FieldRole).widget().layout().itemAt(1).widget().layout().itemAt(1).widget()
+    rec_port = gui_load.gui.edit_layout.itemAt(rec_pos, QFormLayout.ItemRole.FieldRole).widget().layout().itemAt(1).widget().layout().itemAt(3).widget()
+
+    QTest.mouseClick(rec_cb, Qt.MouseButton.LeftButton)
+    QTest.keyClick(rec_cb, Qt.Key.Key_Down)
+    QTest.keyClick(rec_cb, Qt.Key.Key_Enter)
+    assert rec_cb.currentText() == "audio"
+    assert not rec_ip.isEnabled()
+    assert rec_ip.text() == gui_load.structure["audio_ip"]
+    assert not rec_port.isEnabled()
+    assert rec_port.text() == gui_load.structure["audio_port"]
+    QTimer.singleShot(150, handle_dialog_error)
+    error_found, warning_found, warning_details = validate_questionnaire(gui_load.structure)
+    assert not error_found
+    assert not warning_found
+    gui_load.gui.refresh_button.click()
+    assert gui_load.structure["Page 1"]["Question 1"]["receiver"] == ["127.0.0.1", "8000"]
+    
+    QTest.mouseClick(rec_cb, Qt.MouseButton.LeftButton)
+    QTest.keyClick(rec_cb, Qt.Key.Key_Down)
+    QTest.keyClick(rec_cb, Qt.Key.Key_Enter)
+    assert rec_cb.currentText() == "help"
+    assert rec_ip.isEnabled() == False
+    assert rec_ip.text() == gui_load.structure["help_ip"]
+    assert rec_port.isEnabled() == False
+    assert rec_port.text() == gui_load.structure["help_port"]
+    QTimer.singleShot(150, handle_dialog_error)
+    error_found, warning_found, warning_details = validate_questionnaire(gui_load.structure)
+    assert not error_found
+    assert not warning_found
+    gui_load.gui.refresh_button.click()
+    assert gui_load.structure["Page 1"]["Question 1"]["receiver"] == ["", ""]
+    
+    QTest.mouseClick(rec_cb, Qt.MouseButton.LeftButton)
+    QTest.keyClick(rec_cb, Qt.Key.Key_Down)
+    QTest.keyClick(rec_cb, Qt.Key.Key_Enter)
+    assert rec_cb.currentText() == "video"
+    assert not rec_ip.isEnabled()
+    assert rec_ip.text() == gui_load.structure["video_ip"]
+    assert not rec_port.isEnabled()
+    assert rec_port.text() == gui_load.structure["video_port"]
+    QTimer.singleShot(150, handle_dialog_error)
+    error_found, warning_found, warning_details = validate_questionnaire(gui_load.structure)
+    assert not error_found
+    assert not warning_found
+    gui_load.gui.refresh_button.click()
+    assert gui_load.structure["Page 1"]["Question 1"]["receiver"] == ["127.0.0.1", "5005"]
+
+    # revert file
+    QTest.mouseClick(rec_cb, Qt.MouseButton.LeftButton)
+    QTest.keyClick(rec_cb, Qt.Key.Key_Up)
+    QTest.keyClick(rec_cb, Qt.Key.Key_Up)
+    QTest.keyClick(rec_cb, Qt.Key.Key_Up)
+    QTest.keyClick(rec_cb, Qt.Key.Key_Enter)
+    assert rec_cb.currentText() == "<new>"
+    assert rec_ip.isEnabled()
+    assert rec_ip.text() == ""
+    assert rec_port.isEnabled()
+    assert rec_port.text() == ""
+    rec_ip.clear()
+    rec_ip.setText("127.0.0.1")
+    assert rec_ip.text() == "127.0.0.1"
+    rec_ip.editingFinished.emit()
+    assert gui_load.structure["Page 1"]["Question 1"]["receiver"] == ["127.0.0.1", ""]
+    QTimer.singleShot(150, handle_dialog_error)
+    error_found, warning_found, warning_details = validate_questionnaire(gui_load.structure)
+    assert error_found
+    assert not warning_found
+    rec_port.clear()
+    rec_port.setText("8000")
+    assert rec_port.text() == "8000"
+    rec_port.editingFinished.emit()
+    assert gui_load.structure["Page 1"]["Question 1"]["receiver"] == ["127.0.0.1", "8000"]
+    gui_load.gui.refresh_button.click()
+    assert gui_load.structure["Page 1"]["Question 1"]["receiver"] == ["127.0.0.1", "8000"]
+    gui_load.save()
+    gui_load.close()
+
+
+# noinspection PyArgumentList
+def test_execute_questionnaire_no_interaction(run, qtbot):
+    if os.path.exists("./tests/results/results_osc.csv"):
+        [os.remove('./tests/results/'+fil) for fil in os.listdir('./tests/results/')]
+    assert run.Stack.count() == 1
+
+    QTimer.singleShot(100, handle_dialog)
+    QTest.mouseClick(run.forwardbutton, Qt.MouseButton.LeftButton)
+
+    results = []
+    with open('./tests/results/results_osc.csv', mode='r') as file:
+        csv_file = csv.reader(file, delimiter=';')
+
+        for lines in csv_file:
+            results = lines
+            if results[0].startswith('data'):
+                assert results[0] == 'data_row_number'  # participant number
+                assert results[1] == 'osc'
+                assert results[2] == 'Start'
+                assert results[3] == 'End'
+    assert len(results) == 4
+    assert results[0] == '1'  # participant number
+    assert results[1] == 'False'  # button not clicked
+    assert re.match(r'\d+-\d+-\d+ \d+:\d+:\d+.\d+', results[2])  # timestamp
+    assert re.match(r'\d+-\d+-\d+ \d+:\d+:\d+.\d+', results[3])  # timestamp
+    [os.remove('./tests/results/'+fil) for fil in os.listdir('./tests/results/')]
+    assert thread.message_stack[-1] != ("/message", "Hello world!")
+    thread.stop(0.1)
+    QTest.qWait(1000)
+
+
+# noinspection PyArgumentList
+def test_execute_questionnaire_no_interaction_blocked(run, qtbot):
+    with mock_file(r'./tests/results/results_osc.csv'):
+        assert run.Stack.count() == 1
+        QTimer.singleShot(100, handle_dialog)
+        QTest.mouseClick(run.forwardbutton, Qt.MouseButton.LeftButton)
+        res_file = None
+        for file in os.listdir("./tests/results/"):
+            if file.find("_backup_"):
+                res_file = f'./tests/results/{file}'
+        results = []
+        with open(res_file, mode='r') as file:
+            csv_file = csv.reader(file, delimiter=';')
+
+            for lines in csv_file:
+                results = lines
+                if results[0].startswith('data'):
+                    assert results[0] == 'data_row_number'  # participant number
+                    assert results[1] == 'osc'
+                    assert results[2] == 'Start'
+                    assert results[3] == 'End'
+        assert len(results) == 4
+        assert results[0] == '-1'  # participant number unknown
+        assert results[1] == 'False'  # button not clicked
+        assert re.match(r'\d+-\d+-\d+ \d+:\d+:\d+.\d+', results[2])  # timestamp
+        assert re.match(r'\d+-\d+-\d+ \d+:\d+:\d+.\d+', results[3])  # timestamp
+        [os.remove('./tests/results/'+fil) for fil in os.listdir('./tests/results/')]
+    assert thread.message_stack[-1] != ("/message", "Hello world!")
+    thread.stop(0.1)
+    QTest.qWait(1000)
+
+
+# noinspection PyArgumentList
+def test_execute_questionnaire(run, qtbot):
+    if os.path.exists("./tests/results/results_osc.csv"):
+        [os.remove('./tests/results/'+fil) for fil in os.listdir('./tests/results/')]
+    assert run.Stack.count() == 1
+    for child in run.Stack.currentWidget().children():
+        if isinstance(child, OSCButton):
+            child.button.click()
+
+    QTimer.singleShot(100, handle_dialog)
+    QTest.mouseClick(run.forwardbutton, Qt.MouseButton.LeftButton)
+
+    results = []
+    with open('./tests/results/results_osc.csv', mode='r') as file:
+        csv_file = csv.reader(file, delimiter=';')
+
+        for lines in csv_file:
+            results = lines
+            if results[0].startswith('data'):
+                assert results[0] == 'data_row_number'  # participant number
+                assert results[1] == 'osc'
+                assert results[2] == 'Start'
+                assert results[3] == 'End'
+    assert len(results) == 4
+    assert results[0] == '1'  # participant number
+    assert results[1] == 'True'  # button was clicked
+    assert re.match(r'\d+-\d+-\d+ \d+:\d+:\d+.\d+', results[2])  # timestamp
+    assert re.match(r'\d+-\d+-\d+ \d+:\d+:\d+.\d+', results[3])  # timestamp
+    [os.remove('./tests/results/'+fil) for fil in os.listdir('./tests/results/')]
+    assert thread.message_stack[-1] == ("/message", "Hello world!")
+    thread.stop(0.1)
+    QTest.qWait(1000)
+
+
+# noinspection PyArgumentList
+def test_execute_questionnaire_blocked(run, qtbot):
+    with mock_file(r'./tests/results/results_osc.csv'):
+        assert run.Stack.count() == 1
+        for child in run.Stack.currentWidget().children():
+            if isinstance(child, OSCButton):
+                child.button.click()
+                QTest.qWait(3000)
+        QTimer.singleShot(100, handle_dialog)
+        QTest.mouseClick(run.forwardbutton, Qt.MouseButton.LeftButton)
+        res_file = None
+        for file in os.listdir("./tests/results/"):
+            if file.find("_backup_"):
+                res_file = f'./tests/results/{file}'
+        results = []
+        with open(res_file, mode='r') as file:
+            csv_file = csv.reader(file, delimiter=';')
+
+            for lines in csv_file:
+                results = lines
+                if results[0].startswith('data'):
+                    assert results[0] == 'data_row_number'  # participant number
+                    assert results[1] == 'osc'
+                    assert results[2] == 'Start'
+                    assert results[3] == 'End'
+        assert len(results) == 4
+        assert results[0] == '-1'  # participant number unknown
+        assert results[1] == 'True'  # button not clicked
+        assert re.match(r'\d+-\d+-\d+ \d+:\d+:\d+.\d+', results[2])  # timestamp
+        assert re.match(r'\d+-\d+-\d+ \d+:\d+:\d+.\d+', results[3])  # timestamp
+        [os.remove('./tests/results/'+fil) for fil in os.listdir('./tests/results/')]
+        assert thread.message_stack[-1] == ('/message', 'Hello world!')
+        thread.stop(0.1)
+        QTest.qWait(1000)

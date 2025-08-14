@@ -134,5 +134,5 @@ dmypy.json
 # Custom paths
 results/
 tmp*.txt
-src/Configs/tests/
+Configs/tests/
 .vscode/

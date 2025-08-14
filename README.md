@@ -124,8 +124,7 @@ The necessary python libraries are given in ```requirements.txt```.
 3. Run by executing ```launcher.exe``` (located in the folder src) or running
    ```sh
    cd quest
-   python src/Launcher.py
-   ```
+   python QUEST/Launcher.py
 
 <p align="right">(<a href="#top">back to top</a>)</p>
 
