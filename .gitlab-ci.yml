@@ -41,4 +41,4 @@ mypy:
 test:
   stage: test
   script:
-    - pytest test\ -sv
+    - pytest tests\ -sv
