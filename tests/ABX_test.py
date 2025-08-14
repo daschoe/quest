@@ -680,7 +680,7 @@ def test_execute_questionnaire_no_interaction(run, qtbot):
     assert results[4] == '[]'  # second element not played
     assert re.match(r'\d+-\d+-\d+ \d+:\d+:\d+.\d+', results[5])  # timestamp
     assert re.match(r'\d+-\d+-\d+ \d+:\d+:\d+.\d+', results[6])  # timestamp
-    os.remove("./tests/results/results_abx.csv")
+    [os.remove('./tests/results/'+fil) for fil in os.listdir('./tests/results/')]
 
 
 # noinspection PyArgumentList
@@ -714,7 +714,7 @@ def test_execute_questionnaire_no_interaction_blocked(run, qtbot):
         assert results[4] == '[]'  # second element not played
         assert re.match(r'\d+-\d+-\d+ \d+:\d+:\d+.\d+', results[5])  # timestamp
         assert re.match(r'\d+-\d+-\d+ \d+:\d+:\d+.\d+', results[6])  # timestamp
-        os.remove(res_file)
+        [os.remove('./tests/results/'+fil) for fil in os.listdir('./tests/results/')]
 
 
 # noinspection PyArgumentList
@@ -755,7 +755,7 @@ def test_execute_questionnaire_ab(run, qtbot):
     assert float(ast.literal_eval(results[4])[0]) > 0.5
     assert re.match(r'\d+-\d+-\d+ \d+:\d+:\d+.\d+', results[5])  # timestamp
     assert re.match(r'\d+-\d+-\d+ \d+:\d+:\d+.\d+', results[6])  # timestamp
-    os.remove("./tests/results/results_abx.csv")
+    [os.remove('./tests/results/'+fil) for fil in os.listdir('./tests/results/')]
 
 
 # noinspection PyArgumentList
@@ -799,7 +799,7 @@ def test_execute_questionnaire_blocked(run, qtbot):
         assert float(ast.literal_eval(results[4])[0]) > 0.5
         assert re.match(r'\d+-\d+-\d+ \d+:\d+:\d+.\d+', results[5])  # timestamp
         assert re.match(r'\d+-\d+-\d+ \d+:\d+:\d+.\d+', results[6])  # timestamp
-        os.remove(res_file)
+        [os.remove('./tests/results/'+fil) for fil in os.listdir('./tests/results/')]
 
 
 # noinspection PyArgumentList
@@ -823,7 +823,7 @@ def test_execute_questionnaire_no_interaction_x(run2, qtbot):
     assert results[5] == '[]'  # x not played
     assert re.match(r'\d+-\d+-\d+ \d+:\d+:\d+.\d+', results[6])  # timestamp
     assert re.match(r'\d+-\d+-\d+ \d+:\d+:\d+.\d+', results[7])  # timestamp
-    os.remove("./tests/results/results_abx.csv")
+    [os.remove('./tests/results/'+fil) for fil in os.listdir('./tests/results/')]
 
 
 # noinspection PyArgumentList
@@ -859,7 +859,7 @@ def test_execute_questionnaire_no_interaction_x_blocked(run2, qtbot):
         assert results[5] == '[]'  # x not played
         assert re.match(r'\d+-\d+-\d+ \d+:\d+:\d+.\d+', results[6])  # timestamp
         assert re.match(r'\d+-\d+-\d+ \d+:\d+:\d+.\d+', results[7])  # timestamp
-        os.remove(res_file)
+        [os.remove('./tests/results/'+fil) for fil in os.listdir('./tests/results/')]
 
 
 # noinspection PyArgumentList
@@ -907,7 +907,7 @@ def test_execute_questionnaire_abx(run2, qtbot):
     assert len(ast.literal_eval(results[5])) == 3  # third (x) element played three times
     assert re.match(r'\d+-\d+-\d+ \d+:\d+:\d+.\d+', results[6])  # timestamp
     assert re.match(r'\d+-\d+-\d+ \d+:\d+:\d+.\d+', results[7])  # timestamp
-    os.remove("./tests/results/results_abx.csv")
+    [os.remove('./tests/results/'+fil) for fil in os.listdir('./tests/results/')]
 
 
 # noinspection PyArgumentList
@@ -958,4 +958,4 @@ def test_execute_questionnaire_abx_blocked(run2, qtbot):
         assert len(ast.literal_eval(results[5])) == 3  # third (x) element played three times
         assert re.match(r'\d+-\d+-\d+ \d+:\d+:\d+.\d+', results[6])  # timestamp
         assert re.match(r'\d+-\d+-\d+ \d+:\d+:\d+.\d+', results[7])  # timestamp
-        os.remove(res_file)
+        [os.remove('./tests/results/'+fil) for fil in os.listdir('./tests/results/')]

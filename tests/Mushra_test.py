@@ -387,7 +387,7 @@ def test_track(gui_load, qtbot):
 # noinspection PyArgumentList
 def test_xfade(gui_load, qtbot):
     if os.path.exists("./tests/results/results_mr.csv"):
-        os.remove("./tests/results/results_mr.csv")
+        [os.remove('./tests/results/'+fil) for fil in os.listdir('./tests/results/')]
 
     QTimer.singleShot(150, handle_dialog_error)
     error_found, warning_found, warning_details = validate_questionnaire(gui_load.structure)
@@ -525,7 +525,7 @@ def test_xfade(gui_load, qtbot):
     assert not warning_found
     QTest.keyClicks(gui_load, 's', modifier=Qt.KeyboardModifier.ControlModifier, delay=1000)
 
-    os.remove("./tests/results/results_mr.csv")
+    [os.remove('./tests/results/'+fil) for fil in os.listdir('./tests/results/')]
     gui_load.close()
 
 
@@ -557,7 +557,7 @@ def test_execute_questionnaire_no_interaction(run, qtbot):
     assert results[3] == '100'  # default slider value
     assert re.match(r'\d+-\d+-\d+ \d+:\d+:\d+.\d+', results[4])  # timestamp
     assert re.match(r'\d+-\d+-\d+ \d+:\d+:\d+.\d+', results[5])  # timestamp
-    os.remove("./tests/results/results_mr.csv")
+    [os.remove('./tests/results/'+fil) for fil in os.listdir('./tests/results/')]
     THREAD.stop(0.1)
     QTest.qWait(1000)
 
@@ -593,7 +593,7 @@ def test_execute_questionnaire_no_interaction_blocked(run, qtbot):
         assert results[3] == '100'  # default slider value
         assert re.match(r'\d+-\d+-\d+ \d+:\d+:\d+.\d+', results[4])  # timestamp
         assert re.match(r'\d+-\d+-\d+ \d+:\d+:\d+.\d+', results[5])  # timestamp
-        os.remove(res_file)
+        [os.remove('./tests/results/'+fil) for fil in os.listdir('./tests/results/')]
         THREAD.stop(0.1)
         QTest.qWait(1000)
 
@@ -601,7 +601,7 @@ def test_execute_questionnaire_no_interaction_blocked(run, qtbot):
 # noinspection PyArgumentList
 def test_execute_questionnaire(run, qtbot):
     if os.path.exists("./tests/results/results_mr.csv"):
-        os.remove("./tests/results/results_mr.csv")
+        [os.remove('./tests/results/'+fil) for fil in os.listdir('./tests/results/')]
     assert run.Stack.count() == 1
     assert THREAD.message_stack[-1] == ("/action", MUSHRA.loop_off_command)
     for child in run.Stack.currentWidget().children():
@@ -633,7 +633,7 @@ def test_execute_questionnaire(run, qtbot):
     assert int(results[2]) < int(results[3])
     assert re.match(r'\d+-\d+-\d+ \d+:\d+:\d+.\d+', results[4])  # timestamp
     assert re.match(r'\d+-\d+-\d+ \d+:\d+:\d+.\d+', results[5])  # timestamp
-    os.remove("./tests/results/results_mr.csv")
+    [os.remove('./tests/results/'+fil) for fil in os.listdir('./tests/results/')]
     THREAD.stop(0.1)
     QTest.qWait(1000)
 
@@ -681,6 +681,6 @@ def test_execute_questionnaire_blocked(run, qtbot):
         assert int(results[2]) < int(results[3])
         assert re.match(r'\d+-\d+-\d+ \d+:\d+:\d+.\d+', results[4])  # timestamp
         assert re.match(r'\d+-\d+-\d+ \d+:\d+:\d+.\d+', results[5])  # timestamp
-        os.remove(res_file)
+        [os.remove('./tests/results/'+fil) for fil in os.listdir('./tests/results/')]
         THREAD.stop(0.1)
         QTest.qWait(1000)

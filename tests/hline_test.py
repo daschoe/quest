@@ -136,7 +136,7 @@ def test_execute_questionnaire_no_interaction(run, qtbot):
     assert results[0] == '1'  # participant number
     assert re.match(r'\d+-\d+-\d+ \d+:\d+:\d+.\d+', results[1])  # timestamp
     assert re.match(r'\d+-\d+-\d+ \d+:\d+:\d+.\d+', results[2])  # timestamp
-    os.remove("./tests/results/results_hl.csv")
+    [os.remove('./tests/results/'+fil) for fil in os.listdir('./tests/results/')]
 
 
 # noinspection PyArgumentList
@@ -163,4 +163,4 @@ def test_execute_questionnaire_no_interaction_blocked(run, qtbot):
         assert results[0] == '-1'  # participant number unknown
         assert re.match(r'\d+-\d+-\d+ \d+:\d+:\d+.\d+', results[1])  # timestamp
         assert re.match(r'\d+-\d+-\d+ \d+:\d+:\d+.\d+', results[2])  # timestamp
-        os.remove(res_file)
+        [os.remove('./tests/results/'+fil) for fil in os.listdir('./tests/results/')]

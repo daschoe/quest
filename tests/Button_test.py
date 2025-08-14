@@ -252,7 +252,7 @@ def test_inscription(gui_load, qtbot, capfd):
     assert not warning_found
     QTest.keyClicks(gui_load, 's', modifier=Qt.KeyboardModifier.ControlModifier, delay=1000)
 
-    os.remove("./tests/results/results_pb.csv")
+    [os.remove('./tests/results/'+fil) for fil in os.listdir('./tests/results/')]
     gui_load.close()
 
 
@@ -525,7 +525,7 @@ def test_function(gui_load, qtbot, capfd):
     assert func_cb.currentText() == 'Annotate'
     QTest.keyClicks(gui_load, 's', modifier=Qt.KeyboardModifier.ControlModifier, delay=1000)
     gui_load.save()
-    os.remove("./tests/results/results_pb.csv")
+    [os.remove('./tests/results/'+fil) for fil in os.listdir('./tests/results/')]
     gui_load.close()
 
 
@@ -533,7 +533,7 @@ def test_function(gui_load, qtbot, capfd):
 @pytest.mark.pupil
 def test_execute_questionnaire_no_interaction(run, qtbot):
     if os.path.exists("./tests/results/results_pb.csv"):
-        os.remove("./tests/results/results_pb.csv")
+        [os.remove('./tests/results/'+fil) for fil in os.listdir('./tests/results/')]
     assert run.Stack.count() == 1
 
     QTimer.singleShot(100, handle_dialog)
@@ -555,7 +555,7 @@ def test_execute_questionnaire_no_interaction(run, qtbot):
     assert results[1] == 'False'  # the button was not clicked
     assert re.match(r'\d+-\d+-\d+ \d+:\d+:\d+.\d+', results[2])  # timestamp
     assert re.match(r'\d+-\d+-\d+ \d+:\d+:\d+.\d+', results[3])  # timestamp
-    os.remove("./tests/results/results_pb.csv")
+    [os.remove('./tests/results/'+fil) for fil in os.listdir('./tests/results/')]
 
 
 # noinspection PyArgumentList
@@ -584,14 +584,14 @@ def test_execute_questionnaire_no_interaction_blocked(run, qtbot):
         assert results[1] == 'False'  # the button was not clicked
         assert re.match(r'\d+-\d+-\d+ \d+:\d+:\d+.\d+', results[2])  # timestamp
         assert re.match(r'\d+-\d+-\d+ \d+:\d+:\d+.\d+', results[3])  # timestamp
-        os.remove(res_file)
+        [os.remove('./tests/results/'+fil) for fil in os.listdir('./tests/results/')]
 
 
 # noinspection PyArgumentList
 @pytest.mark.pupil
 def test_execute_questionnaire(run, qtbot, capfd):
     if os.path.exists("./tests/results/results_pb.csv"):
-        os.remove("./tests/results/results_pb.csv")
+        [os.remove('./tests/results/'+fil) for fil in os.listdir('./tests/results/')]
     assert run.Stack.count() == 1
     for child in run.Stack.currentWidget().children():
         if isinstance(child, Button):
@@ -619,7 +619,7 @@ def test_execute_questionnaire(run, qtbot, capfd):
     assert results[1] == 'True'  # button was clicked
     assert re.match(r'\d+-\d+-\d+ \d+:\d+:\d+.\d+', results[2])  # timestamp
     assert re.match(r'\d+-\d+-\d+ \d+:\d+:\d+.\d+', results[3])  # timestamp
-    os.remove("./tests/results/results_pb.csv")
+    [os.remove('./tests/results/'+fil) for fil in os.listdir('./tests/results/')]
 
 
 # noinspection PyArgumentList
@@ -655,4 +655,4 @@ def test_execute_questionnaire_blocked(run, qtbot, capfd):
         assert results[1] == 'True'  # the button was not clicked
         assert re.match(r'\d+-\d+-\d+ \d+:\d+:\d+.\d+', results[2])  # timestamp
         assert re.match(r'\d+-\d+-\d+ \d+:\d+:\d+.\d+', results[3])  # timestamp
-        os.remove(res_file)
+        [os.remove('./tests/results/'+fil) for fil in os.listdir('./tests/results/')]

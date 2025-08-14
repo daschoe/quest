@@ -98,10 +98,10 @@ def test_create(gui_init, qtbot):
             structure["Page 1"]["Question 1"][key] = value
     listify(gui_init.structure)
     listify(structure)
-
-    QTimer.singleShot(150, handle_dialog_error)
+    
+    #QTimer.singleShot(150, handle_dialog_error)
     validate_questionnaire(gui_init.structure, suppress=True)
-    QTimer.singleShot(150, handle_dialog_error)
+    #QTimer.singleShot(150, handle_dialog_error)
     validate_questionnaire(structure, suppress=True)
     assert gui_init.structure == structure
 
@@ -183,7 +183,7 @@ def test_execute_questionnaire_no_interaction(run, qtbot):
     assert results[0] == '1'  # participant number
     assert re.match(r'\d+-\d+-\d+ \d+:\d+:\d+.\d+', results[1])  # timestamp
     assert re.match(r'\d+-\d+-\d+ \d+:\d+:\d+.\d+', results[2])  # timestamp
-    os.remove("./tests/results/results_pt.csv")
+    [os.remove('./tests/results/'+fil) for fil in os.listdir('./tests/results/')]
 
 
 # noinspection PyArgumentList
@@ -210,4 +210,4 @@ def test_execute_questionnaire_no_interaction_blocked(run, qtbot):
         assert results[0] == '-1'  # participant number unknown
         assert re.match(r'\d+-\d+-\d+ \d+:\d+:\d+.\d+', results[1])  # timestamp
         assert re.match(r'\d+-\d+-\d+ \d+:\d+:\d+.\d+', results[2])  # timestamp
-        os.remove(res_file)
+        [os.remove('./tests/results/'+fil) for fil in os.listdir('./tests/results/')]

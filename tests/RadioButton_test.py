@@ -248,7 +248,7 @@ def test_start_id(gui_load, qtbot):
     assert results[1] == '100'  # second/last box checked and starts with 99
     assert re.match(r'\d+-\d+-\d+ \d+:\d+:\d+.\d+', results[2])  # timestamp
     assert re.match(r'\d+-\d+-\d+ \d+:\d+:\d+.\d+', results[3])  # timestamp
-    os.remove("./tests/results/results_rb.csv")
+    [os.remove('./tests/results/'+fil) for fil in os.listdir('./tests/results/')]
 
     #  -------- -1 ---------
     QTimer.singleShot(150, handle_dialog_error)
@@ -331,7 +331,7 @@ def test_start_id(gui_load, qtbot):
     assert results[1] == '1'  # second/last box checked and starts with 0
     assert re.match(r'\d+-\d+-\d+ \d+:\d+:\d+.\d+', results[2])  # timestamp
     assert re.match(r'\d+-\d+-\d+ \d+:\d+:\d+.\d+', results[3])  # timestamp
-    os.remove("./tests/results/results_rb.csv")
+    [os.remove('./tests/results/'+fil) for fil in os.listdir('./tests/results/')]
     gui_load.close()
 
 
@@ -358,7 +358,7 @@ def test_execute_questionnaire_no_interaction(run, qtbot):
     assert results[1] == '-1'  # no radiobutton checked
     assert re.match(r'\d+-\d+-\d+ \d+:\d+:\d+.\d+', results[2])  # timestamp
     assert re.match(r'\d+-\d+-\d+ \d+:\d+:\d+.\d+', results[3])  # timestamp
-    os.remove("./tests/results/results_rb.csv")
+    [os.remove('./tests/results/'+fil) for fil in os.listdir('./tests/results/')]
 
 
 # noinspection PyArgumentList
@@ -387,7 +387,7 @@ def test_execute_questionnaire_no_interaction_blocked(run, qtbot):
         assert results[1] == '-1'  # no radiobutton checked
         assert re.match(r'\d+-\d+-\d+ \d+:\d+:\d+.\d+', results[2])  # timestamp
         assert re.match(r'\d+-\d+-\d+ \d+:\d+:\d+.\d+', results[3])  # timestamp
-        os.remove(res_file)
+        [os.remove('./tests/results/'+fil) for fil in os.listdir('./tests/results/')]
 
 
 # noinspection PyArgumentList
@@ -411,7 +411,7 @@ def test_execute_questionnaire(run, qtbot):
     assert results[1] == '1'  # second/last box checked and starts with 0
     assert re.match(r'\d+-\d+-\d+ \d+:\d+:\d+.\d+', results[2])  # timestamp
     assert re.match(r'\d+-\d+-\d+ \d+:\d+:\d+.\d+', results[3])  # timestamp
-    os.remove("./tests/results/results_rb.csv")
+    [os.remove('./tests/results/'+fil) for fil in os.listdir('./tests/results/')]
 
 
 # noinspection PyArgumentList
@@ -443,4 +443,4 @@ def test_execute_questionnaire_blocked(run, qtbot):
         assert results[1] == '1'
         assert re.match(r'\d+-\d+-\d+ \d+:\d+:\d+.\d+', results[2])  # timestamp
         assert re.match(r'\d+-\d+-\d+ \d+:\d+:\d+.\d+', results[3])  # timestamp
-        os.remove(res_file)
+        [os.remove('./tests/results/'+fil) for fil in os.listdir('./tests/results/')]

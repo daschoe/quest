@@ -341,7 +341,7 @@ def test_labels(gui_load, qtbot):
 # noinspection PyArgumentList
 def test_start(gui_load, qtbot):
     if os.path.exists("./tests/results/results_sl.csv"):
-        os.remove("./tests/results/results_sl.csv")
+        [os.remove('./tests/results/'+fil) for fil in os.listdir('./tests/results/')]
 
     QTimer.singleShot(150, handle_dialog_error)
     error_found, warning_found, warning_details = validate_questionnaire(gui_load.structure)
@@ -404,7 +404,7 @@ def test_start(gui_load, qtbot):
     assert results[1] == '4'  # initial value within bounds (min<max<start)->max
     assert re.match(r'\d+-\d+-\d+ \d+:\d+:\d+.\d+', results[2])  # timestamp
     assert re.match(r'\d+-\d+-\d+ \d+:\d+:\d+.\d+', results[3])  # timestamp
-    os.remove("./tests/results/results_sl.csv")
+    [os.remove('./tests/results/'+fil) for fil in os.listdir('./tests/results/')]
 
     # smaller than min
     gui_load.gui.edit_layout.itemAt(start_pos, QFormLayout.ItemRole.FieldRole).widget().clear()
@@ -442,7 +442,7 @@ def test_start(gui_load, qtbot):
     assert results[1] == str(int(gui_load.structure["Page 1"]["Question 1"]["start"]))  # initial value within bounds (start<min<max)->min
     assert re.match(r'\d+-\d+-\d+ \d+:\d+:\d+.\d+', results[2])  # timestamp
     assert re.match(r'\d+-\d+-\d+ \d+:\d+:\d+.\d+', results[3])  # timestamp
-    os.remove("./tests/results/results_sl.csv")
+    [os.remove('./tests/results/'+fil) for fil in os.listdir('./tests/results/')]
 
     # somewhere in between
     gui_load.gui.edit_layout.itemAt(start_pos, QFormLayout.ItemRole.FieldRole).widget().clear()
@@ -480,7 +480,7 @@ def test_start(gui_load, qtbot):
     assert results[1] == '2'  # initial value within bounds
     assert re.match(r'\d+-\d+-\d+ \d+:\d+:\d+.\d+', results[2])  # timestamp
     assert re.match(r'\d+-\d+-\d+ \d+:\d+:\d+.\d+', results[3])  # timestamp
-    os.remove("./tests/results/results_sl.csv")
+    [os.remove('./tests/results/'+fil) for fil in os.listdir('./tests/results/')]
     
     # somewhere in between (negative range)
     gui_load.structure["Page 1"]["Question 1"]["min"] = 5
@@ -520,7 +520,7 @@ def test_start(gui_load, qtbot):
     assert results[1] == '2'  # initial value within bounds
     assert re.match(r'\d+-\d+-\d+ \d+:\d+:\d+.\d+', results[2])  # timestamp
     assert re.match(r'\d+-\d+-\d+ \d+:\d+:\d+.\d+', results[3])  # timestamp
-    os.remove("./tests/results/results_sl.csv")
+    [os.remove('./tests/results/'+fil) for fil in os.listdir('./tests/results/')]
     
     gui_load.structure["Page 1"]["Question 1"]["min"] = -1
     gui_load.structure["Page 1"]["Question 1"]["max"] = -6
@@ -559,7 +559,7 @@ def test_start(gui_load, qtbot):
     assert results[1] == '-2'  # initial value within bounds
     assert re.match(r'\d+-\d+-\d+ \d+:\d+:\d+.\d+', results[2])  # timestamp
     assert re.match(r'\d+-\d+-\d+ \d+:\d+:\d+.\d+', results[3])  # timestamp
-    os.remove("./tests/results/results_sl.csv")
+    [os.remove('./tests/results/'+fil) for fil in os.listdir('./tests/results/')]
     
 
     # reset to default
@@ -585,7 +585,7 @@ def test_start(gui_load, qtbot):
 # noinspection PyArgumentList
 def test_step(gui_load, qtbot):
     if os.path.exists("./tests/results/results_sl.csv"):
-        os.remove("./tests/results/results_sl.csv")
+        [os.remove('./tests/results/'+fil) for fil in os.listdir('./tests/results/')]
 
     QTimer.singleShot(150, handle_dialog_error)
     error_found, warning_found, warning_details = validate_questionnaire(gui_load.structure)
@@ -673,7 +673,7 @@ def test_step(gui_load, qtbot):
     assert results[1] == '0'  # initial value
     assert re.match(r'\d+-\d+-\d+ \d+:\d+:\d+.\d+', results[2])  # timestamp
     assert re.match(r'\d+-\d+-\d+ \d+:\d+:\d+.\d+', results[3])  # timestamp
-    os.remove("./tests/results/results_sl.csv")
+    [os.remove('./tests/results/'+fil) for fil in os.listdir('./tests/results/')]
 
     # smaller than 1
     gui_load.structure["Page 1"]["Question 1"]["max"] = "4"
@@ -712,7 +712,7 @@ def test_step(gui_load, qtbot):
     assert results[1] == '0.0'  # initial value
     assert re.match(r'\d+-\d+-\d+ \d+:\d+:\d+.\d+', results[2])  # timestamp
     assert re.match(r'\d+-\d+-\d+ \d+:\d+:\d+.\d+', results[3])  # timestamp
-    os.remove("./tests/results/results_sl.csv")
+    [os.remove('./tests/results/'+fil) for fil in os.listdir('./tests/results/')]
 
     # reset to default
     gui_load.gui.edit_layout.itemAt(start_pos, QFormLayout.ItemRole.FieldRole).widget().clear()
@@ -735,7 +735,7 @@ def test_step(gui_load, qtbot):
 # noinspection PyArgumentList
 def test_min(gui_load, qtbot):
     if os.path.exists("./tests/results/results_sl.csv"):
-        os.remove("./tests/results/results_sl.csv")
+        [os.remove('./tests/results/'+fil) for fil in os.listdir('./tests/results/')]
 
     QTimer.singleShot(150, handle_dialog_error)
     error_found, warning_found, warning_details = validate_questionnaire(gui_load.structure)
@@ -813,7 +813,7 @@ def test_min(gui_load, qtbot):
     assert results[1] == '4'  # initial value < max < min -> max
     assert re.match(r'\d+-\d+-\d+ \d+:\d+:\d+.\d+', results[2])  # timestamp
     assert re.match(r'\d+-\d+-\d+ \d+:\d+:\d+.\d+', results[3])  # timestamp
-    os.remove("./tests/results/results_sl.csv")
+    [os.remove('./tests/results/'+fil) for fil in os.listdir('./tests/results/')]
 
     # with labels
     cb_pos = find_row_by_label(gui_load.gui.edit_layout, 'labelled')
@@ -850,7 +850,7 @@ def test_min(gui_load, qtbot):
     assert results[1] == '4'  # initial value < max < min -> max
     assert re.match(r'\d+-\d+-\d+ \d+:\d+:\d+.\d+', results[2])  # timestamp
     assert re.match(r'\d+-\d+-\d+ \d+:\d+:\d+.\d+', results[3])  # timestamp
-    os.remove("./tests/results/results_sl.csv")
+    [os.remove('./tests/results/'+fil) for fil in os.listdir('./tests/results/')]
     gui_load.gui.edit_layout.itemAt(cb_pos, QFormLayout.ItemRole.FieldRole).widget().click()
     assert not gui_load.gui.edit_layout.itemAt(cb_pos, QFormLayout.ItemRole.FieldRole).widget().isChecked()
 
@@ -892,7 +892,7 @@ def test_min(gui_load, qtbot):
     assert results[1] == str(int(gui_load.structure["Page 1"]["Question 1"]["start"]))  # initial value
     assert re.match(r'\d+-\d+-\d+ \d+:\d+:\d+.\d+', results[2])  # timestamp
     assert re.match(r'\d+-\d+-\d+ \d+:\d+:\d+.\d+', results[3])  # timestamp
-    os.remove("./tests/results/results_sl.csv")
+    [os.remove('./tests/results/'+fil) for fil in os.listdir('./tests/results/')]
 
     # initial value
     gui_load.structure["Page 1"]["Question 1"]["start"] = 0
@@ -903,7 +903,7 @@ def test_min(gui_load, qtbot):
 # noinspection PyArgumentList
 def test_max(gui_load, qtbot):
     if os.path.exists("./tests/results/results_sl.csv"):
-        os.remove("./tests/results/results_sl.csv")
+        [os.remove('./tests/results/'+fil) for fil in os.listdir('./tests/results/')]
 
     QTimer.singleShot(150, handle_dialog_error)
     error_found, warning_found, warning_details = validate_questionnaire(gui_load.structure)
@@ -981,7 +981,7 @@ def test_max(gui_load, qtbot):
     assert results[1] == str(gui_load.structure["Page 1"]["Question 1"]["start"])  # initial value
     assert re.match(r'\d+-\d+-\d+ \d+:\d+:\d+.\d+', results[2])  # timestamp
     assert re.match(r'\d+-\d+-\d+ \d+:\d+:\d+.\d+', results[3])  # timestamp
-    os.remove("./tests/results/results_sl.csv")
+    [os.remove('./tests/results/'+fil) for fil in os.listdir('./tests/results/')]
 
     # with labels
     cb_pos = find_row_by_label(gui_load.gui.edit_layout, 'labelled')
@@ -1018,7 +1018,7 @@ def test_max(gui_load, qtbot):
     assert results[1] == str(gui_load.structure["Page 1"]["Question 1"]["start"])  # initial value
     assert re.match(r'\d+-\d+-\d+ \d+:\d+:\d+.\d+', results[2])  # timestamp
     assert re.match(r'\d+-\d+-\d+ \d+:\d+:\d+.\d+', results[3])  # timestamp
-    os.remove("./tests/results/results_sl.csv")
+    [os.remove('./tests/results/'+fil) for fil in os.listdir('./tests/results/')]
     gui_load.gui.edit_layout.itemAt(cb_pos, QFormLayout.ItemRole.FieldRole).widget().click()
     assert not gui_load.gui.edit_layout.itemAt(cb_pos, QFormLayout.ItemRole.FieldRole).widget().isChecked()
 
@@ -1059,7 +1059,7 @@ def test_max(gui_load, qtbot):
     assert results[1] == str(int(gui_load.structure["Page 1"]["Question 1"]["start"]))  # initial value
     assert re.match(r'\d+-\d+-\d+ \d+:\d+:\d+.\d+', results[2])  # timestamp
     assert re.match(r'\d+-\d+-\d+ \d+:\d+:\d+.\d+', results[3])  # timestamp
-    os.remove("./tests/results/results_sl.csv")
+    [os.remove('./tests/results/'+fil) for fil in os.listdir('./tests/results/')]
 
     gui_load.structure["Page 1"]["Question 1"]["start"] = 0
     gui_load.save()
@@ -1069,7 +1069,7 @@ def test_max(gui_load, qtbot):
 # noinspection PyArgumentList
 def test_text_position(gui_load, qtbot):
     if os.path.exists("./tests/results/results_sl.csv"):
-        os.remove("./tests/results/results_sl.csv")
+        [os.remove('./tests/results/'+fil) for fil in os.listdir('./tests/results/')]
 
     QTimer.singleShot(150, handle_dialog_error)
     error_found, warning_found, warning_details = validate_questionnaire(gui_load.structure)
@@ -1094,7 +1094,7 @@ def test_text_position(gui_load, qtbot):
     QTimer.singleShot(100, handle_dialog)
     QTest.mouseClick(test_gui.forwardbutton, Qt.MouseButton.LeftButton, delay=1000)
     test_gui.close()
-    os.remove("./tests/results/results_sl.csv")
+    [os.remove('./tests/results/'+fil) for fil in os.listdir('./tests/results/')]
 
     # change position to above
     gui_load.gui.edit_layout.itemAt(qa_pos, QFormLayout.ItemRole.FieldRole).widget().click()
@@ -1115,7 +1115,7 @@ def test_text_position(gui_load, qtbot):
     QTimer.singleShot(100, handle_dialog)
     QTest.mouseClick(test_gui.forwardbutton, Qt.MouseButton.LeftButton, delay=1000)
     test_gui.close()
-    os.remove("./tests/results/results_sl.csv")
+    [os.remove('./tests/results/'+fil) for fil in os.listdir('./tests/results/')]
     # revert to original
     gui_load.gui.edit_layout.itemAt(qa_pos, QFormLayout.ItemRole.FieldRole).widget().click()
     assert not gui_load.gui.edit_layout.itemAt(qa_pos, QFormLayout.ItemRole.FieldRole).widget().isChecked()
@@ -1132,7 +1132,7 @@ def test_text_position(gui_load, qtbot):
 # noinspection PyArgumentList
 def test_header(gui_load, qtbot):
     if os.path.exists("./tests/results/results_sl.csv"):
-        os.remove("./tests/results/results_sl.csv")
+        [os.remove('./tests/results/'+fil) for fil in os.listdir('./tests/results/')]
 
     QTimer.singleShot(150, handle_dialog_error)
     error_found, warning_found, warning_details = validate_questionnaire(gui_load.structure)
@@ -1157,7 +1157,7 @@ def test_header(gui_load, qtbot):
     QTimer.singleShot(100, handle_dialog)
     QTest.mouseClick(test_gui.forwardbutton, Qt.MouseButton.LeftButton, delay=1000)
     test_gui.close()
-    os.remove("./tests/results/results_sl.csv")
+    [os.remove('./tests/results/'+fil) for fil in os.listdir('./tests/results/')]
 
     # add header
     gui_load.gui.edit_layout.itemAt(header_pos, QFormLayout.ItemRole.FieldRole).widget().clear()
@@ -1181,7 +1181,7 @@ def test_header(gui_load, qtbot):
     QTimer.singleShot(100, handle_dialog)
     QTest.mouseClick(test_gui.forwardbutton, Qt.MouseButton.LeftButton, delay=1000)
     test_gui.close()
-    os.remove("./tests/results/results_sl.csv")
+    [os.remove('./tests/results/'+fil) for fil in os.listdir('./tests/results/')]
 
     # revert to original
     gui_load.gui.edit_layout.itemAt(header_pos, QFormLayout.ItemRole.FieldRole).widget().clear()
@@ -1200,7 +1200,7 @@ def test_header(gui_load, qtbot):
 # noinspection PyArgumentList
 def test_execute_questionnaire_no_interaction(run, qtbot):
     if os.path.exists("./tests/results/results_sl.csv"):
-        os.remove("./tests/results/results_sl.csv")
+        [os.remove('./tests/results/'+fil) for fil in os.listdir('./tests/results/')]
     assert run.Stack.count() == 1
 
     QTimer.singleShot(100, handle_dialog)
@@ -1222,7 +1222,7 @@ def test_execute_questionnaire_no_interaction(run, qtbot):
     assert results[1] == '0'  # initial value
     assert re.match(r'\d+-\d+-\d+ \d+:\d+:\d+.\d+', results[2])  # timestamp
     assert re.match(r'\d+-\d+-\d+ \d+:\d+:\d+.\d+', results[3])  # timestamp
-    os.remove("./tests/results/results_sl.csv")
+    [os.remove('./tests/results/'+fil) for fil in os.listdir('./tests/results/')]
 
 
 # noinspection PyArgumentList
@@ -1251,13 +1251,13 @@ def test_execute_questionnaire_no_interaction_blocked(run, qtbot):
         assert results[1] == '0'  # initial value
         assert re.match(r'\d+-\d+-\d+ \d+:\d+:\d+.\d+', results[2])  # timestamp
         assert re.match(r'\d+-\d+-\d+ \d+:\d+:\d+.\d+', results[3])  # timestamp
-        os.remove(res_file)
+        [os.remove('./tests/results/'+fil) for fil in os.listdir('./tests/results/')]
 
 
 # noinspection PyArgumentList
 def test_execute_questionnaire(run, qtbot):
     if os.path.exists("./tests/results/results_sl.csv"):
-        os.remove("./tests/results/results_sl.csv")
+        [os.remove('./tests/results/'+fil) for fil in os.listdir('./tests/results/')]
     assert run.Stack.count() == 1
     for child in run.Stack.currentWidget().children():
         if isinstance(child, Slider.Slider) or str(child.__class__)=="<class 'Slider.Slider'>":
@@ -1279,7 +1279,7 @@ def test_execute_questionnaire(run, qtbot):
     assert results[1] == '2'  # middle of 0 and 4 is 2
     assert re.match(r'\d+-\d+-\d+ \d+:\d+:\d+.\d+', results[2])  # timestamp
     assert re.match(r'\d+-\d+-\d+ \d+:\d+:\d+.\d+', results[3])  # timestamp
-    os.remove("./tests/results/results_sl.csv")
+    [os.remove('./tests/results/'+fil) for fil in os.listdir('./tests/results/')]
 
 
 # noinspection PyArgumentList
@@ -1313,4 +1313,4 @@ def test_execute_questionnaire_blocked(run, qtbot):
         assert results[1] == '2'
         assert re.match(r'\d+-\d+-\d+ \d+:\d+:\d+.\d+', results[2])  # timestamp
         assert re.match(r'\d+-\d+-\d+ \d+:\d+:\d+.\d+', results[3])  # timestamp
-        os.remove(res_file)
+        [os.remove('./tests/results/'+fil) for fil in os.listdir('./tests/results/')]

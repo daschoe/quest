@@ -216,7 +216,7 @@ def test_execute_questionnaire_no_interaction(run, qtbot):
     assert results[3] == 'False'  # third cb not checked
     assert re.match(r'\d+-\d+-\d+ \d+:\d+:\d+.\d+', results[4])  # timestamp
     assert re.match(r'\d+-\d+-\d+ \d+:\d+:\d+.\d+', results[5])  # timestamp
-    os.remove("./tests/results/results_cb.csv")
+    [os.remove('./tests/results/'+fil) for fil in os.listdir('./tests/results/')]
     QTest.qWait(5000)
 
 
@@ -250,7 +250,7 @@ def test_execute_questionnaire_no_interaction_blocked(run, qtbot):
         assert results[3] == 'False'  # third cb not checked
         assert re.match(r'\d+-\d+-\d+ \d+:\d+:\d+.\d+', results[4])  # timestamp
         assert re.match(r'\d+-\d+-\d+ \d+:\d+:\d+.\d+', results[5])  # timestamp
-        os.remove(res_file)
+        [os.remove('./tests/results/'+fil) for fil in os.listdir('./tests/results/')]
         QTest.qWait(5000)
 
 
@@ -280,7 +280,7 @@ def test_execute_questionnaire(run, qtbot):
     assert results[3] == 'True'  # third box checked
     assert re.match(r'\d+-\d+-\d+ \d+:\d+:\d+.\d+', results[4])  # timestamp
     assert re.match(r'\d+-\d+-\d+ \d+:\d+:\d+.\d+', results[5])  # timestamp
-    os.remove("./tests/results/results_cb.csv")
+    [os.remove('./tests/results/'+fil) for fil in os.listdir('./tests/results/')]
     QTest.qWait(5000)
 
 
@@ -320,5 +320,5 @@ def test_execute_questionnaire_blocked(run, qtbot):
         assert results[3] == 'True'  # third cb checked
         assert re.match(r'\d+-\d+-\d+ \d+:\d+:\d+.\d+', results[4])  # timestamp
         assert re.match(r'\d+-\d+-\d+ \d+:\d+:\d+.\d+', results[5])  # timestamp
-        os.remove(res_file)
+        [os.remove('./tests/results/'+fil) for fil in os.listdir('./tests/results/')]
         QTest.qWait(5000)

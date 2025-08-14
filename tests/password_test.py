@@ -301,7 +301,7 @@ def test_policy(gui_load, qtbot):
 # noinspection PyArgumentList
 def test_execute_questionnaire_no_interaction(run, qtbot):
     if os.path.exists("./tests/results/results_pw.csv"):
-        os.remove("./tests/results/results_pw.csv")
+        [os.remove('./tests/results/'+fil) for fil in os.listdir('./tests/results/')]
     assert run.Stack.count() == 1
 
     QTimer.singleShot(100, handle_dialog)
@@ -323,7 +323,7 @@ def test_execute_questionnaire_no_interaction(run, qtbot):
     assert results[1] == ''
     assert re.match(r'\d+-\d+-\d+ \d+:\d+:\d+.\d+', results[2])  # timestamp
     assert re.match(r'\d+-\d+-\d+ \d+:\d+:\d+.\d+', results[3])  # timestamp
-    os.remove("./tests/results/results_pw.csv")
+    [os.remove('./tests/results/'+fil) for fil in os.listdir('./tests/results/')]
 
 
 # noinspection PyArgumentList
@@ -352,13 +352,13 @@ def test_execute_questionnaire_no_interaction_blocked(run, qtbot):
         assert results[1] == ''
         assert re.match(r'\d+-\d+-\d+ \d+:\d+:\d+.\d+', results[2])  # timestamp
         assert re.match(r'\d+-\d+-\d+ \d+:\d+:\d+.\d+', results[3])  # timestamp
-        os.remove(res_file)
+        [os.remove('./tests/results/'+fil) for fil in os.listdir('./tests/results/')]
 
 
 # noinspection PyArgumentList
 def test_execute_questionnaire_type_pw(run, qtbot):
     if os.path.exists("./tests/results/results_pw.csv"):
-        os.remove("./tests/results/results_pw.csv")
+        [os.remove('./tests/results/'+fil) for fil in os.listdir('./tests/results/')]
     assert run.Stack.count() == 1
     for child in run.Stack.currentWidget().children():
         if isinstance(child, PasswordEntry):
@@ -395,7 +395,7 @@ def test_execute_questionnaire_type_pw(run, qtbot):
     assert results[1] == 'password'
     assert re.match(r'\d+-\d+-\d+ \d+:\d+:\d+.\d+', results[2])  # timestamp
     assert re.match(r'\d+-\d+-\d+ \d+:\d+:\d+.\d+', results[3])  # timestamp
-    os.remove("./tests/results/results_pw.csv")
+    [os.remove('./tests/results/'+fil) for fil in os.listdir('./tests/results/')]
 
 
 # noinspection PyArgumentList
@@ -439,13 +439,13 @@ def test_execute_questionnaire_blocked(run, qtbot):
         assert results[1] == 'password'
         assert re.match(r'\d+-\d+-\d+ \d+:\d+:\d+.\d+', results[2])  # timestamp
         assert re.match(r'\d+-\d+-\d+ \d+:\d+:\d+.\d+', results[3])  # timestamp
-        os.remove(res_file)
+        [os.remove('./tests/results/'+fil) for fil in os.listdir('./tests/results/')]
 
 
 # noinspection PyArgumentList
 def test_execute_questionnaire_type_wrong_pw(run, qtbot):
     if os.path.exists("./tests/results/results_pw.csv"):
-        os.remove("./tests/results/results_pw.csv")
+        [os.remove('./tests/results/'+fil) for fil in os.listdir('./tests/results/')]
     assert run.Stack.count() == 1
     for child in run.Stack.currentWidget().children():
         if isinstance(child, PasswordEntry):
@@ -485,4 +485,4 @@ def test_execute_questionnaire_type_wrong_pw(run, qtbot):
     assert results[1] == 'password'
     assert re.match(r'\d+-\d+-\d+ \d+:\d+:\d+.\d+', results[2])  # timestamp
     assert re.match(r'\d+-\d+-\d+ \d+:\d+:\d+.\d+', results[3])  # timestamp
-    os.remove("./tests/results/results_pw.csv")
+    [os.remove('./tests/results/'+fil) for fil in os.listdir('./tests/results/')]

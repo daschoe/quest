@@ -294,7 +294,7 @@ def test_end_cue(gui_load, qtbot):
 # noinspection PyArgumentList
 def test_play_once(gui_load, qtbot):
     if os.path.exists("./tests/results/results_pl.csv"):
-        os.remove("./tests/results/results_pl.csv")
+        [os.remove('./tests/results/'+fil) for fil in os.listdir('./tests/results/')]
 
     QTimer.singleShot(150, handle_dialog_error)
     error_found, warning_found, warning_details = validate_questionnaire(gui_load.structure)
@@ -420,7 +420,7 @@ def test_play_once(gui_load, qtbot):
     thread_audio.stop(0.1)
     QTest.qWait(1000)
 
-    os.remove("./tests/results/results_pl.csv")
+    [os.remove('./tests/results/'+fil) for fil in os.listdir('./tests/results/')]
     gui_load.close()
 
 
@@ -585,7 +585,7 @@ def test_timer_and_two_pages(gui_load2, qtbot):
     QTest.qWait(1000)
 
     # reset file
-    os.remove("./tests/results/results_pl.csv")
+    [os.remove('./tests/results/'+fil) for fil in os.listdir('./tests/results/')]
     gui_load2.gui.edit_layout.itemAt(time_pos, QFormLayout.ItemRole.FieldRole).widget().clear()
     gui_load2.gui.edit_layout.itemAt(time_pos, QFormLayout.ItemRole.FieldRole).widget().editingFinished.emit()
     assert gui_load2.structure["Page 1"]["Question 1"]["timer"] == ''
@@ -628,7 +628,7 @@ def test_timer_and_two_pages(gui_load2, qtbot):
     assert results[2] == ''  # text field
     assert re.match(r'\d+-\d+-\d+ \d+:\d+:\d+.\d+', results[3])  # timestamp
     assert re.match(r'\d+-\d+-\d+ \d+:\d+:\d+.\d+', results[4])  # timestamp
-    os.remove("./tests/results/results_pl.csv")
+    [os.remove('./tests/results/'+fil) for fil in os.listdir('./tests/results/')]
     thread_audio.stop(0.1)
     QTest.qWait(1000)
     gui_load2.close()
@@ -683,7 +683,7 @@ def test_play_button_text(gui_load, qtbot):
     assert not warning_found
     QTest.keyClicks(gui_load, 's', modifier=Qt.KeyboardModifier.ControlModifier, delay=1000)
 
-    os.remove("./tests/results/results_pl.csv")
+    [os.remove('./tests/results/'+fil) for fil in os.listdir('./tests/results/')]
     gui_load.close()
 
 
@@ -711,7 +711,7 @@ def test_execute_questionnaire_no_interaction(run, qtbot):
     assert re.match(r'\d+-\d+-\d+ \d+:\d+:\d+.\d+', results[2])  # timestamp
     assert re.match(r'\d+-\d+-\d+ \d+:\d+:\d+.\d+', results[3])  # timestamp
     assert thread_audio.message_stack[-1] == ("/action", 40297)
-    os.remove("./tests/results/results_pl.csv")
+    [os.remove('./tests/results/'+fil) for fil in os.listdir('./tests/results/')]
     thread_audio.stop(0.1)
     QTest.qWait(1000)
 
@@ -743,7 +743,7 @@ def test_execute_questionnaire_no_interaction_blocked(run, qtbot):
         assert re.match(r'\d+-\d+-\d+ \d+:\d+:\d+.\d+', results[2])  # timestamp
         assert re.match(r'\d+-\d+-\d+ \d+:\d+:\d+.\d+', results[3])  # timestamp
         assert thread_audio.message_stack[-1] == ("/action", 40297)
-        os.remove(res_file)
+        [os.remove('./tests/results/'+fil) for fil in os.listdir('./tests/results/')]
         thread_audio.stop(0.1)
         QTest.qWait(1000)
 
@@ -751,7 +751,7 @@ def test_execute_questionnaire_no_interaction_blocked(run, qtbot):
 # noinspection PyArgumentList
 def test_execute_questionnaire(run, qtbot):
     if os.path.exists("./tests/results/results_pl.csv"):
-        os.remove("./tests/results/results_pl.csv")
+        [os.remove('./tests/results/'+fil) for fil in os.listdir('./tests/results/')]
     assert run.Stack.count() == 1
     for child in run.Stack.currentWidget().children():
         if isinstance(child, Player):
@@ -777,7 +777,7 @@ def test_execute_questionnaire(run, qtbot):
     assert re.match(r'\[\d.\d+]', results[1])  # list of duration
     assert re.match(r'\d+-\d+-\d+ \d+:\d+:\d+.\d+', results[2])  # timestamp
     assert re.match(r'\d+-\d+-\d+ \d+:\d+:\d+.\d+', results[3])  # timestamp
-    os.remove("./tests/results/results_pl.csv")
+    [os.remove('./tests/results/'+fil) for fil in os.listdir('./tests/results/')]
     thread_audio.stop(0.1)
     QTest.qWait(1000)
 
@@ -816,7 +816,7 @@ def test_execute_questionnaire_blocked(run, qtbot):
         assert re.match(r'\[\d.\d+]', results[1])
         assert re.match(r'\d+-\d+-\d+ \d+:\d+:\d+.\d+', results[2])  # timestamp
         assert re.match(r'\d+-\d+-\d+ \d+:\d+:\d+.\d+', results[3])  # timestamp
-        os.remove(res_file)
+        [os.remove('./tests/results/'+fil) for fil in os.listdir('./tests/results/')]
         thread_audio.stop(0.1)
         QTest.qWait(1000)
 
@@ -887,7 +887,7 @@ def test_buttons(gui_load, qtbot):
     assert re.match(r'\[\d.\d+]', results[1])  # list of duration
     assert re.match(r'\d+-\d+-\d+ \d+:\d+:\d+.\d+', results[2])  # timestamp
     assert re.match(r'\d+-\d+-\d+ \d+:\d+:\d+.\d+', results[3])  # timestamp
-    os.remove("./tests/results/results_pl.csv")
+    [os.remove('./tests/results/'+fil) for fil in os.listdir('./tests/results/')]
 
     # just stop button
     gui_load.gui.edit_layout.itemAt(btn_pos, QFormLayout.ItemRole.FieldRole).itemAt(2).widget().click()
@@ -934,7 +934,7 @@ def test_buttons(gui_load, qtbot):
     assert re.match(r'\[\d.\d+]', results[1])  # list of duration
     assert re.match(r'\d+-\d+-\d+ \d+:\d+:\d+.\d+', results[2])  # timestamp
     assert re.match(r'\d+-\d+-\d+ \d+:\d+:\d+.\d+', results[3])  # timestamp
-    os.remove("./tests/results/results_pl.csv")
+    [os.remove('./tests/results/'+fil) for fil in os.listdir('./tests/results/')]
 
     # stop and pause
     gui_load.gui.edit_layout.itemAt(btn_pos, QFormLayout.ItemRole.FieldRole).itemAt(1).widget().click()
@@ -1006,7 +1006,7 @@ def test_buttons(gui_load, qtbot):
     assert re.match(r'\[\d.\d+, \d.\d+]', results[1])  # list of duration
     assert re.match(r'\d+-\d+-\d+ \d+:\d+:\d+.\d+', results[2])  # timestamp
     assert re.match(r'\d+-\d+-\d+ \d+:\d+:\d+.\d+', results[3])  # timestamp
-    os.remove("./tests/results/results_pl.csv")
+    [os.remove('./tests/results/'+fil) for fil in os.listdir('./tests/results/')]
 
     # just play button
     gui_load.gui.edit_layout.itemAt(btn_pos, QFormLayout.ItemRole.FieldRole).itemAt(2).widget().click()
@@ -1055,7 +1055,7 @@ def test_buttons(gui_load, qtbot):
     assert re.match(r'\[\d.\d+, \d.\d+]', results[1])  # list of duration
     assert re.match(r'\d+-\d+-\d+ \d+:\d+:\d+.\d+', results[2])  # timestamp
     assert re.match(r'\d+-\d+-\d+ \d+:\d+:\d+.\d+', results[3])  # timestamp
-    os.remove("./tests/results/results_pl.csv")
+    [os.remove('./tests/results/'+fil) for fil in os.listdir('./tests/results/')]
 
     # reset file
     for btn in range(gui_load.gui.edit_layout.itemAt(btn_pos, QFormLayout.ItemRole.FieldRole).count()):
@@ -1131,7 +1131,7 @@ def test_video(gui_load2, qtbot):
     thread_audio.stop(0.1)
     thread_video.stop(0.1)
     QTest.qWait(1000)
-    os.remove("./tests/results/results_pl.csv")
+    [os.remove('./tests/results/'+fil) for fil in os.listdir('./tests/results/')]
 
     # MadMapper
     gui_load2.structure["video_player"] = "MadMapper"
@@ -1161,7 +1161,7 @@ def test_video(gui_load2, qtbot):
     thread_audio.stop(0.1)
     thread_video.stop(0.1)
     QTest.qWait(1000)
-    os.remove("./tests/results/results_pl.csv")
+    [os.remove('./tests/results/'+fil) for fil in os.listdir('./tests/results/')]
 
     gui_load2.structure.pop("video_ip")
     gui_load2.structure.pop("video_port")
@@ -1238,7 +1238,7 @@ def test_pupil(gui_load, qtbot, capfd):
     test_gui.close()
     thread_audio.stop(0.1)
     QTest.qWait(1000)
-    os.remove("./tests/results/results_pl.csv")
+    [os.remove('./tests/results/'+fil) for fil in os.listdir('./tests/results/')]
 
     # reset file
     gui_load.structure.pop("pupil_ip")

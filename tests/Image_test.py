@@ -285,7 +285,7 @@ def test_scale(gui_load, qtbot):
     QTest.keyClicks(gui_load, 's', modifier=Qt.KeyboardModifier.ControlModifier, delay=1000)
     QTest.qWait(2000)
     gui_load.close()
-    os.remove("./tests/results/results_img.csv")
+    [os.remove('./tests/results/'+fil) for fil in os.listdir('./tests/results/')]
 
 
 # noinspection PyArgumentList
@@ -407,7 +407,7 @@ def test_move(gui_load, qtbot):
     QTest.keyClicks(gui_load, 's', modifier=Qt.KeyboardModifier.ControlModifier, delay=1000)
     QTest.qWait(2000)
     gui_load.close()
-    os.remove("./tests/results/results_img.csv")
+    [os.remove('./tests/results/'+fil) for fil in os.listdir('./tests/results/')]
 
 
 # noinspection PyArgumentList
@@ -543,7 +543,7 @@ def test_image_position(gui_load, qtbot, capfd):
     gui_load.structure["Page 1"]["Image"]["y_pos"] = 400
     QTest.keyClicks(gui_load, 's', modifier=Qt.KeyboardModifier.ControlModifier, delay=1000)
     gui_load.save()
-    os.remove("./tests/results/results_img.csv")
+    [os.remove('./tests/results/'+fil) for fil in os.listdir('./tests/results/')]
     gui_load.close()
 
 
@@ -573,7 +573,7 @@ def test_execute_questionnaire_no_interaction(run, qtbot):
     assert results[0] == '1'  # participant number
     assert re.match(r'\d+-\d+-\d+ \d+:\d+:\d+.\d+', results[1])  # timestamp
     assert re.match(r'\d+-\d+-\d+ \d+:\d+:\d+.\d+', results[2])  # timestamp
-    os.remove("./tests/results/results_img.csv")
+    [os.remove('./tests/results/'+fil) for fil in os.listdir('./tests/results/')]
 
 
 # noinspection PyArgumentList
@@ -600,4 +600,4 @@ def test_execute_questionnaire_no_interaction_blocked(run, qtbot):
         assert results[0] == '-1'  # participant number unknown
         assert re.match(r'\d+-\d+-\d+ \d+:\d+:\d+.\d+', results[1])  # timestamp
         assert re.match(r'\d+-\d+-\d+ \d+:\d+:\d+.\d+', results[2])  # timestamp
-        os.remove(res_file)
+        [os.remove('./tests/results/'+fil) for fil in os.listdir('./tests/results/')]

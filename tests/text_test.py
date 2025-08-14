@@ -324,7 +324,7 @@ def test_policy_enable(gui_load, qtbot):
 # noinspection PyArgumentList
 def test_execute_questionnaire_no_interaction(run, qtbot):
     if os.path.exists("./tests/results/results_tf.csv"):
-        os.remove("./tests/results/results_tf.csv")
+        [os.remove('./tests/results/'+fil) for fil in os.listdir('./tests/results/')]
     assert run.Stack.count() == 1
     found_le = False
     found_te = False
@@ -355,7 +355,7 @@ def test_execute_questionnaire_no_interaction(run, qtbot):
     assert results[1] == ''
     assert re.match(r'\d+-\d+-\d+ \d+:\d+:\d+.\d+', results[2])  # timestamp
     assert re.match(r'\d+-\d+-\d+ \d+:\d+:\d+.\d+', results[3])  # timestamp
-    os.remove("./tests/results/results_tf.csv")
+    [os.remove('./tests/results/'+fil) for fil in os.listdir('./tests/results/')]
 
 
 # noinspection PyArgumentList
@@ -384,13 +384,13 @@ def test_execute_questionnaire_no_interaction_blocked(run, qtbot):
         assert results[1] == ''
         assert re.match(r'\d+-\d+-\d+ \d+:\d+:\d+.\d+', results[2])  # timestamp
         assert re.match(r'\d+-\d+-\d+ \d+:\d+:\d+.\d+', results[3])  # timestamp
-        os.remove(res_file)
+        [os.remove('./tests/results/'+fil) for fil in os.listdir('./tests/results/')]
 
 
 # noinspection PyArgumentList
 def test_execute_questionnaire(run, qtbot):
     if os.path.exists("./tests/results/results_tf.csv"):
-        os.remove("./tests/results/results_tf.csv")
+        [os.remove('./tests/results/'+fil) for fil in os.listdir('./tests/results/')]
     assert run.Stack.count() == 1
     for child in run.Stack.currentWidget().children():
         if isinstance(child, QLineEdit):
@@ -417,7 +417,7 @@ def test_execute_questionnaire(run, qtbot):
     assert results[1] == 'texttext'
     assert re.match(r'\d+-\d+-\d+ \d+:\d+:\d+.\d+', results[2])  # timestamp
     assert re.match(r'\d+-\d+-\d+ \d+:\d+:\d+.\d+', results[3])  # timestamp
-    os.remove("./tests/results/results_tf.csv")
+    [os.remove('./tests/results/'+fil) for fil in os.listdir('./tests/results/')]
 
 
 # noinspection PyArgumentList
@@ -453,7 +453,7 @@ def test_execute_questionnaire_blocked(run, qtbot):
         assert results[1] == 'texttext'
         assert re.match(r'\d+-\d+-\d+ \d+:\d+:\d+.\d+', results[2])  # timestamp
         assert re.match(r'\d+-\d+-\d+ \d+:\d+:\d+.\d+', results[3])  # timestamp
-        os.remove(res_file)
+        [os.remove('./tests/results/'+fil) for fil in os.listdir('./tests/results/')]
 
 
 # noinspection PyArgumentList
@@ -487,7 +487,7 @@ def test_execute_textedit(gui_load, qtbot):
     assert not policy_cb.isEnabled()
 
     if os.path.exists("./tests/results/results_tf.csv"):
-        os.remove("./tests/results/results_tf.csv")
+        [os.remove('./tests/results/'+fil) for fil in os.listdir('./tests/results/')]
     gui_load.gui.refresh_button.click()
     QTest.keyClicks(gui_load, 's', modifier=Qt.KeyboardModifier.ControlModifier, delay=1000)
     test_gui = StackedWindowGui(os.path.join(os.getcwd(), "tests/tftest.txt"))
@@ -518,7 +518,7 @@ def test_execute_textedit(gui_load, qtbot):
     assert results[1] == 'texttext'
     assert re.match(r'\d+-\d+-\d+ \d+:\d+:\d+.\d+', results[2])  # timestamp
     assert re.match(r'\d+-\d+-\d+ \d+:\d+:\d+.\d+', results[3])  # timestamp
-    os.remove("./tests/results/results_tf.csv")
+    [os.remove('./tests/results/'+fil) for fil in os.listdir('./tests/results/')]
 
     assert hbox.findChild(QButtonGroup).checkedId() == 1
     assert hbox.itemAt(1).widget().isChecked()

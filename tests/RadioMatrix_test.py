@@ -306,7 +306,7 @@ def test_answers(gui_load, qtbot):
 # noinspection PyArgumentList
 def test_start_id(gui_load, qtbot):
     if os.path.exists("./tests/results/results_rm.csv"):
-        os.remove("./tests/results/results_rm.csv")
+        [os.remove('./tests/results/'+fil) for fil in os.listdir('./tests/results/')]
 
     QTimer.singleShot(150, handle_dialog_error)
     error_found, warning_found, warning_details = validate_questionnaire(gui_load.structure)
@@ -361,7 +361,7 @@ def test_start_id(gui_load, qtbot):
     assert results[3] == '[1, 2]'  # order
     assert re.match(r'\d+-\d+-\d+ \d+:\d+:\d+.\d+', results[4])  # timestamp
     assert re.match(r'\d+-\d+-\d+ \d+:\d+:\d+.\d+', results[5])  # timestamp
-    os.remove("./tests/results/results_rm.csv")
+    [os.remove('./tests/results/'+fil) for fil in os.listdir('./tests/results/')]
 
     #  -------- -1 ---------
     QTimer.singleShot(150, handle_dialog_error)
@@ -448,7 +448,7 @@ def test_start_id(gui_load, qtbot):
     assert results[3] == '[1, 2]'  # order
     assert re.match(r'\d+-\d+-\d+ \d+:\d+:\d+.\d+', results[4])  # timestamp
     assert re.match(r'\d+-\d+-\d+ \d+:\d+:\d+.\d+', results[5])  # timestamp
-    os.remove("./tests/results/results_rm.csv")
+    [os.remove('./tests/results/'+fil) for fil in os.listdir('./tests/results/')]
     gui_load.close()
 
 
@@ -589,7 +589,7 @@ def test_questions(gui_load, qtbot):
 # noinspection PyArgumentList
 def test_execute_questionnaire_no_interaction(run, qtbot):
     if os.path.exists("./tests/results/results_rm.csv"):
-        os.remove("./tests/results/results_rm.csv")
+        [os.remove('./tests/results/'+fil) for fil in os.listdir('./tests/results/')]
     assert run.Stack.count() == 1
 
     QTimer.singleShot(100, handle_dialog)
@@ -615,7 +615,7 @@ def test_execute_questionnaire_no_interaction(run, qtbot):
     assert results[3] == '[1, 2]'  # order
     assert re.match(r'\d+-\d+-\d+ \d+:\d+:\d+.\d+', results[4])  # timestamp
     assert re.match(r'\d+-\d+-\d+ \d+:\d+:\d+.\d+', results[5])  # timestamp
-    os.remove("./tests/results/results_rm.csv")
+    [os.remove('./tests/results/'+fil) for fil in os.listdir('./tests/results/')]
 
 
 # noinspection PyArgumentList
@@ -648,13 +648,13 @@ def test_execute_questionnaire_no_interaction_blocked(run, qtbot):
         assert results[3] == '[1, 2]'  # order
         assert re.match(r'\d+-\d+-\d+ \d+:\d+:\d+.\d+', results[4])  # timestamp
         assert re.match(r'\d+-\d+-\d+ \d+:\d+:\d+.\d+', results[5])  # timestamp
-        os.remove(res_file)
+        [os.remove('./tests/results/'+fil) for fil in os.listdir('./tests/results/')]
 
 
 # noinspection PyArgumentList
 def test_execute_questionnaire(run, qtbot):
     if os.path.exists("./tests/results/results_rm.csv"):
-        os.remove("./tests/results/results_rm.csv")
+        [os.remove('./tests/results/'+fil) for fil in os.listdir('./tests/results/')]
     assert run.Stack.count() == 1
     for child in run.Stack.currentWidget().children():
         if isinstance(child, RadioMatrix) or str(child.__class__)=="<class 'RadioMatrix.RadioMatrix'>":
@@ -677,7 +677,7 @@ def test_execute_questionnaire(run, qtbot):
     assert results[3] == '[1, 2]'  # order
     assert re.match(r'\d+-\d+-\d+ \d+:\d+:\d+.\d+', results[4])  # timestamp
     assert re.match(r'\d+-\d+-\d+ \d+:\d+:\d+.\d+', results[5])  # timestamp
-    os.remove("./tests/results/results_rm.csv")
+    [os.remove('./tests/results/'+fil) for fil in os.listdir('./tests/results/')]
 
 
 # noinspection PyArgumentList
@@ -714,13 +714,13 @@ def test_execute_questionnaire_blocked(run, qtbot):
         assert results[3] == '[1, 2]'  # order
         assert re.match(r'\d+-\d+-\d+ \d+:\d+:\d+.\d+', results[4])  # timestamp
         assert re.match(r'\d+-\d+-\d+ \d+:\d+:\d+.\d+', results[5])  # timestamp
-        os.remove(res_file)
+        [os.remove('./tests/results/'+fil) for fil in os.listdir('./tests/results/')]
 
 
 # noinspection PyArgumentList
 def test_two_pages(run_2, qtbot):
     if os.path.exists("./tests/results/results_rm.csv"):
-        os.remove("./tests/results/results_rm.csv")
+        [os.remove('./tests/results/'+fil) for fil in os.listdir('./tests/results/')]
     assert run_2.Stack.count() == 2
 
     QTest.mouseClick(run_2.forwardbutton, Qt.MouseButton.LeftButton)
@@ -753,13 +753,13 @@ def test_two_pages(run_2, qtbot):
     assert results[6] == '[1, 2]'  # order
     assert re.match(r'\d+-\d+-\d+ \d+:\d+:\d+.\d+', results[7])  # timestamp
     assert re.match(r'\d+-\d+-\d+ \d+:\d+:\d+.\d+', results[8])  # timestamp
-    os.remove("./tests/results/results_rm.csv")
+    [os.remove('./tests/results/'+fil) for fil in os.listdir('./tests/results/')]
 
 
 # noinspection PyArgumentList
 def test_randomize(gui_load_2, qtbot):
     if os.path.exists("./tests/results/results_rm.csv"):
-        os.remove("./tests/results/results_rm.csv")
+        [os.remove('./tests/results/'+fil) for fil in os.listdir('./tests/results/')]
 
     QTimer.singleShot(150, handle_dialog_error)
     error_found, warning_found, warning_details = validate_questionnaire(gui_load_2.structure)
@@ -832,7 +832,7 @@ def test_randomize(gui_load_2, qtbot):
     assert results[3] == results[6]  # order
     assert re.match(r'\d+-\d+-\d+ \d+:\d+:\d+.\d+', results[7])  # timestamp
     assert re.match(r'\d+-\d+-\d+ \d+:\d+:\d+.\d+', results[8])  # timestamp
-    os.remove("./tests/results/results_rm.csv")
+    [os.remove('./tests/results/'+fil) for fil in os.listdir('./tests/results/')]
 
     #  --set to False --
     QTimer.singleShot(150, handle_dialog_error)
@@ -908,5 +908,5 @@ def test_randomize(gui_load_2, qtbot):
     assert results[3] == results[6]  # order
     assert re.match(r'\d+-\d+-\d+ \d+:\d+:\d+.\d+', results[7])  # timestamp
     assert re.match(r'\d+-\d+-\d+ \d+:\d+:\d+.\d+', results[8])  # timestamp
-    os.remove("./tests/results/results_rm.csv")
+    [os.remove('./tests/results/'+fil) for fil in os.listdir('./tests/results/')]
     gui_load_2.close()
