@@ -41,4 +41,4 @@ mypy:
 test:
   stage: test
   script:
-    - pytest tests\ -sv
+    - pytest ${CI_PROJECT_DIR}\tests\ -sv
