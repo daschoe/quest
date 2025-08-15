@@ -7,6 +7,7 @@ stages:
 
 # Base template for Python jobs
 before_script:
+  - apt install libegl1
   - python --version
   - pip install -r requirements.txt
   - pip install pylint
@@ -34,4 +35,5 @@ build:
     - pyinstaller ${CI_PROJECT_DIR}/QUEST/Launcher.py --onefile --paths ${CI_PROJECT_DIR} 
   artifacts:
     paths:
+        - ls -R
         - ${CI_PROJECT_DIR}/dist/Launcher.exe
