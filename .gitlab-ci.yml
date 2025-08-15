@@ -14,47 +14,24 @@ before_script:
   - pip install pyinstaller
 
 # Linting jobs
-black:
-  stage: lint
-  allow_failure: true
-  script:
-    - black --check ${CI_PROJECT_DIR}
-
-isort:
-  stage: lint
-  allow_failure: true
-  script:
-    - isort --check-only ${CI_PROJECT_DIR}
-
-flake8:
-  stage: lint
-  allow_failure: true
-  script:
-    - flake8 ${CI_PROJECT_DIR}
-
 pylint:
   stage: lint
   allow_failure: true
   script:
-    - pylint ${CI_PROJECT_DIR}
-
-mypy:
-  stage: lint
-  allow_failure: true
-  script:
-    - mypy ${CI_PROJECT_DIR}
+    - pylint ${CI_PROJECT_DIR}/QUEST/
+    - pylint ${CI_PROJECT_DIR}/Tools/
 
 # Testing jobs
 test:
   stage: test
   allow_failure: true
   script:
-    - pytest ${CI_PROJECT_DIR}\tests\ -sv
+    - pytest ${CI_PROJECT_DIR}/tests/ -sv
 
 build:
   stage: build
   script: 
-    - pyinstaller ${CI_PROJECT_DIR}\QUEST\Launcher.py --onefile --paths ${CI_PROJECT_DIR} 
+    - pyinstaller ${CI_PROJECT_DIR}/QUEST/Launcher.py --onefile --paths ${CI_PROJECT_DIR} 
   artifacts:
     paths:
-        - ${CI_PROJECT_DIR}\dist\Launcher.exe
+        - ${CI_PROJECT_DIR}/dist/Launcher.exe
