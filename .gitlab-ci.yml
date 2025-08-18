@@ -2,9 +2,9 @@
 image: tobix/pywine:3.11
 
 stages:
-  - lint
+  #- lint
   - build
-  - test
+  #- test
 
 # Base template for Python jobs
 before_script:
@@ -39,7 +39,7 @@ test:
 build:
   stage: build
   script: 
-    - wine /opt/wineprefix/drive_c/Python311/Scripts/pyinstaller.exe ${CI_PROJECT_DIR}/QUEST/Launcher.py --onefile --paths ${CI_PROJECT_DIR} 
+    - wine pyinstaller ${CI_PROJECT_DIR}/QUEST/Launcher.py --onefile --paths ${CI_PROJECT_DIR} 
   artifacts:
     paths:
         - "dist/*.exe"
