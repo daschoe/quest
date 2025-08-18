@@ -35,8 +35,6 @@ test:
     - pytest ${CI_PROJECT_DIR}/tests/ -sv
 
 build:
-  extends:
-    - .shared_windows_runners
   stage: build
   script: 
     - pyinstaller ${CI_PROJECT_DIR}/QUEST/Launcher.py --onefile --paths ${CI_PROJECT_DIR} 
