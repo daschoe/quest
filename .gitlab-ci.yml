@@ -19,7 +19,7 @@ before_script:
   #- pip install keyboard
   #- pip install psutil
   - wine python -m pip install pyinstaller
-  - echo ${!CI_PROJECT_DIR}
+  #- echo ${CI_PROJECT_DIR}
 
 # Linting jobs
 pylint:
