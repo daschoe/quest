@@ -8,7 +8,7 @@ stages:
 # Base template for Python jobs
 before_script:
   - python --version
-  - apt-get update && apt-get install libgl1
+  #- apt-get update && apt-get install libgl1 -Y
   - pip install -r requirements.txt
   - pip install pylint
   - pip install pytest
