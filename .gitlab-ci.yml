@@ -6,25 +6,15 @@ stages:
   - release
 #  - test
 
-# Base template for Python jobs
-before_script:
-  - . /opt/mkuserwineprefix
-  - wine python --version
-  #- apt-get update && apt-get install libgl1 -Y
-  - wine python -m pip install -r requirements.txt
-  - wine python -m pip install pylint
-  - wine python -m pip install pytest
-  - wine python -m pip install pytest-cov
-  - wine python -m pip install pytest-qt
-  #- pip install keyboard
-  #- pip install psutil
-  - wine python -m pip install pyinstaller
-  #- echo ${CI_PROJECT_DIR}
-
 # Linting jobs
 pylint:
   stage: lint
   allow_failure: true
+  before_script:
+    - . /opt/mkuserwineprefix
+    - wine python --version
+    - wine python -m pip install -r requirements.txt
+    - wine python -m pip install pylint
   script:
     - wine python -m pylint ${CI_PROJECT_DIR}/QUEST/
     - wine python -m pylint ${CI_PROJECT_DIR}/Tools/
@@ -33,6 +23,14 @@ pylint:
 #test:
 #  stage: test
 #  allow_failure: true
+#  before_script:
+#  - . /opt/mkuserwineprefix
+#  - wine python --version
+#  - wine python -m pip install -r requirements.txt
+#  - wine python -m pip install pytest
+#  - wine python -m pip install pytest-cov
+#  - wine python -m pip install pytest-qt
+  #- echo ${CI_PROJECT_DIR}
 #  script:
 #    - wine python -m pytest ${CI_PROJECT_DIR}/tests/ -sv
 # - pytest --cov --cov-report term --cov-report xml:coverage.xml --junitxml=report.xml --cov-config=.coveragerc
@@ -49,6 +47,11 @@ pylint:
 
 build:
   stage: build
+  before_script:
+    - . /opt/mkuserwineprefix
+    - wine python --version
+    - wine python -m pip install -r requirements.txt
+    - wine python -m pip install pyinstaller
   script: 
     - wine pyinstaller ${CI_PROJECT_DIR}/QUEST/Launcher.py --onefile --paths ${CI_PROJECT_DIR}/QUEST 
     - echo "${CI_JOB_ID}" > CI_JOB_ID.txt # This way you know the job id in the next stage
