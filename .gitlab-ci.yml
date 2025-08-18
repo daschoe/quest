@@ -3,8 +3,8 @@ image: tobix/pywine:3.11
 
 stages:
   - lint
-  - test
   - build
+  - test
 
 # Base template for Python jobs
 before_script:
