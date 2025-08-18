@@ -1,4 +1,3 @@
-#image: python:3.11
 image: tobix/pywine:3.11
 
 stages:
@@ -22,7 +21,7 @@ before_script:
   - wine python -m pip install pyinstaller
   #- echo ${CI_PROJECT_DIR}
 
- Linting jobs
+# Linting jobs
 pylint:
   stage: lint
   allow_failure: true
