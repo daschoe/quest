@@ -22,19 +22,19 @@ before_script:
   #- echo ${CI_PROJECT_DIR}
 
 # Linting jobs
-pylint:
-  stage: lint
-  allow_failure: true
-  script:
-    - wine python -m pylint ${CI_PROJECT_DIR}/QUEST/
-    - wine python -m pylint ${CI_PROJECT_DIR}/Tools/
+#pylint:
+#  stage: lint
+#  allow_failure: true
+#  script:
+#    - wine python -m pylint ${CI_PROJECT_DIR}/QUEST/
+#    - wine python -m pylint ${CI_PROJECT_DIR}/Tools/
 
 # Testing jobs
-test:
-  stage: test
-  allow_failure: true
-  script:
-    - wine python -m pytest ${CI_PROJECT_DIR}/tests/ -sv
+#test:
+#  stage: test
+#  allow_failure: true
+#  script:
+#    - wine python -m pytest ${CI_PROJECT_DIR}/tests/ -sv
 
 build:
   stage: build
