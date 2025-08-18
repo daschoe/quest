@@ -146,14 +146,13 @@ class LabeledSlider(QtWidgets.QWidget):
                 bottom = self.rect().bottom() - int(self.rect().height() / 7)
                 if v == 0 and left < 0:
                     left = 0
-                
+
                 # enlarge margins if clipping
-                if self.bottom_margin < rect.height():
-                    self.bottom_margin = rect.height()
+                self.bottom_margin = max(rect.height(), self.bottom_margin)
 
                 if v == len(self.levels) - 1 and rect.width() // 2 > self.right_margin and left + rect.width() > available:
                     self.right_margin = rect.width() // 2
-                
+
                 self.layout.setContentsMargins(self.left_margin, self.top_margin, self.right_margin, self.bottom_margin)
 
             else:

@@ -109,16 +109,16 @@ class Page(QWidget):
                                 annotation=structure[quest]["annotation"] if "annotation" in structure[quest].keys() else None)
                 layout.addRow(button)
                 self.evaluationvars[structure[quest]["id"]] = button
-                self.required[structure[quest]["id"]] = [True if ("required" in structure[quest].keys()) and (
-                    structure[quest].as_bool("required")) else False, button.button, button.name, button.used]
+                self.required[structure[quest]["id"]] = [bool(("required" in structure[quest].keys()) and (
+                    structure[quest].as_bool("required"))), button.button, button.name, button.used]
             elif structure[quest]["type"] == "OSCButton":
                 oscbutton = OSCButton(structure[quest]["inscription"], structure[quest]["address"],
                                    structure[quest]["value"], self, structure[quest]["id"], structure[quest]["receiver"],
                                    objectname=structure[quest]["objectName"] if "objectName" in structure[quest].keys() else None)
                 layout.addRow(oscbutton)
                 self.evaluationvars[structure[quest]["id"]] = oscbutton
-                self.required[structure[quest]["id"]] = [True if ("required" in structure[quest].keys()) and (
-                    structure[quest].as_bool("required")) else False, oscbutton.button, oscbutton.name, oscbutton.used]
+                self.required[structure[quest]["id"]] = [bool(("required" in structure[quest].keys()) and (
+                    structure[quest].as_bool("required"))), oscbutton.button, oscbutton.name, oscbutton.used]
             elif structure[quest]["type"] == "Player":
                 player = Player(structure[quest].as_int("start_cue"), structure[quest]["track"], qid=structure[quest]["id"],
                                 video=structure[quest]["video"] if "video" in structure[quest].keys() else None,
@@ -133,8 +133,8 @@ class Page(QWidget):
                 layout.addRow(player)
                 self.evaluationvars[structure[quest]["id"]] = player.duration
                 self.players.append(player)
-                self.required[structure[quest]["id"]] = [True if ("required" in structure[quest].keys()) and (
-                    structure[quest].as_bool("required")) else False, player.play_button if "Play" in player.buttons else None, player.name, player.playing]
+                self.required[structure[quest]["id"]] = [bool(("required" in structure[quest].keys()) and (
+                    structure[quest].as_bool("required"))), player.play_button if "Play" in player.buttons else None, player.name, player.playing]
             elif structure[quest]["type"] == "MUSHRA":
                 if "xfade" in structure[quest].keys():
                     mr = MUSHRA(structure[quest]["start_cues"], structure[quest]["end_cues"], structure[quest]["track"],
@@ -243,7 +243,7 @@ class Page(QWidget):
         elif self.image_position == "bottom":
             layout.addRow(self.image)
             self.setLayout(layout)
-        elif self.image_position == "left" or self.image_position == "right":
+        elif self.image_position in ["left", "right"]:
             self.outer_layout = QHBoxLayout()
             if self.image_position == "left":
                 self.outer_layout.addWidget(self.image)
@@ -302,7 +302,7 @@ class Page(QWidget):
             the sender of the log
         """
         # print("Log raised", qid, type(sender))
-        if isinstance(sender, QLineEdit) or isinstance(sender, PasswordEntry):
+        if isinstance(sender, (QLineEdit, PasswordEntry)):
             self.page_log += f'\n\t{str(datetime.datetime.now().replace(microsecond=0))} - Changed {qid} to {sender.text()}'
         elif isinstance(sender, QPlainTextEdit):
             self.page_log += f'\n\t{str(datetime.datetime.now().replace(microsecond=0))} - Changed {qid} to {sender.toPlainText()}'

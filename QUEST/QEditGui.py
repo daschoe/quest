@@ -642,7 +642,7 @@ class EditGui(QWidget):
                         if field == "go_back":
                             val_field = QCheckBox("")
                             val_field.toggled.connect(self.update_val)
-                            val_field.setChecked(True if ((self.parent().structure[field] == "True") or (isinstance(self.parent().structure["go_back"], bool) and self.parent().structure["go_back"])) else False)
+                            val_field.setChecked(bool(((self.parent().structure[field] == "True") or (isinstance(self.parent().structure["go_back"], bool) and self.parent().structure["go_back"]))))
                         elif field == "save_message":
                             val_field = TextEdit(self.parent().structure[field] if field in self.parent().structure.keys() else "")
                             val_field.editingFinished.connect(self.edit_done)
@@ -793,7 +793,7 @@ class EditGui(QWidget):
                                         ip_field = QLineEdit(str(question_data["receiver"][0]) if "receiver" in question_data.keys() and len(question_data["receiver"]) > 0 else "")
                                         ip_field.setObjectName("rec_ip")
                                         ip_field.editingFinished.connect(self.edit_done)
-                                        
+
                                         port_lbl = QLabel("port:")
                                         port_field = QLineEdit(str(question_data["receiver"][1]) if "receiver" in question_data.keys() and len(question_data["receiver"]) > 0 else "")
                                         port_field.setObjectName("rec_port")
@@ -896,9 +896,9 @@ class EditGui(QWidget):
                                         for a in player_buttons:
                                             cb = QCheckBox(a)
                                             if field in question_data:
-                                                cb.setChecked(True if a in question_data[field] else False)
+                                                cb.setChecked(a in question_data[field])
                                             else:
-                                                cb.setChecked(True if a in default_values[field] else False)
+                                                cb.setChecked(a in default_values[field])
                                             val_field.addWidget(cb)
                                             bg.addButton(cb, player_buttons.index(a))
                                             bg.buttonClicked.connect(self.update_val)

@@ -74,5 +74,4 @@ def make_answers(labelled, qid, smin, smax, sstart=0, sstep=1, tiv=1, header=Non
         layout.addWidget(header_widget)
         layout.addWidget(slider)
         return layout, slider
-    else:
-        return slider, slider
+    return slider, slider

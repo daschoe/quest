@@ -18,6 +18,15 @@ class Button(QWidget):
     def __init__(self, inscription, function, parent, qid, recording_name=None, objectname=None, annotation=None):
         """
             Create a button and connect to its functionality.
+            Shortcuts:
+                'R'  # start recording with auto generated session name
+                'R rec_name'  # start recording named "rec_name"
+                'r'  # stop recording
+                'C'  # start currently selected calibration
+                'c'  # stop currently selected calibration
+                'T 1234.56'  # resets current Pupil time to given timestamp
+                't'  # get current Pupil time; returns a float as string.
+                'v'  # get the Pupil Core software version string
 
             Parameters
             ----------
@@ -79,16 +88,6 @@ class Button(QWidget):
             self.setLayout(layout)
         elif function == "Annotate":  # the only function that needs setup
             self.setup_annotate()
-        '''
-        'R'  # start recording with auto generated session name
-        'R rec_name'  # start recording named "rec_name"
-        'r'  # stop recording
-        'C'  # start currently selected calibration
-        'c'  # stop currently selected calibration
-        'T 1234.56'  # resets current Pupil time to given timestamp
-        't'  # get current Pupil time; returns a float as string.
-        'v'  # get the Pupil Core software version string
-        '''
 
     def __click_animation(self, btn):
         __btn = btn
