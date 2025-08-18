@@ -2,9 +2,10 @@
 image: tobix/pywine:3.11
 
 stages:
-  #- lint
+  - lint
   - build
-  #- test
+  - release
+#  - test
 
 # Base template for Python jobs
 before_script:
@@ -21,13 +22,13 @@ before_script:
   - wine python -m pip install pyinstaller
   #- echo ${CI_PROJECT_DIR}
 
-# Linting jobs
-#pylint:
-#  stage: lint
-#  allow_failure: true
-#  script:
-#    - wine python -m pylint ${CI_PROJECT_DIR}/QUEST/
-#    - wine python -m pylint ${CI_PROJECT_DIR}/Tools/
+ Linting jobs
+pylint:
+  stage: lint
+  allow_failure: true
+  script:
+    - wine python -m pylint ${CI_PROJECT_DIR}/QUEST/
+    - wine python -m pylint ${CI_PROJECT_DIR}/Tools/
 
 # Testing jobs
 #test:
@@ -35,11 +36,38 @@ before_script:
 #  allow_failure: true
 #  script:
 #    - wine python -m pytest ${CI_PROJECT_DIR}/tests/ -sv
+# - pytest --cov --cov-report term --cov-report xml:coverage.xml --junitxml=report.xml --cov-config=.coveragerc
+#  coverage: '/(?i)total.*? (100(?:\.0+)?\%|[1-9]?\d(?:\.\d+)?\%)$/'
+#  artifacts:
+#    when: always
+#    paths:
+#      - report.xml
+#    reports:
+#      junit: report.xml
+#      coverage_report:
+#        coverage_format: cobertura
+#        path: coverage.xml
 
 build:
   stage: build
   script: 
     - wine pyinstaller ${CI_PROJECT_DIR}/QUEST/Launcher.py --onefile --paths ${CI_PROJECT_DIR}/QUEST 
+    - echo "${CI_JOB_ID}" > CI_JOB_ID.txt # This way you know the job id in the next stage
   artifacts:
+    when: always
     paths:
-        - "dist/*.exe"
+      - "dist/*.exe"
+      - CI_JOB_ID.txt
+    expire_in: never
+
+release:
+  stage: release
+  needs:
+    - job: build
+  image: registry.gitlab.com/gitlab-org/release-cli:latest
+  script:
+    - |
+      release-cli create --name "Release $CI_COMMIT_TAG" --tag-name $CI_COMMIT_TAG \
+        --assets-link "{\"name\":\"Executable file\",\"url\":\"https://gitlab.com/some/repo/-/jobs/`cat CI_JOB_ID.txt`/artifacts/file/your_app.exe\"}"
+  rules:
+    - if: $CI_COMMIT_TAG
