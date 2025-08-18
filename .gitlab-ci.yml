@@ -9,16 +9,16 @@ stages:
 # Base template for Python jobs
 before_script:
   - . /opt/mkuserwineprefix
-  - wine /opt/wineprefix/drive_c/Python311/Python.exe --version
+  - wine python --version
   #- apt-get update && apt-get install libgl1 -Y
-  - wine /opt/wineprefix/drive_c/Python311/Python.exe -m pip install -r requirements.txt
-  - wine /opt/wineprefix/drive_c/Python311/Python.exe -m pip install pylint
-  - wine /opt/wineprefix/drive_c/Python311/Python.exe -m pip install pytest
-  - wine /opt/wineprefix/drive_c/Python311/Python.exe -m pip install pytest-cov
-  - wine /opt/wineprefix/drive_c/Python311/Python.exe -m pip install pytest-qt
+  - wine python -m pip install -r requirements.txt
+  - wine python -m pip install pylint
+  - wine python -m pip install pytest
+  - wine python -m pip install pytest-cov
+  - wine python -m pip install pytest-qt
   #- pip install keyboard
   #- pip install psutil
-  - wine /opt/wineprefix/drive_c/Python311/Python.exe -m pip install pyinstaller
+  - wine python -m pip install pyinstaller
   - echo ${!CI_PROJECT_DIR}
 
 # Linting jobs
@@ -26,15 +26,15 @@ pylint:
   stage: lint
   allow_failure: true
   script:
-    - wine /opt/wineprefix/drive_c/Python311/Python.exe -m pylint ${CI_PROJECT_DIR}/QUEST/
-    - wine /opt/wineprefix/drive_c/Python311/Python.exe -m pylint ${CI_PROJECT_DIR}/Tools/
+    - wine python -m pylint ${CI_PROJECT_DIR}/QUEST/
+    - wine python -m pylint ${CI_PROJECT_DIR}/Tools/
 
 # Testing jobs
 test:
   stage: test
   allow_failure: true
   script:
-    - wine /opt/wineprefix/drive_c/Python311/Python.exe -m pytest ${CI_PROJECT_DIR}/tests/ -sv
+    - wine python -m pytest ${CI_PROJECT_DIR}/tests/ -sv
 
 build:
   stage: build
