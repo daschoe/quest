@@ -39,7 +39,7 @@ before_script:
 build:
   stage: build
   script: 
-    - wine pyinstaller ${CI_PROJECT_DIR}/QUEST/Launcher.py --onefile --paths ${CI_PROJECT_DIR} 
+    - wine pyinstaller ${CI_PROJECT_DIR}/QUEST/Launcher.py --onefile --paths ${CI_PROJECT_DIR}/QUEST 
   artifacts:
     paths:
         - "dist/*.exe"
