@@ -70,6 +70,6 @@ release:
   script:
     - |
       release-cli create --name "Release $CI_COMMIT_TAG" --tag-name $CI_COMMIT_TAG \
-        --assets-link "{\"name\":\"Executable file\",\"url\":\"https://gitlab.com/some/repo/-/jobs/`cat CI_JOB_ID.txt`/artifacts/file/your_app.exe\"}"
+        --assets-link "{\"name\":\"Executable file\",\"url\":\"https://gitlab.uni-hannover.de/da.schoessow/quest/-/jobs/`cat CI_JOB_ID.txt`/artifacts/file/dist/Launcher.exe\"}"
   rules:
     - if: $CI_COMMIT_TAG
