@@ -9,16 +9,16 @@ stages:
 # Base template for Python jobs
 before_script:
   - . /opt/mkuserwineprefix
-  - wine /opt/wineprefix/drive_c/Python39/Python.exe --version
+  - wine /opt/wineprefix/drive_c/Python311/Python.exe --version
   #- apt-get update && apt-get install libgl1 -Y
-  - wine /opt/wineprefix/drive_c/Python39/Python.exe -m pip install -r requirements.txt
-  - wine /opt/wineprefix/drive_c/Python39/Python.exe -m pip install pylint
-  - wine /opt/wineprefix/drive_c/Python39/Python.exe -m pip install pytest
-  - wine /opt/wineprefix/drive_c/Python39/Python.exe -m pip install pytest-cov
-  - wine /opt/wineprefix/drive_c/Python39/Python.exe -m pip install pytest-qt
+  - wine /opt/wineprefix/drive_c/Python311/Python.exe -m pip install -r requirements.txt
+  - wine /opt/wineprefix/drive_c/Python311/Python.exe -m pip install pylint
+  - wine /opt/wineprefix/drive_c/Python311/Python.exe -m pip install pytest
+  - wine /opt/wineprefix/drive_c/Python311/Python.exe -m pip install pytest-cov
+  - wine /opt/wineprefix/drive_c/Python311/Python.exe -m pip install pytest-qt
   #- pip install keyboard
   #- pip install psutil
-  - wine /opt/wineprefix/drive_c/Python39/Python.exe -m pip install pyinstaller
+  - wine /opt/wineprefix/drive_c/Python311/Python.exe -m pip install pyinstaller
   - echo ${!CI_PROJECT_DIR}
 
 # Linting jobs
@@ -26,20 +26,20 @@ pylint:
   stage: lint
   allow_failure: true
   script:
-    - wine /opt/wineprefix/drive_c/Python39/Python.exe -m pylint ${CI_PROJECT_DIR}/QUEST/
-    - wine /opt/wineprefix/drive_c/Python39/Python.exe -m pylint ${CI_PROJECT_DIR}/Tools/
+    - wine /opt/wineprefix/drive_c/Python311/Python.exe -m pylint ${CI_PROJECT_DIR}/QUEST/
+    - wine /opt/wineprefix/drive_c/Python311/Python.exe -m pylint ${CI_PROJECT_DIR}/Tools/
 
 # Testing jobs
 test:
   stage: test
   allow_failure: true
   script:
-    - wine /opt/wineprefix/drive_c/Python39/Python.exe -m pytest ${CI_PROJECT_DIR}/tests/ -sv
+    - wine /opt/wineprefix/drive_c/Python311/Python.exe -m pytest ${CI_PROJECT_DIR}/tests/ -sv
 
 build:
   stage: build
   script: 
-    - wine /opt/wineprefix/drive_c/Python39/Scripts/pyinstaller.exe ${CI_PROJECT_DIR}/QUEST/Launcher.py --onefile --paths ${CI_PROJECT_DIR} 
+    - wine /opt/wineprefix/drive_c/Python311/Scripts/pyinstaller.exe ${CI_PROJECT_DIR}/QUEST/Launcher.py --onefile --paths ${CI_PROJECT_DIR} 
   artifacts:
     paths:
         - "dist/*.exe"
