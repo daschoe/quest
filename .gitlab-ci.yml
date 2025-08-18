@@ -17,7 +17,7 @@ before_script:
   #- pip install keyboard
   #- pip install psutil
   - pip install pyinstaller
-  #- echo ${!CI_PROJECT_DIR}
+  - echo ${!CI_PROJECT_DIR}
 
 # Linting jobs
 pylint:
@@ -35,9 +35,11 @@ test:
     - pytest ${CI_PROJECT_DIR}/tests/ -sv
 
 build:
+  extends:
+    - .shared_windows_runners
   stage: build
   script: 
     - pyinstaller ${CI_PROJECT_DIR}/QUEST/Launcher.py --onefile --paths ${CI_PROJECT_DIR} 
   artifacts:
     paths:
-        - dist/Launcher.exe
+        - dist/*.exe
