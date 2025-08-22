@@ -190,8 +190,7 @@ class Tree(QTreeWidget):
         text, ok = QInputDialog.getText(self, "Rename question", "Rename the moved question (the name already existed):", QLineEdit.Normal)
         if not ok:
             return None, ok
-        else:
-            for ch in children:
-                if text == ch.text(0):
-                    text, ok = self.rename_question(children)
-            return text, ok
+        for ch in children:
+            if text == ch.text(0):
+                text, ok = self.rename_question(children)
+        return text, ok

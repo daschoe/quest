@@ -109,8 +109,7 @@ class StackedWindowGui(QWidget):
 
         if not os.path.isfile(file):
             raise FileNotFoundError(f"File {file} does not exist.")
-        else:
-            print(f"Loading {file}")
+        print(f"Loading {file}")
 
         structure = ConfigObj(file)  # reads the config file into a nested dict, this is all the magic
         error_found, warning_found, warning_det = validate_questionnaire(listify(structure), True)
@@ -284,10 +283,9 @@ class StackedWindowGui(QWidget):
 
                     if not os.path.isfile(stylesheet):
                         raise FileNotFoundError(f"File {stylesheet} does not exist.")
-                    else:
-                        with open(stylesheet, 'r') as css_file:
-                            self.css_data = css_file.read().replace('\n', '')
-                        self.setStyleSheet(self.css_data)  # no need to catch errors as if nonesense is set a default fallback is used internally
+                    with open(stylesheet, 'r') as css_file:
+                        self.css_data = css_file.read().replace('\n', '')
+                    self.setStyleSheet(self.css_data)  # no need to catch errors as if nonesense is set a default fallback is used internally
 
                     self.prev_index = 0
                     self.saved = False
@@ -527,7 +525,7 @@ class StackedWindowGui(QWidget):
                         child.widget().toggled.disconnect()
                     if isinstance(child.widget(), QPushButton):
                         child.widget().clicked.disconnect()
-                    
+
                 except TypeError:
                     pass
             if child.layout() is not None:
@@ -897,9 +895,9 @@ class StackedWindowGui(QWidget):
         # remove any emojis
         self.log = re.sub(emoji_pattern, '', self.log)
 
-        log_file = open(self.filepath_log, 'w')
-        log_file.write(self.log)
-        log_file.close()
+        with open(self.filepath_log, 'w') as log_file:
+            log_file.write(self.log)
+            log_file.close()
 
         path = self.filepath_results.rsplit("/", 1)
         if not os.path.exists(self.filepath_results):

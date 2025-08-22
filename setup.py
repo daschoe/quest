@@ -7,7 +7,7 @@ with open("README.md", 'r') as f:
 
 setup(
     name='QUEST',
-    version='1.1.0',
+    version='1.1.1',
     description='An easy solution to create graphical user interfaces for offline questionnaires without programming knowledge.',
     license="GNU GPLv3",
     long_description=long_description,
@@ -29,17 +29,6 @@ setup(
        'build': ['numpy', 'SoundFile']
     },
 
-    # install_requires=[
-    #   'ping3',
-    #   'python_osc',
-    #   'configobj',
-    #   'fpdf',
-    #   'msgpack_python',
-    #   'PySide6',
-    #   'pyzmq',
-    #   'timeloop',
-    # ],
-
-    python_requires='>=3.8'
+    python_requires='>=3.11'
 )
 

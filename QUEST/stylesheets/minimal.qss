@@ -1,0 +1,134 @@
+QLabel, QLineEdit, QPlainTextEdit, QCheckBox, QRadioButton, QHLine {
+    margin-top: 15px;
+    margin-bottom: 15px;
+}
+
+QLabel, QPushButton, QCheckBox, QRadioButton, QLineEdit, QPlainTextEdit, QMessageBox, Slider, LabeledSlider, PasswordEntry {
+    font-family: "Times";
+    font-size: 12pt;
+}
+
+QLabel#headline {
+    font-size: 14pt;
+    font-weight: bold;
+}
+
+QLabel#required, QPushButton#required, PasswordEntry#required {
+    color: red;
+}
+
+QLabel#image {
+    padding: 0;
+    margin: 0;
+}
+
+QLabel#SliderHeader {
+    margin: 0px;
+    padding: 0px;
+}
+
+QLabel#MatrixHeader {
+    margin: 0 0 0px;
+    margin-left: 85px;
+}
+
+QCheckBox::indicator:unchecked{
+    background-color: #ffffff;
+    border: 1px solid #7a7a7a;
+}
+
+QCheckBox::indicator:checked{
+    background-color: #e1e1e1;
+    border: 1px solid #7a7a7a;
+}
+
+QRadioButton::indicator:unchecked{
+    background-color: #ffffff;
+    border: 1px solid #7a7a7a;
+    border-radius: 18px; /*height/2+1*/
+}
+
+QRadioButton::indicator:checked{
+    background-color: #e1e1e1;
+    border: 1px solid #7a7a7a;
+    border-radius: 18px;
+}
+
+QRadioButton::indicator, QCheckBox::indicator {
+    width: 35px;
+    height: 35px;
+}
+QCheckBox::indicator:hover, QRadioButton::indicator:hover{
+    border-color: #0078d7;
+}
+
+QCheckBox::indicator:pressed, QRadioButton::indicator:pressed{
+    border-color: #005499;
+}
+
+QRadioButton{
+	padding-left: 35px;
+	padding-right: 70px;
+    margin-bottom: 5px;
+}
+
+QRadioButton#RadioMatrixLeft{
+    padding-left: 100px;
+    margin-bottom: 5px;
+}
+
+QRadioButton#RadioMatrixRight{
+	padding-left: 35px;
+    margin-bottom: 5px;
+}
+
+Slider:horizontal, LabeledSlider:horizontal  {
+    min-height: 50px;
+    /*min-width: auto;*/
+    margin-bottom: 5px;
+    margin-top: 5px;
+    color: #7a7a7a;
+}
+
+Slider:vertical{
+    min-width: 50px;
+    margin-left: 5px;
+    margin-bottom: 5px;
+    margin-right: 5px;
+    color: #7a7a7a;
+}
+Slider::groove, LabeledSlider::groove, QSlider::groove {
+    border: 1px solid #7a7a7a;
+    border-radius: 4px;
+    background: #ffffff;
+}
+Slider::handle, LabeledSlider::handle, QSlider::handle{
+    border: 1px solid #7a7a7a;
+    border-radius: 4px;
+    background: #e1e1e1;
+    margin: 0px;
+    height: 40px;
+    width: 40px;
+}
+Slider::groove:disabled, Slider::handle:disabled{
+    background: #cccccc;
+    border-color: #bfbfbf;
+}
+Slider::handle:hover {
+    border-color: #0078d7;
+    background: #cce4f7;
+}
+Slider::handle:pressed {
+    border-color: #005499;
+    background: #8aafd4;
+}
+Slider::groove:vertical, LabeledSlider::groove:vertical, QSlider::groove:vertical  {
+    margin: 0px 40px;
+    width: 40px;
+}
+Slider::groove:horizontal, LabeledSlider::groove:horizontal, QSlider::groove:horizontal {
+    /*margin: 40px 0px;*/
+    margin-bottom: 0px;
+    margin-top: 0px;
+    height: 40px;
+}

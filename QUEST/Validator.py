@@ -158,7 +158,7 @@ def listify(structure, status=None, status_duration=None):
                             elif not sublist:
                                 labels.append(lblc.strip(" '[]").strip('"'))
                         else:
-                            if isinstance(lblc, list) or isinstance(lblc, tuple):
+                            if isinstance(lblc, (list, tuple)):
                                 if len(lblc) == 2:
                                     labels.append([float(lblc[0]), lblc[1]])
                                 else:
@@ -287,28 +287,27 @@ def string_to_list(string):
     """
     if string.find(',') == -1:  # single string
         return [string.strip('[] ')]
-    else:
-        result = []
-        string = string.strip('[] ')
-        while len(string) > 0:
-            string = string.strip(' ')
-            if string.startswith('"'):
-                next_quote = string.find('"', 1)
-                result.append(string[1:next_quote])
-                string = string[next_quote + 2:]
-            elif string.startswith("'"):
-                next_quote = string.find("'", 1)
-                result.append(string[1:next_quote])
-                string = string[next_quote + 2:]
+    result = []
+    string = string.strip('[] ')
+    while len(string) > 0:
+        string = string.strip(' ')
+        if string.startswith('"'):
+            next_quote = string.find('"', 1)
+            result.append(string[1:next_quote])
+            string = string[next_quote + 2:]
+        elif string.startswith("'"):
+            next_quote = string.find("'", 1)
+            result.append(string[1:next_quote])
+            string = string[next_quote + 2:]
+        else:
+            next_comma = string.find(',')
+            if next_comma == -1:
+                result.append(string)
+                string = ''
             else:
-                next_comma = string.find(',')
-                if next_comma == -1:
-                    result.append(string)
-                    string = ''
-                else:
-                    result.append(string[0:next_comma])
-                string = string[next_comma + 1:]
-        return result
+                result.append(string[0:next_comma])
+            string = string[next_comma + 1:]
+    return result
 
 
 def validate_questionnaire(structure, suppress=False):
@@ -1036,7 +1035,7 @@ def validate_questionnaire(structure, suppress=False):
                         elif isinstance(structure[page][quest]["buttons"], str):
                             if structure[page][quest]["buttons"] not in player_buttons:
                                 raise ValueError
-                            elif "Play" != structure[page][quest]["buttons"]:
+                            if "Play" != structure[page][quest]["buttons"]:
                                 warning_found = True
                                 warning_details.append(f'No Play button is displayed for the player in question "{quest}" on page "{page}". It will play when this page is loaded.\n')
                         else:
@@ -1120,7 +1119,7 @@ def validate_questionnaire(structure, suppress=False):
                         for sc in structure[page][quest]["start_cues"]:
                             if int(sc) != int(structure[page][quest]["start_cues"][0]):
                                 all_same_marker = False
-                        if "end_cues" not in structure[page][quest].keys(): 
+                        if "end_cues" not in structure[page][quest].keys():
                             error_found = True
                             error_details.append(f'No end cues were given for question "{quest}" on page "{page}".\n')
                         else:

@@ -223,10 +223,9 @@ class Slider(QSlider):
             if int(self.step) != float(self.step):  # float step size
                 value = round(value, str(self.step)[::-1].find('.'))
             return value if int(self.step) != float(self.step) else int(value)
-        else:
-            value = self._min + super(Slider, self).value() * self.step  # super(Slider, self).value() #TODO float?TODO TODO TODO FALSCH!!!
-            # print("new value", value)
-            return value if int(self.step) != float(self.step) else int(value)
+        value = self._min + super(Slider, self).value() * self.step  # super(Slider, self).value() #TODO float?TODO TODO TODO FALSCH!!!
+        # print("new value", value)
+        return value if int(self.step) != float(self.step) else int(value)
 
     def get_moved(self):
         """ Return whether the slider has been touched by the user.
@@ -307,7 +306,7 @@ class Slider(QSlider):
         self.setSingleStep(1)
         self.setTickPosition(tickpos)
         self.sid = sid
-        
+
         if hasattr(self.parent(), "page_log"):  # awkward workaround to reference "Page"
             sheet = self.parent().parent().styleSheet()
             sheet = sheet[sheet.find("Slider::groove"):]

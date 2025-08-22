@@ -62,11 +62,10 @@ class PasswordEntry(QLineEdit):
             self.setToolTip("Invalid password.")
             self.setObjectName("required")
             return False
-        elif (len(self.text()) == 0) and (len(self.passwords) > 0) and (not self.text() in self.passwords):
+        if (len(self.text()) == 0) and (len(self.passwords) > 0) and (not self.text() in self.passwords):
             return False
-        elif (len(self.text()) == 0) and (len(self.passwords) > 0) and ('' in self.passwords):
+        if (len(self.text()) == 0) and (len(self.passwords) > 0) and ('' in self.passwords):
             return True
-        else:
-            self.setToolTip("")
-            self.setObjectName(self.name if self.name is not None else "")
-            return True
+        self.setToolTip("")
+        self.setObjectName(self.name if self.name is not None else "")
+        return True
